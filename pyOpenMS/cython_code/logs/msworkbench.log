@@ -1,0 +1,20 @@
+2011-09-26 12:20:16,683 - 4260 - DEBUG - this is internal
+2011-09-26 12:20:36,165 - 4260 - DEBUG - replace function <function dialog_for at 0x00D8DBF0> in <module 'spyderlib.widgets.objecteditor' from 'c:\Dokumente und Einstellungen\Administrator\Eigene Dateien\msExpert\spyderlib\widgets\objecteditor.pyc'> with <function dialog_for at 0x081D92B0>
+2011-09-26 12:20:36,196 - 4260 - DEBUG - replace method <unbound method RemoteDictEditorTableView.oedit_possible> in <class 'spyderlib.widgets.dicteditor.RemoteDictEditorTableView'> with <function oedit_possible at 0x081D9370>
+2011-09-26 12:20:36,196 - 4260 - DEBUG - add <function is_peakmap at 0x081D93F0> to <class 'spyderlib.widgets.externalshell.namespacebrowser.NamespaceBrowser'>
+2011-09-26 12:20:36,196 - 4260 - DEBUG - add <function is_table at 0x081D9430> to <class 'spyderlib.widgets.externalshell.namespacebrowser.NamespaceBrowser'>
+2011-09-26 12:20:36,196 - 4260 - DEBUG - add <function is_featureTable at 0x081D9470> to <class 'spyderlib.widgets.externalshell.namespacebrowser.NamespaceBrowser'>
+2011-09-26 12:20:36,196 - 4260 - DEBUG - replace method <unbound method NamespaceBrowser.setup> in <class 'spyderlib.widgets.externalshell.namespacebrowser.NamespaceBrowser'> with <function setup at 0x081D94B0>
+2011-09-26 12:20:36,196 - 4260 - DEBUG - add <function get_remote_view_settings at 0x081D9530> to <class 'spyderlib.widgets.externalshell.namespacebrowser.NamespaceBrowser'>
+2011-09-26 12:20:36,196 - 4260 - DEBUG - add <function get_view_settings at 0x081D9570> to <class 'spyderlib.widgets.externalshell.namespacebrowser.NamespaceBrowser'>
+2011-09-26 12:20:36,196 - 4260 - DEBUG - replace method <unbound method NamespaceBrowser.import_data> in <class 'spyderlib.widgets.externalshell.namespacebrowser.NamespaceBrowser'> with <function import_data at 0x081D95B0>
+2011-09-26 12:27:53,954 - 5848 - DEBUG - this is internal
+2011-09-26 12:28:13,003 - 5848 - DEBUG - replace function <function dialog_for at 0x00D8DBF0> in <module 'spyderlib.widgets.objecteditor' from 'c:\Dokumente und Einstellungen\Administrator\Eigene Dateien\msExpert\spyderlib\widgets\objecteditor.pyc'> with <function dialog_for at 0x081D92B0>
+2011-09-26 12:28:13,003 - 5848 - DEBUG - replace method <unbound method RemoteDictEditorTableView.oedit_possible> in <class 'spyderlib.widgets.dicteditor.RemoteDictEditorTableView'> with <function oedit_possible at 0x081D9370>
+2011-09-26 12:28:13,003 - 5848 - DEBUG - add <function is_peakmap at 0x081D93F0> to <class 'spyderlib.widgets.externalshell.namespacebrowser.NamespaceBrowser'>
+2011-09-26 12:28:13,003 - 5848 - DEBUG - add <function is_table at 0x081D9430> to <class 'spyderlib.widgets.externalshell.namespacebrowser.NamespaceBrowser'>
+2011-09-26 12:28:13,003 - 5848 - DEBUG - add <function is_featureTable at 0x081D9470> to <class 'spyderlib.widgets.externalshell.namespacebrowser.NamespaceBrowser'>
+2011-09-26 12:28:13,003 - 5848 - DEBUG - replace method <unbound method NamespaceBrowser.setup> in <class 'spyderlib.widgets.externalshell.namespacebrowser.NamespaceBrowser'> with <function setup at 0x081D94B0>
+2011-09-26 12:28:13,003 - 5848 - DEBUG - add <function get_remote_view_settings at 0x081D9530> to <class 'spyderlib.widgets.externalshell.namespacebrowser.NamespaceBrowser'>
+2011-09-26 12:28:13,003 - 5848 - DEBUG - add <function get_view_settings at 0x081D9570> to <class 'spyderlib.widgets.externalshell.namespacebrowser.NamespaceBrowser'>
+2011-09-26 12:28:13,003 - 5848 - DEBUG - replace method <unbound method NamespaceBrowser.import_data> in <class 'spyderlib.widgets.externalshell.namespacebrowser.NamespaceBrowser'> with <function import_data at 0x081D95B0>

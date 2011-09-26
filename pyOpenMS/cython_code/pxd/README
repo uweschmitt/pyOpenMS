@@ -1,0 +1,11 @@
+
+pxd files declare the signature of used C++ classes/methods and C functions.
+In most cases it is a rewrite of parts of header files in cython syntax.
+
+The first line is a 
+
+   cdef extern from "xyz.h" namespace abc
+
+which tells Cython which header file to include in the generated c++ code
+and which namespace to use when calling the methods declared in the
+following lines of the pxd file.
