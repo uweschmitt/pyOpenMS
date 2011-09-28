@@ -2,7 +2,7 @@
 from MSExperiment  cimport *
 from ChromatogramPeak cimport *
 from Peak1D cimport *
-from string cimport *
+from libcpp.string cimport *
 
 cdef extern from "<OpenMS/FORMAT/MzMLFile.h>" namespace "OpenMS":
 

@@ -1,269 +1,275 @@
-from pxd.Peak1D       cimport *
-from pxd.MSExperiment cimport *
-from pxd.MSSpectrum   cimport *
-from pxd.MzXMLFile    cimport *
-from pxd.MzMLFile     cimport *
-from pxd.MzDataFile   cimport *
-from pxd.ChromatogramTools cimport *
-from pxd.InstrumentSettings cimport *
-
+from pxd.ChromatogramPeak cimport ChromatogramPeak
+from pxd.ChromatogramTools cimport ChromatogramTools
+from pxd.InstrumentSettings cimport InstrumentSettings
+from pxd.IonSource cimport Polarity
+from pxd.MSExperiment cimport MSExperiment
+from pxd.MSSpectrum cimport MSSpectrum
+from pxd.MzDataFile cimport MzDataFile
+from pxd.MzMLFile cimport MzMLFile
+from pxd.MzXMLFile cimport MzXMLFile
+from pxd.Peak1D cimport Peak1D
+from pxd.Polarity cimport Polarity
+from pxd.Precursor cimport Precursor
+from pxd.string cimport string
+from pxd.string cimport string
 from libcpp.vector cimport *
-
-
-
-cdef class PyMSSpectrum:
-
-    cdef MSSpectrum[Peak1D] * inst
-
+from cython.operator cimport address as addr, dereference as deref
+cdef class Py_Peak1D:
+    cdef _Peak1D  * inst 
     def __cinit__(self):
-        self.inst = new MSSpectrum[Peak1D]()
-
+        self.inst = new _Peak1D()
     def __dealloc__(self):
         del self.inst
-
-    cdef replaceInstance(self, MSSpectrum[Peak1D] * inst):
-        if self.inst != NULL:
-            del self.inst
+    cdef replaceInstance(self, _Peak1D * inst):
+        if self.inst:
+              del self.inst
         self.inst = inst
+    def getMZ (self):
+        _result = self.inst.getMZ() 
+        return _result
 
-    def size(self):
-        return self.inst.size()
+    def getIntensity (self):
+        _result = self.inst.getIntensity() 
+        return _result
 
-    def getRT(self):
-        return self.inst.getRT()
+    def setMZ (self, _double a):
+        self.inst.setMZ(a) 
+        return self
+    def setIntensity (self, _double a):
+        self.inst.setIntensity(a) 
+        return self
+cdef class Py_Precursor:
+    cdef _Precursor  * inst 
+    def __cinit__(self):
+        self.inst = new _Precursor()
+    def __dealloc__(self):
+        del self.inst
+    cdef replaceInstance(self, _Precursor * inst):
+        if self.inst:
+              del self.inst
+        self.inst = inst
+    def getMZ (self):
+        _result = self.inst.getMZ() 
+        return _result
 
-    def setRT(self, double rt):
-        self.inst.setRT(rt)
+    def getIntensity (self):
+        _result = self.inst.getIntensity() 
+        return _result
 
-    def setMSLevel(self, unsigned int level):
-        self.inst.setMSLevel(level)
-        
-    def getMSLevel(self):
-        return self.inst.getMSLevel()
+    def setMZ (self, _double a):
+        self.inst.setMZ(a) 
+        return self
+    def setIntensity (self, _double a):
+        self.inst.setIntensity(a) 
+        return self
+cdef class Py_MSSpectrum:
+    cdef _MSSpectrum[_Peak1D]  * inst 
+    def __cinit__(self):
+        self.inst = new _MSSpectrum[_Peak1D]()
+    def __dealloc__(self):
+        del self.inst
+    cdef replaceInstance(self, _MSSpectrum[_Peak1D] * inst):
+        if self.inst:
+              del self.inst
+        self.inst = inst
+    def getRT (self):
+        _result = self.inst.getRT() 
+        return _result
 
-    def getName(self):
-        cdef string name = self.inst.getName()
-        return name.c_str()
+    def setRT (self, _double a):
+        self.inst.setRT(a) 
+        return self
+    def getMSLevel (self):
+        _result = self.inst.getMSLevel() 
+        return _result
 
-    def __getitem__(self, int i):
-        if i<0: i+= self.size()
-        if i<0:
-                raise Exception("invalid index")
-        cdef Peak1D a = deref(self.inst)[i]
-        cdef PyPeak1D  res = PyPeak1D()
-        res.replaceInstance(new Peak1D(a))
+    def setMSLevel (self, _int a):
+        self.inst.setMSLevel(a) 
+        return self
+    def getName (self):
+        _result = self.inst.getName() 
+        return _result.c_str()
+
+    def setName (self, char * a):
+        cdef string * a_as_str = new string(a)
+        self.inst.setName(deref(a_as_str)) 
+        del a_as_str
+        return self
+    def size (self):
+        _result = self.inst.size() 
+        return _result
+
+    def __getitem__(self, int idx):
+        cdef _PeakT res = deref(self.inst)[idx]
         return res
 
-    def getInstrumentSettings(self):
-        cdef PyInstrumentSettings  res = PyInstrumentSettings()
-        res.replaceInstance(new InstrumentSettings(self.inst.getInstrumentSettings()))
-        return res
+    def updateRanges (self):
+        self.inst.updateRanges() 
+        return self
+    def getInstrumentSettings (self):
+        _result = self.inst.getInstrumentSettings() 
+        _result_py = InstrumentSettings()
+        _result_py.replaceInstance(new _InstrumentSettings(_result))
+        return _result_py
 
-    def getPrecursors(self):
-        cdef vector[Precursor] precursors = self.inst.getPrecursors()
-        cdef list rv = list()
-        cdef Precursor * pc
-        for i in range(precursors.size()):
-              pc = new Precursor(precursors.at(i))
-              pypc = PyPrecursor()
-              pypc.replaceInstance(pc)
-              rv.append(pypc)
+    def findNearest (self, _double a):
+        _result = self.inst.findNearest(a) 
+        return _result
+
+    def getPrecursors (self):
+        _result = self.inst.getPrecursors() 
+        rv = list()
+        for i in range(_result.size()):
+            res = Precursor()
+            res.replaceInstance(new _Precursor(_result.at(i)))
+            rv.append(res)
         return rv
-            
-        
-    
 
+    def setPrecursors (self,  a):
+        cdef _vector[_Precursor] * a_as_vec = new _vector[_Precursor]()
+        cdef Precursor v000
+        for v000 in a:
+            deref(a_as_vec).push_back(deref(v000.inst))
+        self.inst.setPrecursors(deref(a_as_vec)) 
+        del a_as_vec
+        return self
+    def getNativeID (self):
+        _result = self.inst.getNativeID() 
+        return _result.c_str()
 
-cdef class PyMSExperiment:
-
-    cdef MSExperiment[Peak1D, ChromatogramPeak] * inst
-
+    def setNativeID (self, char * a):
+        cdef string * a_as_str = new string(a)
+        self.inst.setNativeID(deref(a_as_str)) 
+        del a_as_str
+        return self
+cdef class Py_MSExperiment:
+    cdef _MSExperiment[_Peak1D,_ChromatogramPeak]  * inst 
     def __cinit__(self):
-        self.inst = new MSExperiment[Peak1D, ChromatogramPeak]()
-
-    def __dealloc__(self):
-        if self.inst != NULL:
-            del self.inst
-
-    def __dealloc__(self):
-        del self.inst
-
-    def getMinMZ(self):
-        return self.inst.getMinMZ()
-
-    def sortSpectra(self, int b0):
-        self.inst.sortSpectra(b0)
-
-    def __getitem__(self, int i):
-        if i<0: i+= self.size()
-        if i<0:
-                raise Exception("invalid index")
-
-        cdef MSSpectrum[Peak1D] a= deref(self.inst)[i]
-        cdef PyMSSpectrum  res = PyMSSpectrum()
-        res.replaceInstance(new MSSpectrum[Peak1D](a))      
-        return res
-
-    def size(self):
-        return self.inst.size()
-
-
-
-cdef class PyMzXMLFile:
-
-    cdef MzXMLFile * inst
-
-    def __cinit__(self):
-        self.inst = new MzXMLFile()
-
-    def load(self, char * path, PyMSExperiment experiment):
-        cdef string * s_path = new string(path) 
-        self.inst.load(deref(s_path), deref(experiment.inst))
-        del s_path
-
-    def store(self, char* path, PyMSExperiment experiment):
-        cdef string * s_path = new string(path) 
-        self.inst.store(deref(s_path), deref(experiment.inst))
-        del s_path
-        
-
-cdef class PyMzMLFile:
-
-    cdef MzMLFile * inst
-
-    def __cinit__(self):
-        self.inst = new MzMLFile()
-
-    def load(self, char * path, PyMSExperiment experiment):
-        cdef string * s_path = new string(path) 
-        self.inst.load(deref(s_path), deref(experiment.inst))
-        del s_path
-
-    def store(self, char* path, PyMSExperiment experiment):
-        cdef string * s_path = new string(path) 
-        self.inst.store(deref(s_path), deref(experiment.inst))
-        del s_path
-
-cdef class PyMzDataFile:
-
-    cdef MzDataFile * inst
-
-    def __cinit__(self):
-        self.inst = new MzDataFile()
-
-    def load(self, char * path, PyMSExperiment experiment):
-        cdef string * s_path = new string(path) 
-        self.inst.load(deref(s_path), deref(experiment.inst))
-        del s_path
-
-    def store(self, char* path, PyMSExperiment experiment):
-        cdef string * s_path = new string(path) 
-        self.inst.store(deref(s_path), deref(experiment.inst))
-        del s_path
-
-cdef class PyChromatogramTools:
-
-    cdef ChromatogramTools * inst
-
-    def __cinit__(self):
-        self.inst = new ChromatogramTools()
-
-    def convertChromatogramsToSpectra(self, PyMSExperiment exp):
-        self.inst.convertChromatogramsToSpectra(deref(exp.inst))
-
-    def convertSpectraToChromatograms(self, PyMSExperiment exp, int remove):
-        self.inst.convertSpectraToChromatograms(deref(exp.inst) , remove)
-
-
-cdef class PyPolarity:
-
-    cdef int p
-
-    def __cinit__(self, int pp):
-        self.p = pp
-
-    def toString(self):
-        return { 0 : "POLNULL",
-                 1 : "POSITIVE",
-                 2 : "NEGATIVE",
-                 3 : "SIZE_OF_POLARITY"}[<long>self.p]
-
-    def toInt(self):
-        return self.p
-        
-
-cdef class PyPrecursor:
-
-    cdef Precursor * inst
-
-    def __cinit__(self):
-        self.inst = new Precursor()
-        
-
+        self.inst = new _MSExperiment[_Peak1D,_ChromatogramPeak]()
     def __dealloc__(self):
         del self.inst
-
-    cdef replaceInstance(self, Precursor * inst):
-        del self.inst
+    cdef replaceInstance(self, _MSExperiment[_Peak1D,_ChromatogramPeak] * inst):
+        if self.inst:
+              del self.inst
         self.inst = inst
+    def getMinMZ (self):
+        _result = self.inst.getMinMZ() 
+        return _result
 
-    def getMZ(self):
-        return self.inst.getMZ()
+    def getMaxMZ (self):
+        _result = self.inst.getMaxMZ() 
+        return _result
 
-    def getIntensity(self):
-        return self.inst.getIntensity()
+    def getMinRT (self):
+        _result = self.inst.getMinRT() 
+        return _result
 
-    def setMZ(self, double mz):
-        self.inst.setMZ(mz)
+    def getMaxRT (self):
+        _result = self.inst.getMaxRT() 
+        return _result
 
-    def setIntensity(self, double I):
-        self.inst.setIntensity(I)
+    def sortSpectra (self, _int a):
+        self.inst.sortSpectra(a) 
+        return self
+    def size (self):
+        _result = self.inst.size() 
+        return _result
 
-cdef class PyPeak1D:
+    def __getitem__(self, int idx):
+        cdef Py__MSSpectrum[_PeakT] res = deref(self.inst)[idx]
+        res_py = MSSpectrum()
+        res_py.replaceInstance(new _MSSpectrum[_PeakT](res))
+        return res_py
 
-    cdef Peak1D * inst
-
+    def updateRanges (self):
+        self.inst.updateRanges() 
+        return self
+    def push_back (self, _MSSpectrum[_PeakT] a):
+        self.inst.push_back(a) 
+        return self
+cdef class Py_InstrumentSettings:
+    cdef _InstrumentSettings  * inst 
     def __cinit__(self):
-        self.inst = new Peak1D()
-        
-
+        self.inst = new _InstrumentSettings()
     def __dealloc__(self):
         del self.inst
-
-    cdef replaceInstance(self, Peak1D * inst):
-        del self.inst
+    cdef replaceInstance(self, _InstrumentSettings * inst):
+        if self.inst:
+              del self.inst
         self.inst = inst
-
-    def getMZ(self):
-        return self.inst.getMZ()
-
-    def getIntensity(self):
-        return self.inst.getIntensity()
-
-    def setMZ(self, double mz):
-        self.inst.setMZ(mz)
-
-    def setIntensity(self, double I):
-        self.inst.setIntensity(I)
-
-cdef class PyInstrumentSettings:
-
-    cdef InstrumentSettings * inst
-
+cdef class Py_MzXMLFile:
+    cdef _MzXMLFile  * inst 
     def __cinit__(self):
-        self.inst = new InstrumentSettings()
-
+        self.inst = new _MzXMLFile()
     def __dealloc__(self):
         del self.inst
-
-    cdef replaceInstance(self, InstrumentSettings * inst):
-        del self.inst
+    cdef replaceInstance(self, _MzXMLFile * inst):
+        if self.inst:
+              del self.inst
         self.inst = inst
-
-    def getPolarity(self):
-        return PyPolarity(self.inst.getPolarity())
-
-    def setPolarity(self, int p):
-        self.inst.setPolarity(<Polarity>p)
-        return self.inst.getPolarity()
-    
+    def load (self, char * a, _MSExperiment[_Peak1D,_ChromatogramPeak] b):
+        cdef string * a_as_str = new string(a)
+        self.inst.load(deref(a_as_str), b) 
+        del a_as_str
+        return self
+    def store (self, char * a, _MSExperiment[_Peak1D,_ChromatogramPeak] b):
+        cdef string * a_as_str = new string(a)
+        self.inst.store(deref(a_as_str), b) 
+        del a_as_str
+        return self
+cdef class Py_MzMLFile:
+    cdef _MzMLFile  * inst 
+    def __cinit__(self):
+        self.inst = new _MzMLFile()
+    def __dealloc__(self):
+        del self.inst
+    cdef replaceInstance(self, _MzMLFile * inst):
+        if self.inst:
+              del self.inst
+        self.inst = inst
+    def load (self, char * a, _MSExperiment[_Peak1D,_ChromatogramPeak] b):
+        cdef string * a_as_str = new string(a)
+        self.inst.load(deref(a_as_str), b) 
+        del a_as_str
+        return self
+    def store (self, char * a, _MSExperiment[_Peak1D,_ChromatogramPeak] b):
+        cdef string * a_as_str = new string(a)
+        self.inst.store(deref(a_as_str), b) 
+        del a_as_str
+        return self
+cdef class Py_MzDataFile:
+    cdef _MzDataFile  * inst 
+    def __cinit__(self):
+        self.inst = new _MzDataFile()
+    def __dealloc__(self):
+        del self.inst
+    cdef replaceInstance(self, _MzDataFile * inst):
+        if self.inst:
+              del self.inst
+        self.inst = inst
+    def load (self, char * a, _MSExperiment[_Peak1D,_ChromatogramPeak] b):
+        cdef string * a_as_str = new string(a)
+        self.inst.load(deref(a_as_str), b) 
+        del a_as_str
+        return self
+    def store (self, char * a, _MSExperiment[_Peak1D,_ChromatogramPeak] b):
+        cdef string * a_as_str = new string(a)
+        self.inst.store(deref(a_as_str), b) 
+        del a_as_str
+        return self
+cdef class Py_ChromatogramTools:
+    cdef _ChromatogramTools  * inst 
+    def __cinit__(self):
+        self.inst = new _ChromatogramTools()
+    def __dealloc__(self):
+        del self.inst
+    cdef replaceInstance(self, _ChromatogramTools * inst):
+        if self.inst:
+              del self.inst
+        self.inst = inst
+    def convertChromatogramsToSpectra (self, _MSExperiment[_Peak1D,_ChromatogramPeak] epx):
+        self.inst.convertChromatogramsToSpectra(epx) 
+        return self
+    def convertSpectraToChromatograms (self, _MSExperiment[_Peak1D,_ChromatogramPeak] epx, _int remove_spectra):
+        self.inst.convertSpectraToChromatograms(epx, remove_spectra) 
+        return self
