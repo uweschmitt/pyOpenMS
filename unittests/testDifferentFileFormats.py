@@ -10,6 +10,9 @@ def show_mem(label):
     print (label+" ").ljust(30, "."), ": %8.2f MB" % p
     sys.stdout.flush()
 
+def availablePhysicalMemory():
+    return win32api.GlobalMemoryStatus()['AvailPhys']
+
 
 class TestLoadAndStoreInDifferentFileFormats(unittest.TestCase):
 
@@ -17,16 +20,17 @@ class TestLoadAndStoreInDifferentFileFormats(unittest.TestCase):
 
         print
         print
+        mem_at_start = availablePhysicalMemory()
         show_mem("start")
         
-        p = pyOpenMS.PyMzXMLFile()
-        e = pyOpenMS.PyMSExperiment()
+        p = pyOpenMS.MzXMLFile()
+        e = pyOpenMS.MSExperiment()
 
         p.load("test.mzXML", e)
         self.check(e)
         show_mem("after load mzXML")
 
-        ct = pyOpenMS.PyChromatogramTools()
+        ct = pyOpenMS.ChromatogramTools()
         ct.convertChromatogramsToSpectra(e)
         p.store("test.mzXML", e)
         show_mem("after store mzXML")
@@ -35,7 +39,7 @@ class TestLoadAndStoreInDifferentFileFormats(unittest.TestCase):
         self.check(e)
         show_mem("after load mzXML")
 
-        p = pyOpenMS.PyMzMLFile()
+        p = pyOpenMS.MzMLFile()
         ct.convertSpectraToChromatograms(e, True)
         p.store("test.mzML", e)
         show_mem("after store mzML")
@@ -43,7 +47,7 @@ class TestLoadAndStoreInDifferentFileFormats(unittest.TestCase):
         self.check(e)
         show_mem("after load mzML")
 
-        p = pyOpenMS.PyMzDataFile()
+        p = pyOpenMS.MzDataFile()
         ct.convertChromatogramsToSpectra(e)
         p.store("test.mzData", e)
         show_mem("after store mzData")
@@ -55,6 +59,8 @@ class TestLoadAndStoreInDifferentFileFormats(unittest.TestCase):
         del p
         del ct
         show_mem("after cleanup")
+
+        missing = mem_at_start-availablePhysicalMemory()
 
     def check(self, e):
         assert e.size() == 2884

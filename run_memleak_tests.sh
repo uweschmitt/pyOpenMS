@@ -1,2 +1,2 @@
 #!/bin/sh
-nosetests -s -w memoryleaktests/
+nosetests -s -w memoryleaktests/ $*

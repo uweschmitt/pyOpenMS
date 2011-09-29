@@ -1,0 +1,1 @@
+@nosetests -s -w memoryleaktests/ %*

@@ -4,7 +4,7 @@ import pyOpenMS
 class TestPyMSExperiment(unittest.TestCase):
 
     def test_inst(self):
-        p = pyOpenMS.PyMSExperiment()
+        p = pyOpenMS.MSExperiment()
         assert  p.size() == 0
         p.getMinMZ()
         p.sortSpectra(True)

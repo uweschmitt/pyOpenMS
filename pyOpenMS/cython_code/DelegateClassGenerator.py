@@ -20,10 +20,10 @@ class Code(object):
         self.lines.append(line)
         return self
 
-    def print_(self, indent=0, out=sys.stdout):
+    def write(self, out, indent=0):
         for l in self.lines:
             if isinstance(l, tuple):
-                Code.print_(l[0], indent+l[1], out)
+                Code.write(l[0], out, indent+l[1])
             else:
                 print >> out, "%s%s" % (indent*"    ", l)
         return self
@@ -34,6 +34,7 @@ class Generator(object):
     def __init__(self):
         self.classes_to_wrap = dict()
         self.cimports = []
+        self.enums = set()
 
     def parse_all(self, sourcelist):
 
@@ -51,11 +52,16 @@ class Generator(object):
             if p.wrap:
                 self.classes_to_wrap[p.name] = p
 
+            if p.type_.is_enum:
+                self.enums.add(p.type_.basetype)
+
     def generate_code_for(self, className):
         c = Code()
         obj = self.classes_to_wrap[className]
         if isinstance(obj, CPPClass):
             c.addCode(self.generate_code_for_class(obj), indent=0)
+        elif isinstance(obj, Enum):
+            c.addCode(self.generate_code_for_enum(obj), indent=0)
 
         return c
 
@@ -64,11 +70,17 @@ class Generator(object):
         c+= "from libcpp.vector cimport *"
         c+= "from libcpp.string cimport *"
         c+= "from cython.operator cimport address as addr, dereference as deref"
-
         for statement in self.cimports:
             c+= statement
         return c
 
+    def generate_code_for_enum(self, enum):
+        c = Code()
+        c+="cdef class %s:         " % enum.python_repr
+        for name, value in enum.items:
+            c+="    %s=%d" % (name, value) 
+        return c
+  
     def generate_code_for_class(self, clz):
         c = Code()
         c+= "cdef class %s:                     " % clz.python_repr
@@ -86,7 +98,6 @@ class Generator(object):
             if method.name == clz.name: 
                 continue 
             c.addCode(self.generate_code_for_method(clz, method), indent=1)
-
         return c
 
     def input_conversion(self, clz, argpos, py_argname, type_):
@@ -122,12 +133,16 @@ class Generator(object):
             # nothing to do
             return cpp_repr(type_), co, py_argname, cl
 
+        if type_.basetype in self.enums:
+            return "int", co, "<%s>%s" % (cython_repr(type_), py_argname), cl
+
         if type_.basetype in self.classes_to_wrap:
             return python_repr(type_), co, "deref(%s.inst)" %py_argname, cl
 
         if type_.basetype == "bool":
             # cython has no bool, so bool -> int
             return "int", co, py_argname, cl
+
 
         if type_.basetype == "string":
             # cython method declares char * which is how python strings can
@@ -146,7 +161,7 @@ class Generator(object):
             targ = type_.template_args[0]
             loopvar = "_v%03d" % argpos
             cid = cython_repr(type_)
-            pid = python_repr(type_)
+            pid = python_repr(targ)
              
             # iterate over the python input and build temp vector.
             if targ.basetype in self.classes_to_wrap:
@@ -200,6 +215,9 @@ class Generator(object):
             if result_type.is_ptr:
                 raise Exception("can not handel return type %r" % cid)
             return Code("return %s.c_str()" %result_name)
+
+        if result_type.basetype in self.enums:
+            return Code("return <int>%s" %result_name)
 
         if result_type.basetype in self.classes_to_wrap:
             if result_type.is_ptr:
@@ -278,7 +296,11 @@ class Generator(object):
             input_conversion.addCode(conversion_code, indent = 0)
             conversion_cleanup.addCode(cleanup_code,  indent = 0)
 
-        return input_conversion, conversion_cleanup, python_args, call_args
+        py_signature = ", ".join(python_args)
+        cpp_call_signature = ", ".join(call_args)
+
+        return input_conversion, conversion_cleanup, py_signature,\
+               cpp_call_signature
 
     def generate_code_for_method(self, clz, method):
 
@@ -286,22 +308,23 @@ class Generator(object):
         if method.name.startswith("operator"):
             return self.generate_code_for_operator(clz, method)
 
-        inp_conversion, conv_cleanup, python_args, call_args = \
+        inp_conversion, conv_cleanup, py_sig, cpp_call_sig = \
             self.collect_input_conversion_stuff(clz, method)
 
-        inputsig = ", ".join(python_args)
-        callsig  = ", ".join(call_args)
         name = method.name
 
         # declare function
         c = Code()
-        c+="def %(name)s (%(inputsig)s):   " % locals()
+        c+="def %(name)s (%(py_sig)s):   " % locals()
 
         # perform input conversiond
         c.addCode(inp_conversion, indent=1)
 
         # call c++ method
-        c+="    _result = self.inst.%(name)s(%(callsig)s) " % locals()
+        if method.result_type.basetype == "void":
+            c+="    self.inst.%(name)s(%(cpp_call_sig)s)          " % locals()
+        else:
+            c+="    _result = self.inst.%(name)s(%(cpp_call_sig)s)" % locals()
 
         # cleanup temp variables from input conversion
         c.addCode(conv_cleanup, indent=1)
@@ -316,16 +339,3 @@ class Generator(object):
         return c
     
 
-if __name__ == "__main__":
-    import sys
-    g = Generator()
-    g.parse_all(sys.argv[1:])
-
-    c = Code()
-    c.addCode(g.generate_import_statements(), indent=0)
-    for clz_name in ["Peak1D", "Precursor", "MSSpectrum", "MSExperiment",
-                    "InstrumentSettings", "ChromatogramTools", 
-                    "MzXMLFile", "MzMLFile", "MzDataFile" ]:
-
-       c.addCode(g.generate_code_for(clz_name), indent=0)
-    c.print_() 

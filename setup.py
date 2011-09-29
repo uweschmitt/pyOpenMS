@@ -12,14 +12,30 @@ OPEN_MS_BUILD_DIR="e:/OpenMS-1.8_BUILD"
 OPEN_MS_CONTRIB_BUILD_DIR=r"e:\OpenMS-1.8\contrib_build"
 QT_HOME_DEVEL = r"C:\QtSDK\Desktop\Qt\4.7.3\msvc2008"
 
+MSVC_REDIST=r"C:\Programme\Microsoft Visual Studio 9.0\VC\redist\x86\Microsoft.VC90.CRT"
+MSVCRDLL   ="msvcr90.dll"
+
+
 ###################################### ADAPT END #######
 
+j=os.path.join
 
 # package data must not be external, so copy here
-if not os.path.exists("share"):
-    shutil.copytree(j(OPEN_MS_SRC, "share"), "share")
+local_share_dir = j("pyOpenMS", "share")
+if not os.path.exists(local_share_dir):
+    shutil.copytree(j(OPEN_MS_SRC, "share"), local_share_dir)
 
-j=os.path.join
+if not os.path.exists(j("pyOpenMS", MSVCRDLL)):
+    shutil.copy(j(MSCV_REDIST, MSVCRDLL), "pyOpenMS")
+
+
+if not os.path.exists(j("pyOpenMS", "OpenMS.dll")):
+    shutil.copy(j(OPEN_MS_BUILD_DIR, "bin", "OpenMS.dll"), "pyOpenMS")
+
+if not os.path.exists(j("pyOpenMS", "xerces-c_3_0.dll")):
+    shutil.copy(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib", "xerces-c_3_0.dll"), \
+                "pyOpenMS")
+
 libraries=["OpenMS", "xerces-c_3", "QtCore4", "gsl",
                     "cblas",
           ]
@@ -28,7 +44,8 @@ library_dirs=[OPEN_MS_BUILD_DIR,
               j(OPEN_MS_CONTRIB_BUILD_DIR,"lib"),
               j(QT_HOME_DEVEL,"lib") ]
 
-import numpy.core
+
+import numpy
 include_dirs=[
               j(QT_HOME_DEVEL, "include"),
               j(QT_HOME_DEVEL, "include", "QtCore"),
@@ -55,19 +72,22 @@ ext = Extension(
     )
 
 
-
+# share_data paths have to be relative to pyOpenMS not to ".",
+# see the parameters when calling setup() below.
+# so we have to strip a leading "pyOpenMS" in root:
 share_data = []
-
-for root, _, files in os.walk(j(".", "share")):
+for root, _, files in os.walk(local_share_dir):
+    fields = root.split(os.path.sep)
+    if fields[0]=="pyOpenMS": 
+        fields = fields[1:]
+    root = os.path.sep.join(fields)
     for f in files:
         share_data.append(j(root, f))
-
 
 setup(
 
   name = "pyOpenMS",
   packages = ["pyOpenMS"],
-  #package_dir = { "pyOpenMS" : "." },
   ext_package = "pyOpenMS",
 
   version="0.1",
@@ -78,7 +98,7 @@ setup(
   ext_modules = [ext ],
 
   package_data={ "pyOpenMS": 
-                      [ "OpenMS.dll", "msvcr90.dll", "xerces-c_3_0.dll"] 
+                      [ "OpenMS.dll", MSVCRDLL, "xerces-c_3_0.dll"] 
                       + share_data }
                ,
 )
