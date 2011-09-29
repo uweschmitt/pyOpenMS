@@ -1,0 +1,48 @@
+one iteration is:
+
+  - adapt files in pyOpenMS/cython_code
+
+  - adapt unittests and maybe memoryleaktests
+
+  - run in this directory:
+
+    1) generate_code_and_cythonize.bat
+
+    2) python setup.py build_ext --inplace
+
+    3) run_unittests_with_installed_pyopenms.bat
+
+    4) maybe: run_memleak_tests.bat
+
+about the code generator:
+
+    the generator parses .pxd files. that are cython files
+    which describe the signatures of used classes and their
+    methods.
+
+    the generator then builds cython code for python classes,
+    the methods of these classes delegate to the corresponding
+    c++ methods and perform type conversions for input arguments
+    and the return value.
+    
+    if you add an #ignore comment to a class or method in a .pxd
+    file the class or method will be ignored by the code generator
+
+    for template classes you want to wrap you have to specify a comment
+    #inst=<A,...> at the end of "cppclass .." line in the .pxd file.
+    this describes the classes for instatiating the class.
+    at the moment this only works for one instantiation.
+
+    the generated cython code is in pyOpenMS/_pyOpenMS.pyx
+
+    if you want to extend the code generator:
+
+      - PXDAnalyzer.py should be able to parse all pxd statements
+        unless nested declarations (as inner ::iterator types).
+
+      - Most probably you have to extend the conversion functions
+        in DelegateClassGenerator.py
+
+
+        
+    
