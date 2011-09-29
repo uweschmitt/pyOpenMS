@@ -3,7 +3,7 @@ import pyOpenMS
 
 class TestExperimentsAndSpecsAndPeaks(unittest.TestCase):
 
-    def test_inst(self):
+    def test_000(self):
         p = pyOpenMS.MzXMLFile()
         e = pyOpenMS.MSExperiment()
         p.load("test.mzXML", e)

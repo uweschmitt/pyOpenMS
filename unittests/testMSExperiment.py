@@ -3,7 +3,7 @@ import pyOpenMS
 
 class TestPyMSExperiment(unittest.TestCase):
 
-    def test_inst(self):
+    def test_000(self):
         p = pyOpenMS.MSExperiment()
         assert  p.size() == 0
         p.getMinMZ()
