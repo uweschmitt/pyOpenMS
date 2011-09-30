@@ -2,6 +2,7 @@
 
 from distutils.core import setup, Extension
 import glob, os, shutil
+import sys
 
 
 # ADAPT THESE LINES ! ##################################
@@ -11,6 +12,8 @@ OPEN_MS_SRC = "e:/OpenMS-1.8/"
 OPEN_MS_BUILD_DIR="e:/OpenMS-1.8_BUILD"
 OPEN_MS_CONTRIB_BUILD_DIR=r"e:\OpenMS-1.8\contrib_build"
 QT_HOME_DEVEL = r"C:\QtSDK\Desktop\Qt\4.7.3\msvc2008"
+
+# ONLY ON WINDOWS: IF NOT WINDOWS: LET IT AS IT IS
 
 MSVC_REDIST=r"C:\Programme\Microsoft Visual Studio 9.0\VC\redist\x86\Microsoft.VC90.CRT"
 MSVCRDLL   ="msvcr90.dll"
@@ -25,20 +28,36 @@ local_share_dir = j("pyOpenMS", "share")
 if not os.path.exists(local_share_dir):
     shutil.copytree(j(OPEN_MS_SRC, "share"), local_share_dir)
 
-if not os.path.exists(j("pyOpenMS", MSVCRDLL)):
-    shutil.copy(j(MSCV_REDIST, MSVCRDLL), "pyOpenMS")
+iswin = False
 
+if sys.platform == "win32":
+    iswin = True
 
-if not os.path.exists(j("pyOpenMS", "OpenMS.dll")):
-    shutil.copy(j(OPEN_MS_BUILD_DIR, "bin", "OpenMS.dll"), "pyOpenMS")
+    if not os.path.exists(j("pyOpenMS", MSVCRDLL)):
+        shutil.copy(j(MSCV_REDIST, MSVCRDLL), "pyOpenMS")
 
-if not os.path.exists(j("pyOpenMS", "xerces-c_3_0.dll")):
-    shutil.copy(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib", "xerces-c_3_0.dll"), \
-                "pyOpenMS")
+    if not os.path.exists(j("pyOpenMS", "OpenMS.dll")):
+        shutil.copy(j(OPEN_MS_BUILD_DIR, "bin", "OpenMS.dll"), "pyOpenMS")
 
-libraries=["OpenMS", "xerces-c_3", "QtCore4", "gsl",
-                    "cblas",
-          ]
+    if not os.path.exists(j("pyOpenMS", "xerces-c_3_0.dll")):
+        shutil.copy(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib", "xerces-c_3_0.dll"), \
+                    "pyOpenMS")
+
+    libraries=["OpenMS", "xerces-c_3", "QtCore4", "gsl",
+                        "cblas",
+              ]
+
+elif sys.platform == "linux2":
+
+    libraries=["OpenMS", "xerces-c", "QtCore", "gsl",
+                        "gslcblas",
+              ]
+
+else:
+    print
+    print "platform ", sys.platform, "not supported yet"
+    print
+    exit()
 
 library_dirs=[OPEN_MS_BUILD_DIR, 
               j(OPEN_MS_CONTRIB_BUILD_DIR,"lib"),
@@ -47,6 +66,8 @@ library_dirs=[OPEN_MS_BUILD_DIR,
 
 import numpy
 include_dirs=[
+              QT_HOME_DEVEL,                  # for linux
+              j(QT_HOME_DEVEL, "QtCore"),     # for linux
               j(QT_HOME_DEVEL, "include"),
               j(QT_HOME_DEVEL, "include", "QtCore"),
               j(OPEN_MS_CONTRIB_BUILD_DIR, "include"),
@@ -67,7 +88,7 @@ ext = Extension(
         # set BOOST_NO_EXCEPTION in <boost/config/compiler/visualc.hpp>
         # such that  boost::throw_excption() is declared but not implemented.
         # The linker does not like that very much ...
-        extra_compile_args = [ "/EHs"]  
+        extra_compile_args = iswin and [ "/EHs"] or []
      
     )
 
@@ -84,6 +105,9 @@ for root, _, files in os.walk(local_share_dir):
     for f in files:
         share_data.append(j(root, f))
 
+if iswin:
+    share_data +=[ "OpenMS.dll", MSVCRDLL, "xerces-c_3_0.dll"] 
+
 setup(
 
   name = "pyOpenMS",
@@ -96,9 +120,7 @@ setup(
   author_email="uschmitt@mineway.de",
 
   ext_modules = [ext ],
-
-  package_data={ "pyOpenMS": 
-                      [ "OpenMS.dll", MSVCRDLL, "xerces-c_3_0.dll"] 
-                      + share_data }
+ 
+  package_data={ "pyOpenMS": share_data }
                ,
 )

@@ -1,12 +1,12 @@
 import sys
 import unittest
 import pyOpenMS
+from   pyOpenMS.sysinfo import free_mem
 
-import helpers.sysinfo
 
 def show_mem(label):
 
-    p = helpers.sysinfo.free_mem()
+    p = free_mem()
     p /= 1024.0 * 1024
     print (label+" ").ljust(30, "."), ": %8.2f MB" % p
     sys.stdout.flush()
@@ -15,10 +15,10 @@ def show_mem(label):
 class MemTester(object):
 
     def __enter__(self):
-        self.mem_at_start = helpers.sysinfo.free_mem()
+        self.mem_at_start = free_mem()
 
     def __exit__(self, *a, **kw):
-        missing = helpers.sysinfo.free_mem() - self.mem_at_start
+        missing = free_mem() - self.mem_at_start
         assert missing < 0.1* self.mem_at_start, "possible mem leak"
 
 class TestAll(unittest.TestCase):

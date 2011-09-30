@@ -1,11 +1,11 @@
 import unittest, sys
 import pyOpenMS
+from   pyOpenMS.sysinfo import free_mem
 
-import helpers.sysinfo
 
 def show_mem(label):
 
-    p = helpers.sysinfo.free_mem()
+    p = free_mem()
     p /= 1024.0 * 1024
     print (label+" ").ljust(30, "."), ": %8.2f MB" % p
     sys.stdout.flush()
