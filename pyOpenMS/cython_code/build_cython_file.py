@@ -1,3 +1,4 @@
+#encoding: utf-8
 from DelegateClassGenerator import Generator, Code
 if __name__ == "__main__":
 

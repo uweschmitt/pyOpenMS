@@ -1,3 +1,4 @@
+#encoding: utf-8
 from Cython.Compiler.CmdLine import parse_command_line
 from Cython.Compiler.Main import create_default_resultobj, CompilationSource
 from Cython.Compiler import Pipeline
@@ -7,16 +8,15 @@ from Cython.Compiler.ExprNodes import *
 
 from Types import *
 
-import re, os
+import re
+import os
 
 
 def has(node, lines, what):
-    """ look for 'what' in comment according to 'node'. 
+    """ look for 'what' in comment according to 'node'.
         'lines' are the line of the file """
-    parts = lines[node.pos[1]-1].split("#")
-    return  len(parts)>1 and what in parts[1]
-
-
+    parts = lines[node.pos[1] - 1].split("#")
+    return  len(parts) > 1 and what in parts[1]
 
 
 class Enum(object):
@@ -25,7 +25,7 @@ class Enum(object):
         self.name = node.name
         self.items = []
         self.line_number = node.pos[1]
-        self.file_name   = node.pos[0].filename
+        self.file_name = node.pos[0].filename
         self.wrap = has(node, lines, "wrap")
 
         current_value = 0
@@ -40,7 +40,7 @@ class Enum(object):
 
     def __str__(self):
         res = "enum %s : " % self.name
-        res += ", ".join("%s: %d" % (i, v) for (i,v) in self.items )
+        res += ", ".join("%s: %d" % (i, v) for (i, v) in self.items)
         return res
 
 
@@ -51,28 +51,27 @@ class CPPClass(object):
     #    - make factory from __init__
     #    - return individual classes
     #    - further todo: individual Python names for distinct instances
-    #      (maybe via comment:  inst PyClassOne=<B,C> 
-
+    #      (maybe via comment:  inst PyClassOne=<B,C>
 
     def __init__(self, node, lines):
         self.name = node.name
         self.line_number = node.pos[1]
-        self.file_name   = node.pos[0].filename
+        self.file_name = node.pos[0].filename
         self.wrap = has(node, lines, "wrap")
 
-        self.instances = dict() # maps template args to instantiation types
+        self.instances = dict()  # maps template args to instantiation types
 
         targs = None
         if node.templates is not None:
             # parse comment
-            m = re.search("inst\W*=\W*<(.*)>", lines[self.line_number-1])
+            m = re.search("inst\W*=\W*<(.*)>", lines[self.line_number - 1])
             if self.wrap and not m:
                 raise Exception("need inst=<A,..> arg for template class")
             instargs = m.group(1).split(",")
             # template nesting not supported:
-            ttargs=None
-            targs = [ Type(t.strip(), False, False, ttargs) for t in instargs ]
-            self.instances = dict( zip(node.templates, targs) )
+            ttargs = None
+            targs = [Type(t.strip(), False, False, ttargs) for t in instargs]
+            self.instances = dict(zip(node.templates, targs))
 
         self.type_ = Type(self.name, False, False, targs)
         self.cpp_repr = cpp_repr(self.type_)
@@ -87,12 +86,11 @@ class CPPClass(object):
 
     def __str__(self):
         rv = ["class %s: " % cpp_repr(self.type_)]
-        rv += ["     "+str(method) for method in self.methods]
+        rv += ["     " + str(method) for method in self.methods]
         return "\n".join(rv)
-        
 
 
-def parse_type(base_type, decl, instances): 
+def parse_type(base_type, decl, instances):
     """ extracts type information from node in parse tree """
     targs = None
     if isinstance(base_type, TemplatedTypeNode):
@@ -108,30 +106,30 @@ def parse_type(base_type, decl, instances):
             elif isinstance(arg, NameNode):
                 name = arg.name
                 targs.append(instances.get(name, Type(name)))
-            else:   
-                raise Exception("%s,%d: can not handle template arg of type %r"\
+            else:
+                raise Exception("%s,%d: can not handle template arg %r"\
                                 % (self.file_name, self.line_number, arg))
-             
+
         base_type = base_type.base_type_node
 
     is_ptr = isinstance(decl, CPtrDeclaratorNode)
     is_ref = isinstance(decl, CReferenceDeclaratorNode)
-    return instances.get(base_type.name, Type(base_type.name, is_ptr, 
+    return instances.get(base_type.name, Type(base_type.name, is_ptr,
                                               is_ref, targs))
-    
+
 
 class CPPMethod(object):
-    
+
     def __init__(self, node, lines, instances):
-  
+
         self.line_number = node.pos[1]
-        self.file_name   = node.pos[0].filename
+        self.file_name = node.pos[0].filename
 
         decl = node.declarators[0]
         self.result_type = parse_type(node.base_type, decl, instances)
-        
+
         if isinstance(decl.base, CFuncDeclaratorNode):
-           decl = decl.base
+            decl = decl.base
 
         self.name = decl.base.name
         self.args = []
@@ -142,14 +140,14 @@ class CPPMethod(object):
                 argname = argdecl.base.name
             else:
                 argname = argdecl.name
-            self.args.append((argname, 
+            self.args.append((argname,
                               parse_type(arg.base_type, argdecl, instances)))
 
     def __str__(self):
         rv = cpp_repr(self.result_type)
         rv += " " + self.name
-        argl = [ cpp_repr(type_)+" "+str(name) for name, type_ in self.args ]
-        return rv + "("+ ", ".join(argl) + ")"
+        argl = [cpp_repr(type_) + " " + str(name) for name, type_ in self.args]
+        return rv + "(" + ", ".join(argl) + ")"
 
 
 def parse(path):
@@ -163,12 +161,12 @@ def parse(path):
     name, ext = os.path.splitext(basename)
 
     source_desc = FileSourceDescriptor(path, basename)
-    source = CompilationSource(source_desc, name , os.getcwd())
+    source = CompilationSource(source_desc, name, os.getcwd())
     result = create_default_resultobj(source, options)
 
     context = options.create_context()
     pipeline = Pipeline.create_pyx_pipeline(context, options, result)
-    tree = pipeline[0](source) # only parser
+    tree = pipeline[0](source)  # only parser
 
     if hasattr(tree.body, "stats"):
         for s in tree.body.stats:

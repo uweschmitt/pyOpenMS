@@ -35,12 +35,13 @@ about the code generator:
 
     --> see pyOpenMS\cython_code\pxd\MSExperiment.pxd
 
+    the script build_cython_file.py stirs the code generation process
 
     the generated cython code is in pyOpenMS/_pyOpenMS.pyx
 
     if you want to extend the code generator:
 
-      - PXDAnalyzer.py should be able to parse all pxd statements
+      - PXDParser.py should be able to parse all pxd statements
         unless nested declarations (as inner ::iterator types).
 
       - Most probably you have to extend the conversion functions
