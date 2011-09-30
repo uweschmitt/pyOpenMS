@@ -10,7 +10,7 @@ one iteration is:
 
     2) python setup.py build_ext --inplace
 
-    3) run_unittests_with_installed_pyopenms.bat
+    3) run_unittests_with_local_pyopenms.bat
 
     4) maybe: run_memleak_tests.bat
 
