@@ -17,7 +17,7 @@ one iteration is:
 about the code generator:
 
     the generator parses .pxd files. that are cython files
-    which describe the signatures of used classes and their
+    which describe the signatures of used c++ classes and their
     methods.
 
     the generator then builds cython code for python classes,
@@ -28,10 +28,13 @@ about the code generator:
     if you add an #ignore comment to a class or method in a .pxd
     file the class or method will be ignored by the code generator
 
-    for template classes you want to wrap you have to specify a comment
+    for template classes you have to specify a comment
     #inst=<A,...> at the end of "cppclass .." line in the .pxd file.
     this describes the classes for instatiating the class.
     at the moment this only works for one instantiation.
+
+    --> see pyOpenMS\cython_code\pxd\MSExperiment.pxd
+
 
     the generated cython code is in pyOpenMS/_pyOpenMS.pyx
 
