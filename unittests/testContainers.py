@@ -1,4 +1,5 @@
 import unittest
+import numpy as np
 import pyOpenMS
 
 class TestExperimentsAndSpecsAndPeaks(unittest.TestCase):
@@ -14,6 +15,11 @@ class TestExperimentsAndSpecsAndPeaks(unittest.TestCase):
         assert spec.getMSLevel() == 1 
         assert spec.size() == 281
         assert spec.getName() == ""
+
+        # get data as raw numpy array
+        peaks = spec.get_peaks()
+        assert peaks.shape == (281, 2)
+        assert peaks.dtype == np.float32
 
         assert spec.getPrecursors() == []
 

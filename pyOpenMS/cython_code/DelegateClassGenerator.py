@@ -23,6 +23,12 @@ class Code(object):
         self.lines.append(line)
         return self
 
+    def addFile(self, file_, indent=0):
+        c = Code()
+        for l in file_:
+            c += l.rstrip()
+        self.addCode(c, indent)
+
     def __iadd__(self, line):
         self.lines.append(line)
         return self
