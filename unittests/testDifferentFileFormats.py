@@ -1,17 +1,14 @@
-import unittest, sys, win32api
+import unittest, sys
 import pyOpenMS
 
-def show_mem(label):
-    t = win32api.GlobalMemoryStatus()
-    v, p = t['AvailVirtual'], t['AvailPhys']
-    v /= 1024.0 * 1024
-    p /= 1024.0 * 1024
+import helpers.sysinfo
 
+def show_mem(label):
+
+    p = helpers.sysinfo.free_mem()
+    p /= 1024.0 * 1024
     print (label+" ").ljust(30, "."), ": %8.2f MB" % p
     sys.stdout.flush()
-
-def availablePhysicalMemory():
-    return win32api.GlobalMemoryStatus()['AvailPhys']
 
 
 class TestLoadAndStoreInDifferentFileFormats(unittest.TestCase):
@@ -20,7 +17,6 @@ class TestLoadAndStoreInDifferentFileFormats(unittest.TestCase):
 
         print
         print
-        mem_at_start = availablePhysicalMemory()
         show_mem("start")
         
         p = pyOpenMS.MzXMLFile()
@@ -59,8 +55,6 @@ class TestLoadAndStoreInDifferentFileFormats(unittest.TestCase):
         del p
         del ct
         show_mem("after cleanup")
-
-        missing = mem_at_start-availablePhysicalMemory()
 
     def check(self, e):
         assert e.size() == 2884

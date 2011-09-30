@@ -1,26 +1,24 @@
-import win32api, sys
+import sys
 import unittest
 import pyOpenMS
- 
+
+import helpers.sysinfo
+
 def show_mem(label):
-    t = win32api.GlobalMemoryStatus()
-    v, p = t['AvailVirtual'], t['AvailPhys']
-    v /= 1024.0 * 1024
+
+    p = helpers.sysinfo.free_mem()
     p /= 1024.0 * 1024
-
     print (label+" ").ljust(30, "."), ": %8.2f MB" % p
-
-def phys_mem():
-    return  win32api.GlobalMemoryStatus()['AvailPhys']
-
+    sys.stdout.flush()
+ 
 
 class MemTester(object):
 
     def __enter__(self):
-        self.mem_at_start = phys_mem()
+        self.mem_at_start = helpers.sysinfo.free_mem()
 
     def __exit__(self, *a, **kw):
-        missing = phys_mem() - self.mem_at_start
+        missing = helpers.sysinfo.free_mem() - self.mem_at_start
         assert missing < 0.1* self.mem_at_start, "possible mem leak"
 
 class TestAll(unittest.TestCase):
