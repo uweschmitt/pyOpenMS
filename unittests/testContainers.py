@@ -17,7 +17,8 @@ class TestExperimentsAndSpecsAndPeaks(unittest.TestCase):
 
         assert spec.getPrecursors() == []
 
-        assert spec.getInstrumentSettings().getPolarity()==pyOpenMS.Polarity.POSNULL
+        polarity = spec.getInstrumentSettings().getPolarity()
+        assert polarity ==pyOpenMS.Polarity.POLNULL
         peak = spec[0]
 
         assert abs(peak.getMZ() - 205.159) < 0.001
