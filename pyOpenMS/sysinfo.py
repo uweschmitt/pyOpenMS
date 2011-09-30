@@ -29,7 +29,7 @@ if sys.platform == "linux2":
     def free_mem():
         sys_info = SysInfo()
         libc.sysinfo(c.byref(sys_info))
-        return sys_info.totalram - sys_info.freeram
+        return sys_info.freeram
 
 elif sys.platform == "win32":
     import win32api

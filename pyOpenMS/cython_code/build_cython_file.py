@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
     c.addCode(g.generate_code_for("MSSpectrum"), indent=0)
 
-    with open("MSSpectrumHelpers.pxd","r") as fp:
+    with open("MSSpectrumHelpers.pyx","r") as fp:
         c.addFile(fp, indent=1)
 
 

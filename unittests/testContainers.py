@@ -21,6 +21,12 @@ class TestExperimentsAndSpecsAndPeaks(unittest.TestCase):
         assert peaks.shape == (281, 2)
         assert peaks.dtype == np.float32
 
+        spec.set_peaks(peaks)
+        assert abs(spec.getRT()-0.00291) < 0.0001
+        assert spec.getMSLevel() == 1 
+        assert spec.size() == 281
+        assert spec.getName() == ""
+
         assert spec.getPrecursors() == []
 
         polarity = spec.getInstrumentSettings().getPolarity()

@@ -98,6 +98,8 @@ ext = Extension(
 # so we have to strip a leading "pyOpenMS" in root:
 share_data = []
 for root, _, files in os.walk(local_share_dir):
+    if ".svn" in root: continue #
+    if ".git" in root: continue #
     fields = root.split(os.path.sep)
     if fields[0]=="pyOpenMS": 
         fields = fields[1:]

@@ -1,43 +1,101 @@
 import sys
 import unittest
+import time
 import pyOpenMS
 from   pyOpenMS.sysinfo import free_mem
+import numpy as np
 
 
 def show_mem(label):
 
     p = free_mem()
     p /= 1024.0 * 1024
-    print (label+" ").ljust(30, "."), ": %8.2f MB" % p
+    print (label+" ").ljust(50, "."), ": %8.2f MB" % p
     sys.stdout.flush()
  
 
 class MemTester(object):
 
+    def __init__(self, name):
+        self.name = name
+
     def __enter__(self):
         self.mem_at_start = free_mem()
-
+        print
+        show_mem("start test '%s' with" % self.name)
+       
     def __exit__(self, *a, **kw):
-        missing = free_mem() - self.mem_at_start
+    
+        missing = self.mem_at_start - free_mem() 
+        show_mem("end with")
+        print
         assert missing < 0.1* self.mem_at_start, "possible mem leak"
 
 class TestAll(unittest.TestCase):
 
-    def test_extractSpectraFromMSExperiment(self):
+    def setUp(self):
+        self.mem_at_start = free_mem()
+        
+        print 
+        show_mem("AT THE BEGINNING ")
+        print 
 
-        with MemTester():
+    def tearDown(self):
+        
+        time.sleep(3)
+        print 
+        show_mem("AT THE END ")
+        print 
+        missing = self.mem_at_start - free_mem() 
+        assert missing < 0.1* self.mem_at_start, "possible mem leak"
+
+    def testAll(self):
+
+        with MemTester("set_spec_peaks"):
+            self.set_spec_peaks()
+
+        with MemTester("set_spec_peaks2"):
+            self.set_spec_peaks2()
+
+        with MemTester("specs from experiment"):
             self.run_extractSpetraFromMSExperiment()
 
-
-    def test_IO(self):
-
-        with MemTester():
+        with MemTester("test io"):
             self.run_fileformats_io()
 
+
+    def set_spec_peaks(self):
+
+        data = np.zeros((10000,2), dtype=np.float32)
+        li = []
+        for i in range(1000):
+            if (i+1)%100 == 0:
+                show_mem("%4d specs processed" % i)
+            spec = pyOpenMS.MSSpectrum()
+            spec.set_peaks(data)
+            li.append(spec)
+
+        for spec in li:
+            del spec
+        del data
+
+    def set_spec_peaks2(self):
+
+        data = np.zeros((10000,2), dtype=np.float32)
+        li = []
+        for i in range(1000):
+            if (i+1)%100 == 0:
+                show_mem("%4d specs processed" % i)
+            spec = pyOpenMS.MSSpectrum()
+            spec.set_peaks(data)
+            spec.set_peaks(spec.get_peaks())
+            li.append(spec)
+
+        for spec in li:
+            del spec
+        del data
+
     def run_extractSpetraFromMSExperiment(self):
-            print
-            print
-            show_mem("start")
             p = pyOpenMS.MzXMLFile()
             e = pyOpenMS.MSExperiment()
             p.load("../unittests/test.mzXML", e)
@@ -56,14 +114,8 @@ class TestAll(unittest.TestCase):
             show_mem("spectra list deleted")
             del p
             del e
-            show_mem("remaining objets cleaned up")
-            print
 
     def run_fileformats_io(self):
-        print
-        print
-        show_mem("start")
-        
         p = pyOpenMS.MzXMLFile()
         e = pyOpenMS.MSExperiment()
 
@@ -95,7 +147,6 @@ class TestAll(unittest.TestCase):
         del e
         del p
         del ct
-        show_mem("after cleanup")
        
 
 if __name__ == "__main__":
