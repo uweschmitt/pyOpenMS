@@ -6,12 +6,12 @@ if __name__ == "__main__":
     g = Generator()
     g.parse_all(glob.glob("pxd/*.pxd"))
 
+
     c = Code()
+    c.addCode(g.generate_import_statements(), indent=0)
 
     c += "cimport numpy as np"
     c += "import numpy as np"
-
-    c.addCode(g.generate_import_statements(), indent=0)
 
     for clz_name in ["Peak1D", "Precursor", "MSExperiment",
                     "InstrumentSettings", "ChromatogramTools", "Polarity",

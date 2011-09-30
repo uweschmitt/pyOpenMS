@@ -81,9 +81,10 @@ class Generator(object):
 
     def generate_import_statements(self):
         c = Code()
+        c += "from cython.operator cimport address as address, dereference as deref, preincrement as inc"
         c += "from libcpp.vector cimport *"
         c += "from libcpp.string cimport *"
-        c += "from cython.operator cimport dereference as deref"
+
         for pxdpath, name, cid in self.cimports:
             c += "from %s cimport %s as %s" % (pxdpath, name, cid)
         return c

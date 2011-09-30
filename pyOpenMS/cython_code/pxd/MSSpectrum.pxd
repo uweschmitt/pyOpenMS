@@ -31,6 +31,8 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         void setPrecursors(vector[Precursor])  
 
         void assign(vector[Peak1D].iterator, vector[Peak1D].iterator) # ignore
+        vector[Peak1D].iterator begin() # ignore
+        vector[Peak1D].iterator end() # ignore
 
         string getNativeID()
         void   setNativeID(string)
