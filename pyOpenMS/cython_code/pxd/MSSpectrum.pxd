@@ -3,6 +3,7 @@ from libcpp.string cimport *
 from InstrumentSettings cimport *
 from Precursor cimport *
 from Peak1D cimport *
+from SourceFile cimport *
 
 cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
 
@@ -36,6 +37,9 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
 
         string getNativeID()
         void   setNativeID(string)
+
+        SourceFile getSourceFile()
+        void setSourceFile(SourceFile)
 
         
 

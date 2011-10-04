@@ -56,9 +56,7 @@ missing = toTest-declaredAsTested
 if missing:
     print
     print len(missing), "tests/test declarations  are missing !"
-    if len(missing)>10:
-        print "top 10 are:"
-    for name in sorted(missing)[:10]:
+    for name in sorted(missing):
         print "    ", name
 
 toMuch = declaredAsTested-toTest

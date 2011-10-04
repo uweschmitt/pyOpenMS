@@ -15,7 +15,8 @@ if __name__ == "__main__":
 
     for clz_name in ["Peak1D", "Precursor", "MSExperiment",
                     "InstrumentSettings", "ChromatogramTools", "Polarity",
-                    "MzXMLFile", "MzMLFile", "MzDataFile" ]:
+                    "MzXMLFile", "MzMLFile", "MzDataFile",
+                    "SourceFile", "ChecksumType" ]:
 
        c.addCode(g.generate_code_for(clz_name), indent=0)
 

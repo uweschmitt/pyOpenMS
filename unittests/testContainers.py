@@ -34,8 +34,17 @@ class TestExperimentsAndSpecsAndPeaks(unittest.TestCase):
          .getInstrumentSettings
          .updateRanges
          .findNearest
+         .getSourceFile
 
          InstrumentSettings.getPolarity
+
+         SourceFile.getFileSize
+         .getFileType
+         .getChecksum
+         .getChecksumType
+         .getNameOfFile
+         .getPathToFile
+         .getNativeIDType
          @end                 
 
         """
@@ -45,6 +54,7 @@ class TestExperimentsAndSpecsAndPeaks(unittest.TestCase):
         p.load("test.mzXML", e)
         assert e.size() == 2884
         e.updateRanges()
+
 
         assert abs( e.getMinMZ()-202.001) < 0.01
         assert abs( e.getMaxMZ()-649.99) < 0.01
@@ -97,6 +107,15 @@ class TestExperimentsAndSpecsAndPeaks(unittest.TestCase):
         assert spec.findNearest(spec[10].getMZ()) == 10
         assert spec.findNearest(1.00001* spec[10].getMZ()) == 10
         assert spec.findNearest(0.99999* spec[10].getMZ()) == 10
+
+        sf = spec.getSourceFile()
+        assert sf.getFileSize()  == 0
+        assert sf.getFileType()  == ""
+        assert sf.getChecksum()  == ""
+        assert sf.getChecksumType() == 0
+        assert sf.getNameOfFile()  == ""
+        assert sf.getPathToFile()  == ""
+        assert sf.getNativeIDType()  == ""
 
 
 if __name__ == "__main__":
