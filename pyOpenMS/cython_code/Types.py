@@ -15,7 +15,7 @@ class Type(object):
         self.template_args = template_args
 
 
-def cython_repr(type_):
+def cy_repr(type_):
     """ returns cython type representation """
 
     if type_.is_enum:
@@ -27,7 +27,7 @@ def cython_repr(type_):
     else:
         rv += "_" + type_.basetype
     if type_.template_args is not None:
-        rv += "[%s]" % ",".join(cython_repr(t) for t in type_.template_args)
+        rv += "[%s]" % ",".join(cy_repr(t) for t in type_.template_args)
 
     if type_.is_ptr:
         rv += " * "
@@ -54,7 +54,7 @@ def cpp_repr(type_):
     return rv
 
 
-def python_repr(type_):
+def py_repr(type_):
     """ returns Python representation, that is the name the module
         will expose to its users """
     return type_.basetype

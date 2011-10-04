@@ -35,7 +35,7 @@ class Enum(object):
             self.items.append((item.name, current_value))
             current_value += 1
 
-        self.python_repr = self.name
+        self.py_repr = self.name
         self.type_ = Type(self.name, False, False, None, is_enum=True)
 
     def __str__(self):
@@ -75,8 +75,8 @@ class CPPClass(object):
 
         self.type_ = Type(self.name, False, False, targs)
         self.cpp_repr = cpp_repr(self.type_)
-        self.cython_repr = cython_repr(self.type_)
-        self.python_repr = python_repr(self.type_)
+        self.cy_repr = cy_repr(self.type_)
+        self.py_repr = py_repr(self.type_)
 
         self.methods = []
 

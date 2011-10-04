@@ -4,6 +4,7 @@ from Types import *
 from PXDParser import CPPClass, CPPMethod, Enum, parse
 import sys
 import os
+from   string import Template
 
 
 class Code(object):
@@ -23,6 +24,12 @@ class Code(object):
         self.lines.append(line)
         return self
 
+    def resolve(_self, **parameters):
+        # in some situtations **parameters contains a key "self", which 
+        # lets this method crash unless we use something else as "self" for
+        # the first arg
+        _self.lines = [ Template(l).substitute(parameters) for l in _self.lines ]
+
     def addFile(self, file_, indent=0):
         c = Code()
         for l in file_:
@@ -30,8 +37,7 @@ class Code(object):
         self.addCode(c, indent)
 
     def __iadd__(self, line):
-        self.lines.append(line)
-        return self
+        return self.add(line)
 
     def write(self, out, indent=0):
         for l in self.lines:
@@ -60,8 +66,8 @@ class Generator(object):
             pxdpath = ".".join([f for f in os.path.split(dirname) if f]
                                + [filename, ]
                               )
-            cid = cython_repr(Type(p.name))
-            self.cimports.append((pxdpath, p.name, cid))
+            cy_type = cy_repr(Type(p.name))
+            self.cimports.append((pxdpath, p.name, cy_type))
 
             if p.wrap:
                 self.classes_to_wrap[p.name] = p
@@ -81,12 +87,15 @@ class Generator(object):
 
     def generate_import_statements(self):
         c = Code()
-        c += "from cython.operator cimport address as address, dereference as deref, preincrement as inc"
+        c += "from cython.operator cimport dereference  as deref" 
+        c += "from cython.operator cimport address      as address" 
+        c += "from cython.operator cimport preincrement as preincrement"
         c += "from libcpp.vector cimport *"
         c += "from libcpp.string cimport *"
 
-        for pxdpath, name, cid in self.cimports:
-            c += "from %s cimport %s as %s" % (pxdpath, name, cid)
+        for pxdpath, name, cy_id in self.cimports:
+            c += "from $pxdpath cimport $name as $cy_id" 
+            c.resolve(pxdpath = pxdpath, name = name, cy_id = cy_id)
         return c
 
     def generate_code_for_enum(self, enum):
@@ -100,28 +109,31 @@ class Generator(object):
         #      Out = 1
 
         c = Code()
-        c += "cdef class %s:         " % enum.python_repr
+        c += "cdef class %s:         " % enum.py_repr
         for name, value in enum.items:
-            c += "    %s=%d" % (name, value)
+            c += "    $name=$value" 
+            c.resolve(name = name, value = value) 
         return c
 
     def generate_code_for_class(self, clz):
         c = Code()
 
-        c += "cdef class %s:                     " % clz.python_repr
-        c += "    cdef %s * inst                 " % clz.cython_repr
-        c += "    cdef _new_inst(self):          "
-        c += "       self.inst = new %s()        " % clz.cython_repr
-        c += "    cdef _set_inst(self, %s * inst): " % clz.cython_repr
-        c += "        if self.inst != NULL:      "
-        c += "            del self.inst          "
-        c += "        self.inst = inst           "
-        c += "    def __init__(self, _new_inst = True): "
-        c += "        if _new_inst:              "
-        c += "           self._new_inst()        "
-        c += "    def __dealloc__(self):         "
-        c += "        if self.inst != NULL:      "
-        c += "            del self.inst          "
+        c += "cdef class $py_repr:                       " 
+        c += "    cdef $cy_repr * inst                   " 
+        c += "    cdef _new_inst(self):                  "
+        c += "       self.inst = new $cy_repr()          " 
+        c += "    cdef _set_inst(self, $cy_repr * inst): " 
+        c += "        if self.inst != NULL:              "
+        c += "            del self.inst                  "
+        c += "        self.inst = inst                   "
+        c += "    def __init__(self, _new_inst = True):  "
+        c += "        if _new_inst:                      "
+        c += "           self._new_inst()                "
+        c += "    def __dealloc__(self):                 "
+        c += "        if self.inst != NULL:              "
+        c += "            del self.inst                  "
+
+        c.resolve(**clz.__dict__)
 
         for method in clz.methods:
             # do not wrap constructors:
@@ -164,10 +176,10 @@ class Generator(object):
             return cpp_repr(type_), co, py_argname, cl
 
         if type_.basetype in self.enums:
-            return "int", co, "<%s>%s" % (cython_repr(type_), py_argname), cl
+            return "int", co, "<%s>%s" % (cy_repr(type_), py_argname), cl
 
         if type_.basetype in self.classes_to_wrap:
-            return python_repr(type_), co, "deref(%s.inst)" % py_argname, cl
+            return py_repr(type_), co, "deref(%s.inst)" % py_argname, cl
 
         if type_.basetype == "bool":
             # cython has no bool, so bool -> int
@@ -177,9 +189,14 @@ class Generator(object):
             # cython method declares char * which is how python strings can
             # be declared
             input_type_decl = "char *"
-            tempvar = "_%s_as_str" % py_argname
-            co += "cdef string * %s = new string(%s)" % (tempvar, py_argname)
-            cl += "del %s" % tempvar
+            tempvar = "_%s_%d_as_str" % (py_argname, argpos)
+        
+            co += "cdef string * $tempvar = new string($py_argname)" 
+            co.resolve(tempvar = tempvar, py_argname = py_argname)
+
+            cl += "del $tempvar"
+            cl.resolve(tempvar = tempvar)
+
             call_arg = "deref(%s)" % tempvar
             return input_type_decl, co, call_arg, cl
 
@@ -188,29 +205,32 @@ class Generator(object):
             assert len(type_.template_args) == 1, \
                                         "vector takes only one template arg"
             targ = type_.template_args[0]
-            loopvar = "_v%03d" % argpos
-            cid = cython_repr(type_)
-            pid = python_repr(targ)
+            loopvar = "_v_%d" % argpos
+
+            cy_type = cy_repr(type_)
+            py_arg_type = py_repr(targ)
 
             # iterate over the python input and build temp vector.
             if targ.basetype in self.classes_to_wrap:
-                tempvec = "_%s_as_vec" % py_argname
-                co += "cdef %s * %s = new %s()  " % (cid, tempvec, cid)
-                co += "cdef %s %s               " % (pid, loopvar)
-                co += "for %s in %s:            " % (loopvar, py_argname)
-                co += "    deref(%s).push_back(deref(%s.inst))" \
-                                                    % (tempvec, loopvar)
-            else:
-                co += "cdef %s * %s = new %s()  " % (cid, tempvec, cid)
-                co += "for _v in %s:            " % (loopvar, py_argname)
-                co += "    deref(%s).push_back(_v)" % tempvec
+                tempvec = "_%s_%d_as_vec" % (py_argname, argpos)
 
+                co += "cdef $cy_type * $tempvec = new $cy_type()" 
+                co += "cdef $py_arg_type $loopvar" 
+                co += "for $loopvar in $py_argname: " 
+                co += "    deref($tempvec).push_back(deref($loopvar.inst))"
+
+            else:
+                co += "cdef $cy_type * $tempvec = new $cy_type()"
+                co += "for $loopvar in $py_argname: " 
+                co += "    deref($tempvec).push_back($loopvar)" 
+
+            co.resolve(**locals())
             call_arg = "deref(%s)" % tempvec
             # delete temp vector
             cl += "del %s" % tempvec
             return input_type_decl, co, call_arg, cl
 
-        raise Exception(cython_repr(type_) + "not supported yet")
+        raise Exception(cy_repr(type_) + "not supported yet")
 
     def result_conversion(self, result_type, result_name):
 
@@ -225,12 +245,12 @@ class Generator(object):
             including a return statement for the result.
         """
 
-        cid = cython_repr(result_type)
-        pid = python_repr(result_type)
+        cy_type = cy_repr(result_type)
+        py_type = py_repr(result_type)
 
         if result_type.basetype in ["int", "long", "double", "float"]:
             if result_type.is_ptr:
-                raise Exception("can not handel return type %r" % cid)
+                raise Exception("can not handel return type %r" % cy_type)
             return Code("return " + result_name)
 
         if result_type.basetype == "char":
@@ -240,7 +260,7 @@ class Generator(object):
         if result_type.basetype == "string":
             # char* is automatically converted by cython to python string
             if result_type.is_ptr:
-                raise Exception("can not handel return type %r" % cid)
+                raise Exception("can not handel return type %r" % cy_type)
             return Code("return %s.c_str()" % result_name)
 
         if result_type.basetype in self.enums:
@@ -248,40 +268,42 @@ class Generator(object):
 
         if result_type.basetype in self.classes_to_wrap:
             if result_type.is_ptr:
-                raise Exception("can not handel return type %r" % cid)
+                raise Exception("can not handel return type %r" % cy_type)
             # construct python wrapping class and return this :
             co = Code()
-            py_name = "_%s_py" % result_name
-            co += "%s = %s(False) " % (py_name, pid)
-            co += "%s._set_inst(new %s(%s)) " % (py_name, cid, result_name)
-            co += "return %s                " % py_name
+            py_res = "_%s_py" % result_name
+
+            co += "$py_res = $py_type(False) " 
+            co += "$py_res._set_inst(new $cy_type($result_name))" 
+            co += "return $py_res"
+            co.resolve(**locals())
             return co
 
         if result_type.basetype == "vector":
             if result_type.is_ptr:
                 raise Exception("can not handel return type %r"
-                                 % cython_repr(result_type))
+                                 % cy_repr(result_type))
 
             assert len(result_type.template_args) == 1
             targ = result_type.template_args[0]
-            py_targ = python_repr(targ)
-            cy_targ = cython_repr(targ)
+            py_targ = py_repr(targ)
+            cy_targ = cy_repr(targ)
 
             # build python list from vector
             co = Code()
             if targ.basetype in self.classes_to_wrap:
                 co += "_rv = list()"
-                co += "for _i in range(%s.size()):" % result_name
-                co += "    _res = %s(False) " % py_targ
-                co += "    _res._set_inst(new %s(%s.at(_i)))"  \
-                                                   % (cy_targ, result_name)
+                co += "for _i in range($result_name.size()):" 
+                co += "    _res = $py_targ(False) " 
+                co += "    _res._set_inst(new $cy_targ($result_name.at(_i)))"
                 co += "    _rv.append(_res)"
                 co += "return _rv"
+                co.resolve(**locals())
             else:
                 raise Exception("this case is not handeld yet")
             return co
 
-        raise Exception("do not know how to convert result of type %s" % cid)
+        raise Exception("do not know how to convert result of type %s" % cy_type)
 
     def generate_code_for_operator(self, clz, method):
 
@@ -294,9 +316,10 @@ class Generator(object):
             assert not type_.is_ptr and type_.template_args is None
 
             co = Code()
-            rt = cython_repr(method.result_type)
+            res_type = cy_repr(method.result_type)
             co += "def __getitem__(self, int idx):"
-            co += "    cdef %s _res = deref(self.inst)[idx]" % rt
+            co += "    cdef $res_type _res = deref(self.inst)[idx]" 
+            co.resolve(res_type=res_type)
 
             resconv = self.result_conversion(method.result_type, "_res")
             co.addCode(resconv, indent=1)

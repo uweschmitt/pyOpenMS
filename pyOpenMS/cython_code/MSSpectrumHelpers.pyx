@@ -13,7 +13,7 @@ def get_peaks(self): # MSSpectrum[Peak1D] spec_):
     while it != spec_.end():
         peaks[i,0] = deref(it).getMZ()
         peaks[i,1] = deref(it).getIntensity()
-        inc(it)
+        preincrement(it)
         i += 1
 
     return peaks
