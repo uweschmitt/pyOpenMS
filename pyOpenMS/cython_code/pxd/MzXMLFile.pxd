@@ -6,8 +6,9 @@ from libcpp.string cimport *
 
 cdef extern from "<OpenMS/FORMAT/MzXMLFile.h>" namespace "OpenMS":
 
-    cdef cppclass MzXMLFile:  # wrapall
+    cdef cppclass MzXMLFile:  # wrap
         MzXMLFile()
-        # hier muss leider spezialisert werden:
+        # cython does not support free template args, so Peak1D has
+        # to be used as a fixed argument
         void load(string, MSExperiment[Peak1D, ChromatogramPeak]) except+
         void store(string, MSExperiment[Peak1D, ChromatogramPeak]) except+

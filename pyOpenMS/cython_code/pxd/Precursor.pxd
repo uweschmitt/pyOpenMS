@@ -4,7 +4,7 @@ from InstrumentSettings cimport *
 cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
 
 
-    cdef cppclass Precursor: #wrapall
+    cdef cppclass Precursor: #wrap
         Precursor()
         Precursor(Precursor)
         double getMZ()

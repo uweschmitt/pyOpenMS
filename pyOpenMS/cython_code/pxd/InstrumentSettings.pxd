@@ -2,7 +2,7 @@ from Polarity cimport *
 
 cdef extern from "<OpenMS/METADATA/InstrumentSettings.h>" namespace "OpenMS":
 
-    cdef cppclass InstrumentSettings:   #wrapall
+    cdef cppclass InstrumentSettings:   #wrap
         
         InstrumentSettings()
         InstrumentSettings(InstrumentSettings) 
