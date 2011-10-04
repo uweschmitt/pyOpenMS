@@ -7,10 +7,12 @@ class Type(object):
     LIBCPPTYPES = ["vector", "string", "list"]
 
     def __init__(self, basetype, is_ptr=False, is_ref=False,
+                       is_unsigned = False,
                        template_args=None, is_enum=False):
         self.basetype = "void" if basetype is None else basetype
         self.is_ptr = is_ptr
         self.is_ref = is_ref
+        self.is_unsigned = is_unsigned
         self.is_enum = is_enum
         self.template_args = template_args
 
@@ -23,6 +25,8 @@ def cy_repr(type_):
     else:
         rv = ""
     if type_.basetype in Type.CTYPES or type_.basetype in Type.LIBCPPTYPES:
+        if type_.is_unsigned:
+           rv += "unsigned "
         rv += type_.basetype
     else:
         rv += "_" + type_.basetype
@@ -43,6 +47,9 @@ def cpp_repr(type_):
         rv = "enum "
     else:
         rv = ""
+
+    if type_.is_unsigned:
+        rv += "unsigned "
     rv += type_.basetype
     if type_.template_args is not None:
         rv += "<%s>" % ",".join(cpp_repr(t) for t in type_.template_args)

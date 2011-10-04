@@ -36,7 +36,7 @@ class Enum(object):
             current_value += 1
 
         self.py_repr = self.name
-        self.type_ = Type(self.name, False, False, None, is_enum=True)
+        self.type_ = Type(self.name, is_enum=True)
 
     def __str__(self):
         res = "enum %s : " % self.name
@@ -70,10 +70,10 @@ class CPPClass(object):
             instargs = m.group(1).split(",")
             # template nesting not supported:
             ttargs = None
-            targs = [Type(t.strip(), False, False, ttargs) for t in instargs]
+            targs = [Type(t.strip(), template_args = ttargs) for t in instargs]
             self.instances = dict(zip(node.templates, targs))
 
-        self.type_ = Type(self.name, False, False, targs)
+        self.type_ = Type(self.name, template_args = targs)
         self.cpp_repr = cpp_repr(self.type_)
         self.cy_repr = cy_repr(self.type_)
         self.py_repr = py_repr(self.type_)
@@ -101,7 +101,7 @@ def parse_type(base_type, decl, instances):
                 is_ptr = isinstance(decl, CPtrDeclaratorNode)
                 is_ref = isinstance(decl, CReferenceDeclaratorNode)
                 name = arg.base_type.name
-                ttype = instances.get(name, Type(name, is_ptr, is_ref, None))
+                ttype = instances.get(name, Type(name, is_ptr, is_ref))
                 targs.append(ttype)
             elif isinstance(arg, NameNode):
                 name = arg.name
@@ -114,8 +114,9 @@ def parse_type(base_type, decl, instances):
 
     is_ptr = isinstance(decl, CPtrDeclaratorNode)
     is_ref = isinstance(decl, CReferenceDeclaratorNode)
+    is_unsigned = not base_type.signed
     return instances.get(base_type.name, Type(base_type.name, is_ptr,
-                                              is_ref, targs))
+                                              is_ref, is_unsigned, targs))
 
 
 class CPPMethod(object):
@@ -182,3 +183,7 @@ def parse(path):
             return Enum(body, lines)
 
     return CPPClass(body, lines)
+
+if __name__ == "__main__":
+    import sys
+    print parse(sys.argv[1])

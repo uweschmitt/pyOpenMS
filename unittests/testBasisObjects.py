@@ -46,7 +46,7 @@ class TestBasisObjects(unittest.TestCase):
             p.setMSLevel(-1)
         except Exception ,e:
             ex = e
-        #assert ex is not None
+        assert ex is not None
 
         pc0 = pyOpenMS.Precursor()
         pc0.setMZ(16.0)
