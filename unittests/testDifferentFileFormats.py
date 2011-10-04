@@ -13,7 +13,30 @@ def show_mem(label):
 
 class TestLoadAndStoreInDifferentFileFormats(unittest.TestCase):
 
+
+    """
+    @tests:
+    MzXMLFile.__init__
+    .load
+    .store
+
+    MzMLFile.__init__
+    .load
+    .store
+
+    MzDataFile.__init__
+    .load
+    .store
+
+    ChromatogramTools.__init__
+    .convertChromatogramsToSpectra
+    .convertSpectraToChromatograms
+
+    @end
+    """
+
     def test000(self):
+        
 
         print
         print

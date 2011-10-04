@@ -14,6 +14,33 @@ one iteration is:
 
     4) maybe: run_memleak_tests.bat
 
+
+about the unittests / testcoverage:
+
+   the unittests have docstrings with sections
+   """
+      @tested
+      ClassA.method1
+      .method2
+      .mehtod3
+      .__init__
+      ClassB.method_a
+      ....
+      @end 
+   """
+
+   these have to be maintained by the developers and 
+   declare which classes and methods from the wrappings
+   are tested in the corresponding module /class/method.
+
+   the script check_test_coverage.py loads _pyOpenMS.pyd,
+   extracts all wrapped classes and their methods and
+   compares them with the delcared ones.
+
+   at the end the script gives an overview over missing
+   tests.
+   
+
 about the code generator:
 
     the generator parses .pxd files. that are cython files

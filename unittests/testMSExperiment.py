@@ -3,6 +3,14 @@ import pyOpenMS
 
 class TestPyMSExperiment(unittest.TestCase):
 
+    """
+    @tests
+    MSExperiment.__init__
+    .size
+    .getMinMZ
+    .sortSpectra
+    """ 
+
     def test_000(self):
         p = pyOpenMS.MSExperiment()
         assert  p.size() == 0
