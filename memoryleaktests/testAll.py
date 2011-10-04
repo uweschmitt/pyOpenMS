@@ -1,6 +1,7 @@
 import sys
 import unittest
 import time
+import contextlib
 import pyOpenMS
 from   pyOpenMS.sysinfo import free_mem
 import numpy as np
@@ -14,22 +15,17 @@ def show_mem(label):
     sys.stdout.flush()
  
 
-class MemTester(object):
-
-    def __init__(self, name):
-        self.name = name
-
-    def __enter__(self):
-        self.mem_at_start = free_mem()
+@contextlib.contextmanager
+def MemTester(name):
+        mem_at_start = free_mem()
         print
-        show_mem("start test '%s' with" % self.name)
-       
-    def __exit__(self, *a, **kw):
-    
-        missing = self.mem_at_start - free_mem() 
+        show_mem("start test '%s' with" % name)
+        yield
+        missing = mem_at_start - free_mem() 
         show_mem("end with")
         print
-        assert missing < 0.1* self.mem_at_start, "possible mem leak"
+        assert missing < 0.1* mem_at_start, "possible mem leak"
+
 
 class TestAll(unittest.TestCase):
 
@@ -103,10 +99,11 @@ class TestAll(unittest.TestCase):
 
             li = []
             print "please be patient :",
-            for k in range(10):
+            for k in range(5):
                 sys.stdout.flush()
                 li.append([ e[i] for i in range(e.size()) ])
-                print (10*k+10), "%",
+                li.append([ e[i] for i in range(e.size()) ])
+                print (20*k+20), "%",
 
             print
             show_mem("spectra list generated")
