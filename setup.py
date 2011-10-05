@@ -34,7 +34,7 @@ if sys.platform == "win32":
     iswin = True
 
     if not os.path.exists(j("pyOpenMS", MSVCRDLL)):
-        shutil.copy(j(MSCV_REDIST, MSVCRDLL), "pyOpenMS")
+        shutil.copy(j(MSVC_REDIST, MSVCRDLL), "pyOpenMS")
 
     if not os.path.exists(j("pyOpenMS", "OpenMS.dll")):
         shutil.copy(j(OPEN_MS_BUILD_DIR, "bin", "OpenMS.dll"), "pyOpenMS")
