@@ -135,12 +135,16 @@ class Generator(object):
 
         c.resolve(**clz.__dict__)
 
-        for method in clz.methods:
+        for name, methods in clz.methods.items():
             # do not wrap constructors:
-            if method.name == clz.name:
-                continue
-            c.addCode(self.generate_code_for_method(clz, method), indent=1)
+            if name == clz.name:
+                c.addCode(self.generate_constructor(clz, methods), indent = 1)
+            else:
+                c.addCode(self.generate_code_for_method(clz, methods), indent=1)
         return c
+
+    def generate_constructor(self, clz, methods):
+        return Code()
 
     def input_conversion(self, clz, argpos, py_argname, type_):
         """
@@ -359,7 +363,12 @@ class Generator(object):
         return input_conversion, conversion_cleanup, py_signature,\
                cpp_call_signature
 
-    def generate_code_for_method(self, clz, method):
+    def generate_code_for_method(self, clz, methods):
+
+        if len(methods) != 1:
+            raise Exception("overloading not supported yet")
+
+        method = methods[0]
 
         if method.name.startswith("operator"):
             return self.generate_code_for_operator(clz, method)

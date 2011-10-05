@@ -11,6 +11,8 @@ from Types import *
 import re
 import os
 
+from collections import defaultdict
+
 
 def has(node, lines, what):
     """ look for 'what' in comment according to 'node'.
@@ -78,15 +80,18 @@ class CPPClass(object):
         self.cy_repr = cy_repr(self.type_)
         self.py_repr = py_repr(self.type_)
 
-        self.methods = []
+        self.methods = defaultdict(list)
 
         for att in node.attributes:
             if not has(att, lines, "ignore"):
-                self.methods.append(CPPMethod(att, lines, self.instances))
+                meth = CPPMethod(att, lines, self.instances)
+                self.methods[meth.name].append(meth)
+        
 
     def __str__(self):
         rv = ["class %s: " % cpp_repr(self.type_)]
-        rv += ["     " + str(method) for method in self.methods]
+        for meth_list in self.methods.values():
+            rv += ["     " + str(method) for method in meth_list]
         return "\n".join(rv)
 
 
@@ -128,6 +133,13 @@ class CPPMethod(object):
 
         decl = node.declarators[0]
         self.result_type = parse_type(node.base_type, decl, instances)
+
+        if isinstance(decl, CNameDeclaratorNode):
+            if re.match("^operator\W*\(\)$", decl.name):
+                self.name = decl.name[:-2]
+                self.args = []
+                return
+            raise Exception("can not handle %s" % decl.name)
 
         if isinstance(decl.base, CFuncDeclaratorNode):
             decl = decl.base
