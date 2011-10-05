@@ -8,6 +8,9 @@ cdef class DataValue:
     cdef _DataValue * inst
     cdef list sig
 
+    cdef _set_inst(self, _DataValue *inst):
+         self.inst = inst
+
     def __init__(self, *a, **kw):
         self.sig = map(type, a)
         if len(a) == 0 and kw.get("_no_init"):
@@ -34,8 +37,8 @@ cdef class DataValue:
 
 cdef _init(int i):
     cdef _DataValue * inst = new _DataValue(i)
-    cdef DataValue rv = DataValue(_no_init=True)
-    rv.inst = inst
+    rv = DataValue(_no_init=True)
+    rv._set_inst(inst)
     return rv
 
 def intValue(i):

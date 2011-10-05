@@ -13,10 +13,12 @@ if __name__ == "__main__":
     c += "cimport numpy as np"
     c += "import numpy as np"
 
+    
+
     for clz_name in ["Peak1D", "Precursor", "MSExperiment",
                     "InstrumentSettings", "ChromatogramTools", "Polarity",
                     "MzXMLFile", "MzMLFile", "MzDataFile",
-                    "SourceFile", "ChecksumType" ]:
+                    "SourceFile", "ChecksumType", "DataValue" ]:
 
        c.addCode(g.generate_code_for(clz_name), indent=0)
 

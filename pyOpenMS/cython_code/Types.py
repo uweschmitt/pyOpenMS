@@ -65,3 +65,27 @@ def py_repr(type_):
     """ returns Python representation, that is the name the module
         will expose to its users """
     return type_.basetype
+
+def py_type_for_cpp_type(type_):
+    key = (type_.basetype, type_.is_ptr, type_.is_ref, type_.is_unsigned)
+               #bt     isptr isref  isunsigned
+    return {  ("char", True, False, False) : "str",
+
+              ("long", False, False, True) : "int",
+              ("long", False, False, False): "int",
+              ("long", False, True, True)  : "int",
+              ("long", False, True, False) : "int",
+
+              ("int",  False, False, True) : "int",
+              ("int",  False, False, False): "int",
+              ("int",  False, True, True)  : "int",
+              ("int",  False, True, False) : "int",
+
+              ("float", False, False, False): "float",
+              ("float", False, True, False): "float",
+
+              ("double", False, False, False): "float",
+              ("double", False, True, False): "float",
+           }.get( key)
+
+

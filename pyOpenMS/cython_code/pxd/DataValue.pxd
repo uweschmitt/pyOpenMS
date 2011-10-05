@@ -2,9 +2,9 @@ from libcpp.string cimport *
 
 cdef extern from "<OpenMS/DATASTRUCTURES/DataValue.h>" namespace "OpenMS":
     
-    cdef cppclass DataValue:
+    cdef cppclass DataValue: #wrap
          DataValue()
          DataValue(char *)
          DataValue(int)   
-         int operator() 
-         string operator() 
+         int operator()     # ignore
+         string operator()  # ignore

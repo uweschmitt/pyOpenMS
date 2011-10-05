@@ -119,32 +119,65 @@ class Generator(object):
         c = Code()
 
         c += "cdef class $py_repr:                       " 
+
         c += "    cdef $cy_repr * inst                   " 
-        c += "    cdef _new_inst(self):                  "
-        c += "       self.inst = new $cy_repr()          " 
+        c += "    cdef list  _cons_sig                   "
+
         c += "    cdef _set_inst(self, $cy_repr * inst): " 
         c += "        if self.inst != NULL:              "
         c += "            del self.inst                  "
         c += "        self.inst = inst                   "
-        c += "    def __init__(self, _new_inst = True):  "
-        c += "        if _new_inst:                      "
-        c += "           self._new_inst()                "
+
         c += "    def __dealloc__(self):                 "
         c += "        if self.inst != NULL:              "
         c += "            del self.inst                  "
 
         c.resolve(**clz.__dict__)
 
+        # wrap constructors first as items in dict are not in insertion order:
+        constructors = clz.methods.get(clz.name)
+        if constructors:
+            c.addCode(self.generate_constructor(clz, constructors), indent = 1)
+
         for name, methods in clz.methods.items():
             # do not wrap constructors:
             if name == clz.name:
-                c.addCode(self.generate_constructor(clz, methods), indent = 1)
-            else:
-                c.addCode(self.generate_code_for_method(clz, methods), indent=1)
+               continue
+            c.addCode(self.generate_code_for_method(clz, methods), indent=1)
         return c
 
     def generate_constructor(self, clz, methods):
-        return Code()
+        
+        python_sigs = []
+        for meth in methods:
+            if len(meth.args)==1:
+               argtype = meth.args[0][1]
+               if argtype.basetype == clz.name:
+                   # copy cons ? not wrapped  !
+                   continue
+            py_args = [py_type_for_cpp_type(arg) for n, arg in meth.args ]
+            python_sigs.append("[%s]" % (",".join(py_args)))
+
+        c=Code()
+        c += 'def __init__(self, *a, **kw):                        '
+        c += '    self._cons_sig = map(type, a)                    '
+        c += '    if len(a)==0 and kw.get("_new_inst") is False:   '
+        c += '        return                                       '
+
+        for sig, meth in zip(python_sigs, methods):
+            cy_args = [ cy_repr(a) for n, a in meth.args ]
+            args = ", ".join( "<%s>a[%d]" %(t,i) for i,t in enumerate(cy_args))
+            cy_type = cy_repr(clz.type_)
+            cs = Code()
+            cs += 'if self._cons_sig == $sig:          '
+            cs += '    self.inst = new $cy_type($args) '
+            cs += '    return                          '
+            cs.resolve(**locals())
+            c.addCode(cs, indent=1)
+
+        c += '    raise Exception("input args do not match declaration")'
+
+        return c
 
     def input_conversion(self, clz, argpos, py_argname, type_):
         """
@@ -277,7 +310,7 @@ class Generator(object):
             co = Code()
             py_res = "_%s_py" % result_name
 
-            co += "$py_res = $py_type(False) " 
+            co += "cdef $py_type $py_res = $py_type(_new_inst=False) " 
             co += "$py_res._set_inst(new $cy_type($result_name))" 
             co += "return $py_res"
             co.resolve(**locals())
@@ -297,8 +330,9 @@ class Generator(object):
             co = Code()
             if targ.basetype in self.classes_to_wrap:
                 co += "_rv = list()"
+                co += "cdef $py_targ _res"
                 co += "for _i in range($result_name.size()):" 
-                co += "    _res = $py_targ(False) " 
+                co += "    _res = $py_targ(_new_inst=False) " 
                 co += "    _res._set_inst(new $cy_targ($result_name.at(_i)))"
                 co += "    _rv.append(_res)"
                 co += "return _rv"

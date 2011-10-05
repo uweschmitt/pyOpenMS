@@ -197,7 +197,16 @@ class TestBasisObjects(unittest.TestCase):
         assert sf.getPathToFile()  == "./test.mzXML"
         assert sf.getNativeIDType()  == "scan="
 
-     
+    def test_DataValue(self):
+        """
+        @tests:
+        DataValue.__init__
+        @end
+        """
+        
+        dint = pyOpenMS.DataValue(3)
+        dstr = pyOpenMS.DataValue("uwe") 
+
 
 if __name__ == "__main__":
     unittest.main()
