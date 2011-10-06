@@ -201,11 +201,29 @@ class TestBasisObjects(unittest.TestCase):
         """
         @tests:
         DataValue.__init__
+        .intValue
+        .stringValue
         @end
         """
         
         dint = pyOpenMS.DataValue(3)
+        assert dint.intValue() == 3
+
+        self.assert_exception(dint.stringValue, AssertionError)
         dstr = pyOpenMS.DataValue("uwe") 
+
+        assert dstr.stringValue() == "uwe"
+        self.assert_exception(dstr.intValue, AssertionError)
+   
+    def assert_exception(self, callable_, error_type):
+
+        ex = None
+        try:
+            callable_()
+        except Exception as e:
+            ex = e
+        assert type(ex) == error_type
+        
 
 
 if __name__ == "__main__":

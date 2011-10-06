@@ -1,5 +1,5 @@
 from libcpp.string cimport *
-from InstrumentSettings cimport *
+#from InstrumentSettings cimport *
 
 cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
 

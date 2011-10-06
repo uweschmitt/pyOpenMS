@@ -149,7 +149,8 @@ class Generator(object):
             # do not wrap constructors:
             if name == clz.name:
                continue
-            c.addCode(self.generate_code_for_method(clz, methods), indent=1)
+            c.addCode(self.generate_code_for_method(clz, name, methods), 
+                      indent=1)
         return c
 
     def generate_constructor(self, clz, methods):
@@ -366,12 +367,14 @@ class Generator(object):
 
         raise Exception("do not know how to convert result of type %s" % cy_type)
 
-    def generate_code_for_operator(self, clz, method):
+    def generate_code_for_operator(self, clz, name, methods):
 
         """ generates python methods for wrapping operators """
 
-        if method.name == "operator[]":
-            assert len(method.args) == 1
+        if name == "operator[]":
+            assert len(methods) == 1, "no overloading for operator[]"
+            method = methods[0]
+            assert len(method.args) == 1, "wrong signature for operator[]"
             argname, type_ = method.args[0]
             assert type_.basetype in ["int", "long"]
             assert not type_.is_ptr and type_.template_args is None
@@ -385,6 +388,25 @@ class Generator(object):
             resconv = self.result_conversion(method.result_type, "_res")
             co.addCode(resconv, indent=1)
             return co
+
+        elif name == "operator": # cast ops
+            res = Code()
+            for method in methods:
+                name = method.annotations.get("name")
+                if name is None:
+                    raise Exception("you have to provide a python name for "
+                                    "%s" % method)
+
+                cy_type = cy_repr(method.result_type)
+                co = Code()
+                co += "def $name(self):"
+                co += "    " +method.annotations.get("pre", "")
+                co += "    cdef $cy_type _res = <$cy_type>deref(self.inst)"
+                co.resolve(name = name, cy_type = cy_type)
+                co.addCode(self.result_conversion(method.result_type, "_res"),
+                           indent=1)
+                res.addCode(co, indent=0)
+            return res 
 
         else:
             raise Exception("wrapping of %r not supported yet" % method.name)
@@ -420,21 +442,21 @@ class Generator(object):
         return input_conversion, conversion_cleanup, py_signature,\
                cpp_call_signature
 
-    def generate_code_for_method(self, clz, methods):
+    def generate_code_for_method(self, clz, name, methods):
 
         methods = [ m for m in methods if m.wrap ]
 
         if not methods:
             return Code()
 
+        if name.startswith("operator"):
+            return self.generate_code_for_operator(clz, name, methods) 
+
         if len(methods) != 1:
             info = ", ".join(map(str, methods))
             raise Exception("overloading for %s not supported yet" % info)
 
         method = methods[0]
-
-        if method.name.startswith("operator"):
-            return self.generate_code_for_operator(clz, method)
 
         inp_conversion, conv_cleanup, py_sig, cpp_sig = \
             self.collect_input_conversion_stuff(clz, method)

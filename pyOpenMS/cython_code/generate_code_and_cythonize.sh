@@ -3,12 +3,13 @@ echo "generate _pyOpenMS.pyx"
 python build_cython_file.py
 
 if [ $? -eq 0 ]; then
-echo "generate _pyOpenMS.cpp"
-cython -X boundscheck=False -X wraparound=False --cplus _pyOpenMS.pyx 
-fi
+    echo "generate _pyOpenMS.cpp"
+    cython -X boundscheck=False -X wraparound=False --cplus _pyOpenMS.pyx 
 
-if [ $? -eq 0 ]; then
-echo "copy _pyOpenMS.cpp"
-mv _pyOpenMS.cpp ..
-echo "done"
+    if [ $? -eq 0 ]; then
+        echo "move _pyOpenMS.cpp"
+        mv _pyOpenMS.cpp ..
+        echo "done"
+    fi
+
 fi
