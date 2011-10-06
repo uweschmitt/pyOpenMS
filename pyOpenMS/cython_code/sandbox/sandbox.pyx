@@ -37,10 +37,14 @@ cdef class DataValue:
 
 cdef _init(int i):
     cdef _DataValue * inst = new _DataValue(i)
-    rv = DataValue(_no_init=True)
+    cdef DataValue rv = DataValue(_no_init=True)
     rv._set_inst(inst)
     return rv
 
 def intValue(i):
     return _init(i)
 
+
+class Test(object):
+    class Inner(object):
+        A=1

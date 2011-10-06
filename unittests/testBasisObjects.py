@@ -203,17 +203,22 @@ class TestBasisObjects(unittest.TestCase):
         DataValue.__init__
         .intValue
         .stringValue
+        .floatValue
         @end
         """
         
         dint = pyOpenMS.DataValue(3)
         assert dint.intValue() == 3
+        dstr = pyOpenMS.DataValue("uwe") 
+        assert dstr.stringValue() == "uwe"
+        dflt = pyOpenMS.DataValue(0.125)
+        assert dflt.floatValue()  == 0.125
 
         self.assert_exception(dint.stringValue, AssertionError)
-        dstr = pyOpenMS.DataValue("uwe") 
-
-        assert dstr.stringValue() == "uwe"
         self.assert_exception(dstr.intValue, AssertionError)
+        self.assert_exception(dflt.intValue, AssertionError)
+
+        
    
     def assert_exception(self, callable_, error_type):
 
