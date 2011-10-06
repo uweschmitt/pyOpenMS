@@ -7,7 +7,7 @@ from SourceFile cimport *
 
 cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
 
-    cdef cppclass MSSpectrum[PeakT]:  # wrap inst=<Peak1D>
+    cdef cppclass MSSpectrum[PeakT]:  # wrap & inst=<Peak1D>
         MSSpectrum()
         MSSpectrum(MSSpectrum)
         double getRT()

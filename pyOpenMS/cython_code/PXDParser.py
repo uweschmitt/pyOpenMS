@@ -14,11 +14,19 @@ import os
 from collections import defaultdict
 
 
-def has(node, lines, what):
-    """ look for 'what' in comment according to 'node'.
-        'lines' are the line of the file """
+
+def parse_annotations(node, lines):
     parts = lines[node.pos[1] - 1].split("#")
-    return  len(parts) > 1 and what in parts[1]
+    result = dict()
+    if len(parts)>1:
+        annotations = [ t.strip() for t in parts[1].split("&") ]
+        for annotation in annotations:
+            name, _, value = re.findall("(\w+)(=([^&]+))?", annotation)[0]
+            result[name] = value
+
+    return result
+        
+   
 
 
 class Enum(object):
@@ -28,7 +36,8 @@ class Enum(object):
         self.items = []
         self.line_number = node.pos[1]
         self.file_name = node.pos[0].filename
-        self.wrap = has(node, lines, "wrap")
+        self.annotations = parse_annotations(node, lines)
+        self.wrap = "wrap" in self.annotations
 
         current_value = 0
         for item in node.items:
@@ -59,18 +68,21 @@ class CPPClass(object):
         self.name = node.name
         self.line_number = node.pos[1]
         self.file_name = node.pos[0].filename
-        self.wrap = has(node, lines, "wrap")
+        
+        self.annotations = parse_annotations(node, lines)
+        self.wrap = "ignore" not in self.annotations
 
         self.instances = dict()  # maps template args to instantiation types
 
         targs = None
         if node.templates is not None:
-            # parse comment
-            m = re.search("inst\W*=\W*<(.*)>", lines[self.line_number - 1])
-            if self.wrap and not m:
+            print self.annotations
+            inst = self.annotations.get("inst")
+            print "inst = ", inst
+            if inst is None:
                 raise Exception("need inst=<A,..> arg for template class")
-            instargs = m.group(1).split(",")
-            # template nesting not supported:
+            instargs = inst.strip("<").strip(">").split(",")
+            print "instargs=", instargs
             ttargs = None
             targs = [Type(t.strip(), template_args = ttargs) for t in instargs]
             self.instances = dict(zip(node.templates, targs))
@@ -83,8 +95,8 @@ class CPPClass(object):
         self.methods = defaultdict(list)
 
         for att in node.attributes:
-            if not has(att, lines, "ignore"):
-                meth = CPPMethod(att, lines, self.instances)
+            meth = CPPMethod(att, lines, self.instances)
+            if meth is not None:
                 self.methods[meth.name].append(meth)
         
 
@@ -119,7 +131,7 @@ def parse_type(base_type, decl, instances):
 
     is_ptr = isinstance(decl, CPtrDeclaratorNode)
     is_ref = isinstance(decl, CReferenceDeclaratorNode)
-    is_unsigned = not base_type.signed
+    is_unsigned = hasattr(base_type, "signed") and not base_type.signed
     return instances.get(base_type.name, Type(base_type.name, is_ptr,
                                               is_ref, is_unsigned, targs))
 
@@ -128,8 +140,12 @@ class CPPMethod(object):
 
     def __init__(self, node, lines, instances):
 
+        self.annotations = parse_annotations(node, lines)
+        self.wrap = "ignore" not in self.annotations
+        
         self.line_number = node.pos[1]
         self.file_name = node.pos[0].filename
+
 
         decl = node.declarators[0]
         self.result_type = parse_type(node.base_type, decl, instances)

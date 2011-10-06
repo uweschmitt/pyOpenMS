@@ -4,7 +4,7 @@ from ChromatogramPeak cimport *
 
 cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
 
-    cdef cppclass MSExperiment[PeakT, ChromoPeakT]: # wrap inst=<Peak1D, ChromatogramPeak>
+    cdef cppclass MSExperiment[PeakT, ChromoPeakT]: # wrap & inst=<Peak1D, ChromatogramPeak>
         MSExperiment()
         double getMinMZ()                         
         double getMaxMZ()                           

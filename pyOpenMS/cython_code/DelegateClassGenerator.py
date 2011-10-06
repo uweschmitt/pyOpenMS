@@ -422,8 +422,14 @@ class Generator(object):
 
     def generate_code_for_method(self, clz, methods):
 
+        methods = [ m for m in methods if m.wrap ]
+
+        if not methods:
+            return Code()
+
         if len(methods) != 1:
-            raise Exception("overloading not supported yet")
+            info = ", ".join(map(str, methods))
+            raise Exception("overloading for %s not supported yet" % info)
 
         method = methods[0]
 
