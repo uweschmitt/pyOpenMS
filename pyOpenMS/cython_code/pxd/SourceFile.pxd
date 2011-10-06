@@ -3,7 +3,7 @@ from ChecksumType cimport *
 
 cdef extern from "<OpenMS/METADATA/SourceFile.h>" namespace "OpenMS":
 
-    cdef cppclass SourceFile: #wrap
+    cdef cppclass SourceFile: #wrap=True
         SourceFile()
         SourceFile(SourceFile)
         string getNameOfFile()

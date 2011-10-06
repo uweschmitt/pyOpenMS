@@ -7,7 +7,7 @@ from SourceFile cimport *
 
 cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
 
-    cdef cppclass MSSpectrum[PeakT]:  # wrap & inst=<Peak1D>
+    cdef cppclass MSSpectrum[PeakT]:  # wrap=True; inst=("Peak1D",)
         MSSpectrum()
         MSSpectrum(MSSpectrum)
         double getRT()
@@ -31,9 +31,9 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         vector[Precursor] getPrecursors()       
         void setPrecursors(vector[Precursor])  
 
-        void assign(vector[Peak1D].iterator, vector[Peak1D].iterator) # ignore
-        vector[Peak1D].iterator begin() # ignore
-        vector[Peak1D].iterator end() # ignore
+        void assign(vector[Peak1D].iterator, vector[Peak1D].iterator) # ignore=True
+        vector[Peak1D].iterator begin() # ignore=True
+        vector[Peak1D].iterator end() # ignore=True
 
         string getNativeID()
         void   setNativeID(string)

@@ -19,14 +19,13 @@ def parse_annotations(node, lines):
     parts = lines[node.pos[1] - 1].split("#")
     result = dict()
     if len(parts)>1:
-        annotations = [ t.strip() for t in parts[1].split("&") ]
-        for annotation in annotations:
-            name, _, value = re.findall("(\w+)(=([^&]+))?", annotation)[0]
-            result[name] = value
-
+        # parse python statements in comments
+        dd = dict()
+        exec parts[1].strip() in dd
+        allowed = [int, float, str, bool, tuple, list]
+        result = dict( (k,v) for (k,v) in dd.items() if type(v) in allowed )
     return result
         
-   
 
 
 class Enum(object):
@@ -37,7 +36,7 @@ class Enum(object):
         self.line_number = node.pos[1]
         self.file_name = node.pos[0].filename
         self.annotations = parse_annotations(node, lines)
-        self.wrap = "wrap" in self.annotations
+        self.wrap = self.annotations.get("wrap", False)
 
         current_value = 0
         for item in node.items:
@@ -70,20 +69,14 @@ class CPPClass(object):
         self.file_name = node.pos[0].filename
         
         self.annotations = parse_annotations(node, lines)
-        self.wrap = "ignore" not in self.annotations
+        self.wrap = not self.annotations.get("ignore", False)
 
         self.instances = dict()  # maps template args to instantiation types
 
         targs = None
         if node.templates is not None:
-            print self.annotations
-            inst = self.annotations.get("inst")
-            print "inst = ", inst
-            if inst is None:
-                raise Exception("need inst=<A,..> arg for template class")
-            instargs = inst.strip("<").strip(">").split(",")
-            print "instargs=", instargs
-            ttargs = None
+            instargs = self.annotations.get("inst")
+            ttargs = None # noe nested templates supported 
             targs = [Type(t.strip(), template_args = ttargs) for t in instargs]
             self.instances = dict(zip(node.templates, targs))
 
@@ -141,7 +134,7 @@ class CPPMethod(object):
     def __init__(self, node, lines, instances):
 
         self.annotations = parse_annotations(node, lines)
-        self.wrap = "ignore" not in self.annotations
+        self.wrap = not self.annotations.get("ignore", False)
         
         self.line_number = node.pos[1]
         self.file_name = node.pos[0].filename
