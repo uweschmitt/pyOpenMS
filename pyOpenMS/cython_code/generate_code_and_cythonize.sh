@@ -10,6 +10,8 @@ if [ $? -eq 0 ]; then
         echo "move _pyOpenMS.cpp"
         mv _pyOpenMS.cpp ..
         echo "done"
+        return 0
     fi
 
 fi
+return 1

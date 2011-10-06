@@ -114,11 +114,23 @@ class Generator(object):
         #      In = 0
         #      Out = 1
 
+        namespaces = enum.annotations.get("ns", "")
+        if namespaces != "":
+            namespaces += "."
+        namespaces += enum.py_repr
+
         c = Code()
-        c += "cdef class %s:         " % enum.py_repr
+        for i, ns in enumerate(namespaces.split(".")):
+            cns = Code()
+            cns += "class %s(object):" % ns
+            c.addCode(cns, indent = i)
+        
+        inner = Code()    
         for name, value in enum.items:
-            c += "    $name=$value" 
-            c.resolve(name = name, value = value) 
+            inner += "$name=$value" 
+            inner.resolve(name = name, value = value) 
+
+        c.addCode(inner, indent=i+1)
         return c
 
     def generate_code_for_class(self, clz):

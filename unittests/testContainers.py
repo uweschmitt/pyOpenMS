@@ -94,7 +94,7 @@ class TestExperimentsAndSpecsAndPeaks(unittest.TestCase):
         assert spec.getPrecursors() == []
 
         polarity = spec.getInstrumentSettings().getPolarity()
-        assert polarity ==pyOpenMS.Polarity.POLNULL
+        assert polarity ==pyOpenMS.IonSource.Polarity.POLNULL
 
         peak = spec[0]
 

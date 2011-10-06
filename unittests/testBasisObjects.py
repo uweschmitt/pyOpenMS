@@ -1,5 +1,5 @@
 import unittest
-import pyOpenMS
+import pyOpenMS as p
 
 class TestBasisObjects(unittest.TestCase):
 
@@ -32,44 +32,44 @@ class TestBasisObjects(unittest.TestCase):
                           
         @end 
         """
-        p = pyOpenMS.MSSpectrum()
-        assert  p.size() == 0
+        spec = p.MSSpectrum()
+        assert  spec.size() == 0
 
-        p.setRT(1.0)
-        assert abs(p.getRT()-1.0) < 1e-5
+        spec.setRT(1.0)
+        assert abs(spec.getRT()-1.0) < 1e-5
 
-        p.setMSLevel(3)
-        assert p.getMSLevel() == 3
+        spec.setMSLevel(3)
+        assert spec.getMSLevel() == 3
 
         ex = None
         try:
-            p.setMSLevel(-1)
+            spec.setMSLevel(-1)
         except Exception ,e:
             ex = e
         assert ex is not None
 
-        pc0 = pyOpenMS.Precursor()
+        pc0 = p.Precursor()
         pc0.setMZ(16.0)
         pc0.setIntensity(256.0)
 
-        pc1 = pyOpenMS.Precursor()
+        pc1 = p.Precursor()
         pc1.setMZ(32.0)
         pc1.setIntensity(128.0)
         
-        p.setPrecursors([pc0, pc1])
+        spec.setPrecursors([pc0, pc1])
 
-        pcs = p.getPrecursors()
+        pcs = spec.getPrecursors()
         assert len(pcs) == 2
         assert pcs[0].getMZ() == pc0.getMZ()
         assert pcs[1].getMZ() == pc1.getMZ()
         assert pcs[0].getIntensity() == pc0.getIntensity()
         assert pcs[1].getIntensity() == pc1.getIntensity()
 
-        peak = pyOpenMS.Peak1D()
+        peak = p.Peak1D()
         peak.setMZ(1.25)
         peak.setIntensity(123.0)
 
-        spec = pyOpenMS.MSSpectrum()
+        spec = p.MSSpectrum()
         spec.push_back(peak)
         assert spec.size() == 1
         assert spec[0].getMZ() == 1.25
@@ -90,13 +90,13 @@ class TestBasisObjects(unittest.TestCase):
               .setIntensity
               .getIntensity
         """
-        p = pyOpenMS.Peak1D()
+        peak = p.Peak1D()
 
-        p.setMZ(1.0)
-        assert abs(p.getMZ()-1.0) < 1e-5
+        peak.setMZ(1.0)
+        assert abs(peak.getMZ()-1.0) < 1e-5
 
-        p.setIntensity(4.0)
-        assert abs(p.getIntensity()-4.0) < 1e-5
+        peak.setIntensity(4.0)
+        assert abs(peak.getIntensity()-4.0) < 1e-5
 
     def test_Precursor(self):
         """
@@ -107,13 +107,13 @@ class TestBasisObjects(unittest.TestCase):
                  .setIntensity
                  .getIntensity
         """
-        p = pyOpenMS.Precursor()
+        pc = p.Precursor()
 
-        p.setMZ(1.0)
-        assert abs(p.getMZ()-1.0) < 1e-5
+        pc.setMZ(1.0)
+        assert abs(pc.getMZ()-1.0) < 1e-5
 
-        p.setIntensity(4.0)
-        assert abs(p.getIntensity()-4.0) < 1e-5
+        pc.setIntensity(4.0)
+        assert abs(pc.getIntensity()-4.0) < 1e-5
 
     def test_InstrumentSettings(self):
         """
@@ -121,16 +121,13 @@ class TestBasisObjects(unittest.TestCase):
         InstrumentSettings.__init__
         .getPolarity
         .setPolarity
-        Polarity.POLNULL
-                .POSITIVE
-                .NEGATIVE
-                .SIZE_OF_POLARITY
+        IonSource.Polarity
         """
-        is_ = pyOpenMS.InstrumentSettings()
-        for e in [ pyOpenMS.Polarity.POLNULL,
-                   pyOpenMS.Polarity.POSITIVE,
-                   pyOpenMS.Polarity.NEGATIVE,
-                   pyOpenMS.Polarity.SIZE_OF_POLARITY,]:
+        is_ = p.InstrumentSettings()
+        for e in [ p.IonSource.Polarity.POLNULL,
+                   p.IonSource.Polarity.POSITIVE,
+                   p.IonSource.Polarity.NEGATIVE,
+                   p.IonSource.Polarity.SIZE_OF_POLARITY,]:
 
             is_.setPolarity(e)
             assert is_.getPolarity() == e
@@ -164,11 +161,10 @@ class TestBasisObjects(unittest.TestCase):
 
         @end
         """
-        sf = pyOpenMS.SourceFile()
+        sf = p.SourceFile()
         sf.setFileSize(123)
         sf.setFileType("test type")
-        sf.setChecksum("0x123", pyOpenMS.ChecksumType.SHA1)
-        #sf.setChecksumType(pyOpenMS.ChecksumType.SHA1) # UNKNOWN_CHECKSUM, MD5, SIZE_OF_CHECKSUMTYPE
+        sf.setChecksum("0x123", p.ChecksumType.SHA1)
         sf.setNameOfFile("test.mzXML")
         sf.setPathToFile("./test.mzXML")
         sf.setNativeIDType("scan=")
@@ -176,23 +172,23 @@ class TestBasisObjects(unittest.TestCase):
         assert sf.getFileSize()  == 123
         assert sf.getFileType()  == "test type"
         assert sf.getChecksum()  == "0x123"
-        assert sf.getChecksumType() == pyOpenMS.ChecksumType.SHA1
+        assert sf.getChecksumType() == p.ChecksumType.SHA1
         assert sf.getNameOfFile()  == "test.mzXML"
         assert sf.getPathToFile()  == "./test.mzXML"
         assert sf.getNativeIDType()  == "scan="
 
-        assert pyOpenMS.ChecksumType.SHA1 > -1
-        assert pyOpenMS.ChecksumType.MD5 > -1
-        assert pyOpenMS.ChecksumType.UNKNOWN_CHECKSUM > -1
-        assert pyOpenMS.ChecksumType.SIZE_OF_CHECKSUMTYPE > -1
+        assert p.ChecksumType.SHA1 > -1
+        assert p.ChecksumType.MD5 > -1
+        assert p.ChecksumType.UNKNOWN_CHECKSUM > -1
+        assert p.ChecksumType.SIZE_OF_CHECKSUMTYPE > -1
 
-        spec = pyOpenMS.MSSpectrum()
+        spec = p.MSSpectrum()
         spec.setSourceFile(sf)
         sf = spec.getSourceFile()
         assert sf.getFileSize()  == 123
         assert sf.getFileType()  == "test type"
         assert sf.getChecksum()  == "0x123"
-        assert sf.getChecksumType() == pyOpenMS.ChecksumType.SHA1
+        assert sf.getChecksumType() == p.ChecksumType.SHA1
         assert sf.getNameOfFile()  == "test.mzXML"
         assert sf.getPathToFile()  == "./test.mzXML"
         assert sf.getNativeIDType()  == "scan="
@@ -207,11 +203,11 @@ class TestBasisObjects(unittest.TestCase):
         @end
         """
         
-        dint = pyOpenMS.DataValue(3)
+        dint = p.DataValue(3)
         assert dint.intValue() == 3
-        dstr = pyOpenMS.DataValue("uwe") 
+        dstr = p.DataValue("uwe") 
         assert dstr.stringValue() == "uwe"
-        dflt = pyOpenMS.DataValue(0.125)
+        dflt = p.DataValue(0.125)
         assert dflt.floatValue()  == 0.125
 
         self.assert_exception(dint.stringValue, AssertionError)
