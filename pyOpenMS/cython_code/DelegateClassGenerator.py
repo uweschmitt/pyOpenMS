@@ -28,7 +28,13 @@ class Code(object):
         # in some situtations **parameters contains a key "self", which 
         # lets this method crash unless we use something else as "self" for
         # the first arg
-        _self.lines = [ Template(l).substitute(parameters) for l in _self.lines ]
+        resolved = []
+        for line in _self.lines:
+            if type(line) == tuple:  # code, no text
+                resolved.append(line)
+            else:
+                resolved.append(Template(line).substitute(parameters))
+        _self.lines = resolved
 
     def addFile(self, file_, indent=0):
         c = Code()
@@ -165,13 +171,26 @@ class Generator(object):
         c += '        return                                       '
 
         for sig, meth in zip(python_sigs, methods):
-            cy_args = [ cy_repr(a) for n, a in meth.args ]
-            args = ", ".join( "<%s>a[%d]" %(t,i) for i,t in enumerate(cy_args))
-            cy_type = cy_repr(clz.type_)
+            conv = Code()
+            clean = Code()
+            cpp_args = []
+ 
+            for i, (name, arg) in enumerate(meth.args):
+                py_arg = "a[%d]" % i 
+                _, co, cpparg, cl = self.input_conversion(clz, i, py_arg, arg)
+                conv.addCode(co, indent=0)
+                clean.addCode(cl, indent=0)
+                cpp_args.append(cpparg)
+
             cs = Code()
             cs += 'if self._cons_sig == $sig:          '
-            cs += '    self.inst = new $cy_type($args) '
+            cs.addCode(conv, indent=1)
+            cs += '    self.inst = new $cy_type($cpp_args)'
+            cs.addCode(clean, indent=1)
             cs += '    return                          '
+            
+            cpp_args = ", ".join(cpp_args)
+            cy_type = cy_repr(clz.type_)
             cs.resolve(**locals())
             c.addCode(cs, indent=1)
 
@@ -205,12 +224,16 @@ class Generator(object):
         co = Code()   # conversion code
         cl = Code()   # cleanup code
 
+        if type_.basetype == "char" and type_.is_ptr:
+            return "str", Code(), "<char *>"+py_argname, Code()
+
         if type_.is_ptr:
             raise Exception("ptr type '%s' not supported" % cpp_repr(type_))
 
         if type_.basetype in Type.CTYPES:
             # nothing to do
-            return cpp_repr(type_), co, py_argname, cl
+            casted = "<%s>%s" % (type_.basetype, py_argname)
+            return cpp_repr(type_), co, casted, cl
 
         if type_.basetype in self.enums:
             return "int", co, "<%s>%s" % (cy_repr(type_), py_argname), cl
