@@ -232,6 +232,7 @@ class Generator(object):
         co = Code()   # conversion code
         cl = Code()   # cleanup code
 
+        # resolve alias if present:
         type_ = self.input_aliases.get(type_, type_)
 
         if type_.basetype == "char" and type_.is_ptr:
@@ -280,24 +281,21 @@ class Generator(object):
             cy_type = cy_repr(type_)
             py_arg_type = py_repr(targ)
 
+            tempvec = "_%s_%d_as_vec" % (py_argname, argpos)
             # iterate over the python input and build temp vector.
             if targ.basetype in self.classes_to_wrap:
-                tempvec = "_%s_%d_as_vec" % (py_argname, argpos)
-
                 co += "cdef $cy_type * $tempvec = new $cy_type()"
                 co += "cdef $py_arg_type $loopvar"
                 co += "for $loopvar in $py_argname: "
                 co += "    deref($tempvec).push_back(deref($loopvar.inst))"
-
             else:
                 co += "cdef $cy_type * $tempvec = new $cy_type()"
                 co += "for $loopvar in $py_argname: "
                 co += "    deref($tempvec).push_back($loopvar)"
 
             co.resolve(**locals())
-            call_arg = "deref(%s)" % tempvec
-            # delete temp vector
             cl += "del %s" % tempvec
+            call_arg = "deref(%s)" % tempvec
             return input_type_decl, co, call_arg, cl
 
         raise Exception(cy_repr(type_) + "not supported yet")
@@ -311,8 +309,11 @@ class Generator(object):
             here we generate code which transforms this c++ type to a matching
             python type.
 
-            the result is just code which performs this transformation
-            including a return statement for the result.
+            returns:
+                 - code for declaration of needed vars
+                 - code for result conversion
+                 - name of var with conversion result
+
         """
 
         result_type = self.result_aliases.get(result_type, result_type)
@@ -320,36 +321,40 @@ class Generator(object):
         cy_type = cy_repr(result_type)
         py_type = py_repr(result_type)
 
+        d = Code()
+        c = Code()
+
         if result_type.basetype in ["int", "long", "double", "float"]:
             if result_type.is_ptr:
                 raise Exception("can not handel return type %r" % cy_type)
-            return Code("return " + result_name)
+            return d, c, result_name
 
         if result_type.basetype == "char":
             # char* is automatically converted by cython to python string
-            return Code("return " + result_name)
+            return d, c, result_name
 
         if result_type.basetype == "string":
             # char* is automatically converted by cython to python string
             if result_type.is_ptr:
                 raise Exception("can not handel return type %r" % cy_type)
-            return Code("return %s.c_str()" % result_name)
+            return d, c, "%s.c_str()" % result_name
 
         if result_type.basetype in self.enums:
-            return Code("return <int>%s" % result_name)
+            return d, c, "<int>%s" % result_name
 
         if result_type.basetype in self.classes_to_wrap:
             if result_type.is_ptr:
                 raise Exception("can not handel return type %r" % cy_type)
             # construct python wrapping class and return this :
-            co = Code()
             py_res = "_%s_py" % result_name
 
-            co += "cdef $py_type $py_res = $py_type(_new_inst=False) "
-            co += "$py_res._set_inst(new $cy_type($result_name))"
-            co += "return $py_res"
-            co.resolve(**locals())
-            return co
+            d += "cdef $py_type $py_res"
+            d.resolve(py_type=py_type, py_res=py_res)
+
+            c += "$py_res = $py_type(_new_inst=False) "
+            c += "$py_res._set_inst(new $cy_type($result_name))"
+            c.resolve(**locals())
+            return d, c, py_res
 
         if result_type.basetype == "vector":
             if result_type.is_ptr:
@@ -362,20 +367,29 @@ class Generator(object):
             cy_targ = cy_repr(targ)
 
             # build python list from vector
-            co = Code()
             if targ.basetype in self.classes_to_wrap:
-                co += "_rv = list()"
-                co += "cdef $py_targ _res"
-                co += "for _i in range($result_name.size()):"
-                co += "    _res = $py_targ(_new_inst=False) "
-                co += "    _res._set_inst(new $cy_targ($result_name.at(_i)))"
-                co += "    _rv.append(_res)"
-                co += "return _rv"
-                co.resolve(**locals())
-            else:
-                raise Exception("this case is not handeld yet")
-            return co
+                
+                d += "_rv = list()"
+                d += "cdef $cy_targ _res"
+                d.resolve(cy_targ = cy_targ)
 
+                c += "for _i in range($result_name.size()):"
+                c += "    _res = $result_name.at(_i) "
+
+                dd, cc, res_name = self.result_conversion(targ, "_res")
+
+                d.addCode(dd, indent=0)
+                c.addCode(cc, indent=1)
+
+                c += "    _rv.append(%s)" % res_name
+                c.resolve(**locals())
+                return d, c, "_rv"
+
+            else:
+                msg = "result conv for %r is not handeld yet" % cy_repr(targ)
+                raise Exception(msg)
+            return co
+        
         raise Exception("can not handle result of type %s" % cy_type)
 
     def generate_code_for_operator(self, clz, name, methods):
@@ -396,8 +410,11 @@ class Generator(object):
             co += "    cdef $res_type _res = deref(self.inst)[idx]"
             co.resolve(res_type=res_type)
 
-            resconv = self.result_conversion(method.result_type, "_res")
+            decl, resconv, resname = self.result_conversion(method.result_type,
+                                                            "_res")
+            co.addCode(decl, indent=1)
             co.addCode(resconv, indent=1)
+            co+="    return %s" % resname
             return co
 
         elif name == "operator":  # cast ops
@@ -414,8 +431,11 @@ class Generator(object):
                 co += "    " + method.annotations.get("pre", "")
                 co += "    cdef $cy_type _res = <$cy_type>deref(self.inst)"
                 co.resolve(name=name, cy_type=cy_type)
-                co.addCode(self.result_conversion(method.result_type, "_res"),
-                           indent=1)
+                decl, resconv, resname = \
+                             self.result_conversion(method.result_type, "_res")
+                co.addCode(decl, indent=1)
+                co.addCode(resconv, indent=1)
+                co += "    return %s" % resname
                 res.addCode(co, indent=0)
             return res
 
@@ -497,7 +517,9 @@ class Generator(object):
         if method.result_type.basetype == "void":
             c += "    return self"
         else:
-            resconv = self.result_conversion(method.result_type, "_result")
+            decl, resconv, rv = self.result_conversion(method.result_type, 
+                                                       "_result")
+            resconv += "return %s" % rv
+            c.addCode(decl, indent=1)
             c.addCode(resconv, indent=1)
-
         return c

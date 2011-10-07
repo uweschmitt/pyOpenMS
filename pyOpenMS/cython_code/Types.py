@@ -14,7 +14,20 @@ class Type(object):
         self.is_ref = is_ref
         self.is_unsigned = is_unsigned
         self.is_enum = is_enum
-        self.template_args = template_args
+        self.template_args = template_args and tuple(template_args)
+
+    def __hash__(self):
+
+        # this one is recursive if we have template_args !
+        return hash( (self.basetype, self.is_ptr, self.is_ref, self.is_unsigned,
+                     self.is_enum, hash(self.template_args) ) )
+    def __eq__(self, other):
+        """ for using Types as dict keys """
+        # this one is recursive if we have template_args !
+        return  (self.basetype, self.is_ptr, self.is_ref, self.is_unsigned,
+                     self.is_enum, self.template_args ) == \
+                (other.basetype, other.is_ptr, other.is_ref, other.is_unsigned,
+                     other.is_enum, other.template_args) 
 
 
 def cy_repr(type_):
