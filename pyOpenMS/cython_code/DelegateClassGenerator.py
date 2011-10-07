@@ -138,16 +138,7 @@ class Generator(object):
             these types """
 
         co = Code()
-        co += "def _sig(a):"
-        co += "    t = type(a)" 
-        co += "    if t==list: "
-        co += "       if len(a)==0:"
-        co += "          return 'list[]'"
-        co += "       return 'list[%s]' % _sig(a[0])"
-        co += "    return { str: 'str', "
-        co += "             int: 'int', "
-        co += "             float: 'float', "
-        co += "            }[t] "
+        co += "from helpers import _sig"
 
         return co
 
@@ -220,6 +211,7 @@ class Generator(object):
         c = Code()
         c += 'def __init__(self, *a, **kw):                     '
         c += '    self._cons_sig = map(_sig, a)                 '
+        c += '    print self._cons_sig '
         c += '    if len(a)==0 and kw.get("_new_inst") is False:'
         c += '        return                                    '
 
@@ -334,7 +326,9 @@ class Generator(object):
             return "int", co, "<%s>%s" % (cy_repr(type_), py_arg), cl
 
         if type_.basetype in self.classes_to_wrap:
-            return py_repr(type_), co, "deref(%s.inst)" % py_arg, cl
+            tempvar = "_ict_%s " % id_from(py_arg)
+            co += "cdef %s %s = %s" % (type_.basetype, tempvar, py_arg)
+            return py_repr(type_), co, "deref(%s.inst)" % tempvar, cl
 
         if type_.basetype == "bool":
             # cython has no bool, so bool -> int

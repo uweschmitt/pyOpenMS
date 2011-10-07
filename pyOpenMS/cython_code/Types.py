@@ -129,7 +129,7 @@ def py_type_for_cpp_type(type_):
                   ("string", False, False, False): "str",
                   ("string", False, True, False): "str",
 
-               }.get(key) # , type_.basetype)
+               }.get(key, type_.basetype)
 
     if type_.template_args is None:
         return pybase

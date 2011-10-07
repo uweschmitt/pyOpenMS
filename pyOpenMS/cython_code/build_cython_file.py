@@ -16,8 +16,8 @@ if __name__ == "__main__":
     StringList    = Type(u"StringList")
     string_vector = Type("vector", False, False, False, [ Type("string") ])
 
-    g.add_result_alias(StringList, string_vector)
-    g.add_input_alias(StringList, string_vector)
+    #g.add_result_alias(StringList, string_vector)
+    #g.add_input_alias(StringList, string_vector)
 
 
     c = Code()
@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
     for clz_name in ["Peak1D", "Precursor", "MSExperiment",
                     "InstrumentSettings", "ChromatogramTools", "Polarity",
-                    "MzXMLFile", "MzMLFile", "MzDataFile",
+                    "MzXMLFile", "MzMLFile", "MzDataFile", "StringList",
                     "SourceFile", "ChecksumType", "DataValue" ]:
 
        c.addCode(g.generate_code_for(clz_name), indent=0)
