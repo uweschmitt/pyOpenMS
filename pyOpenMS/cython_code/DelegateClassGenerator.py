@@ -25,7 +25,7 @@ class Code(object):
         return self
 
     def resolve(_self, **parameters):
-        # in some situtations **parameters contains a key "self", which 
+        # in some situtations **parameters contains a key "self", which
         # lets this method crash unless we use something else as "self" for
         # the first arg
         resolved = []
@@ -62,8 +62,12 @@ class Generator(object):
         self.classes_to_wrap = dict()
         self.cimports = []
         self.enums = set()
+        self.result_aliases = dict()
+        self.input_aliases = dict()
 
     def parse_all(self, sourcelist):
+
+        self.enums = set()
         for source in sourcelist:
             p = parse(source)
             dirname = os.path.dirname(source)
@@ -74,12 +78,16 @@ class Generator(object):
                               )
             cy_type = cy_repr(Type(p.name))
             self.cimports.append((pxdpath, p.name, cy_type))
-
             if p.wrap:
                 self.classes_to_wrap[p.name] = p
-
             if p.type_.is_enum:
                 self.enums.add(p.type_.basetype)
+
+    def add_result_alias(self, type_out, type_alias):
+        self.result_aliases[type_out] = type_alias
+
+    def add_input_alias(self, type_in, type_alias):
+        self.input_aliases[type_in] = type_alias
 
     def generate_code_for(self, className):
         c = Code()
@@ -93,15 +101,15 @@ class Generator(object):
 
     def generate_import_statements(self):
         c = Code()
-        c += "from cython.operator cimport dereference  as deref" 
-        c += "from cython.operator cimport address      as address" 
+        c += "from cython.operator cimport dereference  as deref"
+        c += "from cython.operator cimport address      as address"
         c += "from cython.operator cimport preincrement as preincrement"
         c += "from libcpp.vector cimport *"
         c += "from libcpp.string cimport *"
 
         for pxdpath, name, cy_id in self.cimports:
-            c += "from $pxdpath cimport $name as $cy_id" 
-            c.resolve(pxdpath = pxdpath, name = name, cy_id = cy_id)
+            c += "from $pxdpath cimport $name as $cy_id"
+            c.resolve(pxdpath=pxdpath, name=name, cy_id=cy_id)
         return c
 
     def generate_code_for_enum(self, enum):
@@ -114,34 +122,22 @@ class Generator(object):
         #      In = 0
         #      Out = 1
 
-        namespaces = enum.annotations.get("ns", "")
-        if namespaces != "":
-            namespaces += "."
-        namespaces += enum.py_repr
-
         c = Code()
-        for i, ns in enumerate(namespaces.split(".")):
-            cns = Code()
-            cns += "class %s(object):" % ns
-            c.addCode(cns, indent = i)
-        
-        inner = Code()    
+        c += "cdef class %s:" % enum.name
         for name, value in enum.items:
-            inner += "$name=$value" 
-            inner.resolve(name = name, value = value) 
-
-        c.addCode(inner, indent=i+1)
+            c += "    $name=$value"
+            c.resolve(name=name, value=value)
         return c
 
     def generate_code_for_class(self, clz):
         c = Code()
 
-        c += "cdef class $py_repr:                       " 
+        c += "cdef class $py_repr:                       "
 
-        c += "    cdef $cy_repr * inst                   " 
+        c += "    cdef $cy_repr * inst                   "
         c += "    cdef list  _cons_sig                   "
 
-        c += "    cdef _set_inst(self, $cy_repr * inst): " 
+        c += "    cdef _set_inst(self, $cy_repr * inst): "
         c += "        if self.inst != NULL:              "
         c += "            del self.inst                  "
         c += "        self.inst = inst                   "
@@ -155,60 +151,59 @@ class Generator(object):
         # wrap constructors first as items in dict are not in insertion order:
         constructors = clz.methods.get(clz.name)
         if constructors:
-            c.addCode(self.generate_constructor(clz, constructors), indent = 1)
+            c.addCode(self.generate_constructor(clz, constructors), indent=1)
 
         for name, methods in clz.methods.items():
             # do not wrap constructors:
             if name == clz.name:
-               continue
-            c.addCode(self.generate_code_for_method(clz, name, methods), 
+                continue
+            c.addCode(self.generate_code_for_method(clz, name, methods),
                       indent=1)
         return c
 
     def generate_constructor(self, clz, methods):
-        
-        python_sigs = []
-        for meth in methods:
-            if len(meth.args)==1:
-               argtype = meth.args[0][1]
-               if argtype.basetype == clz.name:
-                   # copy cons ? not wrapped  !
-                   continue
-            py_args = [py_type_for_cpp_type(arg) for n, arg in meth.args ]
-            python_sigs.append("[%s]" % (",".join(py_args)))
 
-        c=Code()
+        c = Code()
         c += 'def __init__(self, *a, **kw):                        '
         c += '    self._cons_sig = map(type, a)                    '
         c += '    if len(a)==0 and kw.get("_new_inst") is False:   '
         c += '        return                                       '
 
-        for sig, meth in zip(python_sigs, methods):
-            conv = Code()
-            clean = Code()
-            cpp_args = []
- 
-            for i, (name, arg) in enumerate(meth.args):
-                py_arg = "a[%d]" % i 
-                _, co, cpparg, cl = self.input_conversion(clz, i, py_arg, arg)
-                conv.addCode(co, indent=0)
-                clean.addCode(cl, indent=0)
-                cpp_args.append(cpparg)
+        for meth in methods:
 
+            if len(meth.args) == 1:
+                argtype = meth.args[0][1]
+                if argtype.basetype == clz.name:
+                    # copy cons ? not wrapped  !
+                    continue
+
+            name_defaults = []
+            cleaned_args = []
+            for i, arg in enumerate(meth.args):
+                name, type_ = arg
+                #  remove arg names in constructors !
+                cleaned_args.append((None, type_))
+                name_defaults.append("a[%d]" % i)
+
+            meth.args = cleaned_args
+
+            default_names = ["a[%d]" % i for i in range(len(meth.args))]
+            inp_conversion, conv_cleanup, cy_decl, py_decl, cpp_sig = \
+                  self.collect_input_conversion_stuff(clz, meth, default_names)
+
+            py_sig = ", ".join(py_decl)
             cs = Code()
-            cs += 'if self._cons_sig == $sig:          '
-            cs.addCode(conv, indent=1)
-            cs += '    self.inst = new $cy_type($cpp_args)'
-            cs.addCode(clean, indent=1)
+            cs += 'if self._cons_sig == [$py_sig]:     '
+            cs.addCode(inp_conversion, indent=1)
+            cs += '    self.inst = new $cy_type($cpp_sig)'
+            cs.addCode(conv_cleanup, indent=1)
             cs += '    return                          '
-            
-            cpp_args = ", ".join(cpp_args)
+
             cy_type = cy_repr(clz.type_)
             cs.resolve(**locals())
             c.addCode(cs, indent=1)
 
         c += '    raise Exception("input args do not match declaration")'
-
         return c
 
     def input_conversion(self, clz, argpos, py_argname, type_):
@@ -226,7 +221,7 @@ class Generator(object):
 
            we generate and return in this order:
 
-              - input_type_decl: type decl for the python method
+              - input_ctype_decl: type decl for the cython method
               - conversion code: code which transforms python arg
                                  to c++ arg
               - what value to pass to the c++ method
@@ -237,16 +232,18 @@ class Generator(object):
         co = Code()   # conversion code
         cl = Code()   # cleanup code
 
+        type_ = self.input_aliases.get(type_, type_)
+
         if type_.basetype == "char" and type_.is_ptr:
-            return "str", Code(), "<char *>"+py_argname, Code()
+            return "char *", Code(), "<char *>" + py_argname, Code()
 
         if type_.is_ptr:
             raise Exception("ptr type '%s' not supported" % cpp_repr(type_))
 
         if type_.basetype in Type.CTYPES:
             # nothing to do
-            casted = "<%s>%s" % (type_.basetype, py_argname)
-            return cpp_repr(type_), co, casted, cl
+            casted = "<%s>%s" % (cpp_repr(type_), py_argname)
+            return cy_repr(type_), co, casted, cl
 
         if type_.basetype in self.enums:
             return "int", co, "<%s>%s" % (cy_repr(type_), py_argname), cl
@@ -263,12 +260,12 @@ class Generator(object):
             # be declared
             input_type_decl = "char *"
             tempvar = "_%s_%d_as_str" % (py_argname, argpos)
-        
-            co += "cdef string * $tempvar = new string($py_argname)" 
-            co.resolve(tempvar = tempvar, py_argname = py_argname)
+
+            co += "cdef string * $tempvar = new string($py_argname)"
+            co.resolve(tempvar=tempvar, py_argname=py_argname)
 
             cl += "del $tempvar"
-            cl.resolve(tempvar = tempvar)
+            cl.resolve(tempvar=tempvar)
 
             call_arg = "deref(%s)" % tempvar
             return input_type_decl, co, call_arg, cl
@@ -287,15 +284,15 @@ class Generator(object):
             if targ.basetype in self.classes_to_wrap:
                 tempvec = "_%s_%d_as_vec" % (py_argname, argpos)
 
-                co += "cdef $cy_type * $tempvec = new $cy_type()" 
-                co += "cdef $py_arg_type $loopvar" 
-                co += "for $loopvar in $py_argname: " 
+                co += "cdef $cy_type * $tempvec = new $cy_type()"
+                co += "cdef $py_arg_type $loopvar"
+                co += "for $loopvar in $py_argname: "
                 co += "    deref($tempvec).push_back(deref($loopvar.inst))"
 
             else:
                 co += "cdef $cy_type * $tempvec = new $cy_type()"
-                co += "for $loopvar in $py_argname: " 
-                co += "    deref($tempvec).push_back($loopvar)" 
+                co += "for $loopvar in $py_argname: "
+                co += "    deref($tempvec).push_back($loopvar)"
 
             co.resolve(**locals())
             call_arg = "deref(%s)" % tempvec
@@ -317,6 +314,8 @@ class Generator(object):
             the result is just code which performs this transformation
             including a return statement for the result.
         """
+
+        result_type = self.result_aliases.get(result_type, result_type)
 
         cy_type = cy_repr(result_type)
         py_type = py_repr(result_type)
@@ -346,8 +345,8 @@ class Generator(object):
             co = Code()
             py_res = "_%s_py" % result_name
 
-            co += "cdef $py_type $py_res = $py_type(_new_inst=False) " 
-            co += "$py_res._set_inst(new $cy_type($result_name))" 
+            co += "cdef $py_type $py_res = $py_type(_new_inst=False) "
+            co += "$py_res._set_inst(new $cy_type($result_name))"
             co += "return $py_res"
             co.resolve(**locals())
             return co
@@ -367,8 +366,8 @@ class Generator(object):
             if targ.basetype in self.classes_to_wrap:
                 co += "_rv = list()"
                 co += "cdef $py_targ _res"
-                co += "for _i in range($result_name.size()):" 
-                co += "    _res = $py_targ(_new_inst=False) " 
+                co += "for _i in range($result_name.size()):"
+                co += "    _res = $py_targ(_new_inst=False) "
                 co += "    _res._set_inst(new $cy_targ($result_name.at(_i)))"
                 co += "    _rv.append(_res)"
                 co += "return _rv"
@@ -377,7 +376,7 @@ class Generator(object):
                 raise Exception("this case is not handeld yet")
             return co
 
-        raise Exception("do not know how to convert result of type %s" % cy_type)
+        raise Exception("can not handle result of type %s" % cy_type)
 
     def generate_code_for_operator(self, clz, name, methods):
 
@@ -394,14 +393,14 @@ class Generator(object):
             co = Code()
             res_type = cy_repr(method.result_type)
             co += "def __getitem__(self, int idx):"
-            co += "    cdef $res_type _res = deref(self.inst)[idx]" 
+            co += "    cdef $res_type _res = deref(self.inst)[idx]"
             co.resolve(res_type=res_type)
 
             resconv = self.result_conversion(method.result_type, "_res")
             co.addCode(resconv, indent=1)
             return co
 
-        elif name == "operator": # cast ops
+        elif name == "operator":  # cast ops
             res = Code()
             for method in methods:
                 name = method.annotations.get("name")
@@ -412,18 +411,18 @@ class Generator(object):
                 cy_type = cy_repr(method.result_type)
                 co = Code()
                 co += "def $name(self):"
-                co += "    " +method.annotations.get("pre", "")
+                co += "    " + method.annotations.get("pre", "")
                 co += "    cdef $cy_type _res = <$cy_type>deref(self.inst)"
-                co.resolve(name = name, cy_type = cy_type)
+                co.resolve(name=name, cy_type=cy_type)
                 co.addCode(self.result_conversion(method.result_type, "_res"),
                            indent=1)
                 res.addCode(co, indent=0)
-            return res 
+            return res
 
         else:
             raise Exception("wrapping of %r not supported yet" % method.name)
 
-    def collect_input_conversion_stuff(self, clz, method):
+    def collect_input_conversion_stuff(self, clz, method, default_names):
 
         """ iterates over delcared arguments and builds/collects:
             - signature of generated python method
@@ -435,34 +434,35 @@ class Generator(object):
 
         input_conversion = Code()
         conversion_cleanup = Code()
-        python_args = ["self"]
+        cython_decl = []
+        python_types = []
         call_args = []
         for pos, (name, type_) in enumerate(method.args):
-            name = name or "abcdefhijklmno"[pos]
-            input_type_decl, conversion_code, call_arg, cleanup_code = \
+            name = name or default_names[pos]
+            input_ctype_decl, conversion_code, call_arg, cleanup_code = \
                              self.input_conversion(clz, pos, name, type_)
 
-            python_args.append("%s %s" % (input_type_decl, name))
+            python_types.append(py_type_for_cpp_type(type_))
+            cython_decl.append((input_ctype_decl, name))
             call_args.append(call_arg)
 
             input_conversion.addCode(conversion_code, indent=0)
             conversion_cleanup.addCode(cleanup_code,  indent=0)
 
-        py_signature = ", ".join(python_args)
         cpp_call_signature = ", ".join(call_args)
 
-        return input_conversion, conversion_cleanup, py_signature,\
-               cpp_call_signature
+        return input_conversion, conversion_cleanup, cython_decl, \
+               python_types, cpp_call_signature
 
     def generate_code_for_method(self, clz, name, methods):
 
-        methods = [ m for m in methods if m.wrap ]
+        methods = [m for m in methods if m.wrap]
 
         if not methods:
             return Code()
 
         if name.startswith("operator"):
-            return self.generate_code_for_operator(clz, name, methods) 
+            return self.generate_code_for_operator(clz, name, methods)
 
         if len(methods) != 1:
             info = ", ".join(map(str, methods))
@@ -470,10 +470,12 @@ class Generator(object):
 
         method = methods[0]
 
-        inp_conversion, conv_cleanup, py_sig, cpp_sig = \
-            self.collect_input_conversion_stuff(clz, method)
+        default_names = [chr(ord('a') + i) for i in range(len(method.args))]
+        inp_conversion, conv_cleanup, cy_decl, py_decl, cpp_sig = \
+                self.collect_input_conversion_stuff(clz, method, default_names)
 
-        name = method.name
+        py_args = ["self"] + ["%s %s" % (t, n) for (t, n) in cy_decl]
+        py_sig = ", ".join(py_args)
 
         # declare function
         c = Code()

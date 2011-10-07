@@ -1,10 +1,23 @@
 #encoding: utf-8
 from DelegateClassGenerator import Generator, Code
+from Types import Type
+
+
+
+    
+
+
 if __name__ == "__main__":
 
     import sys, glob
     g = Generator()
     g.parse_all(glob.glob("pxd/*.pxd"))
+
+    StringList    = Type("StringList", False, False, False, False)
+    string_vector = Type("vector", False, False, False, ["string"], False)
+
+    g.add_result_alias(StringList, string_vector)
+    g.add_input_alias(StringList, string_vector)
 
 
     c = Code()

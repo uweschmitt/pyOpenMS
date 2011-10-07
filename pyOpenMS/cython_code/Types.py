@@ -75,17 +75,37 @@ def py_type_for_cpp_type(type_):
               ("long", False, False, False): "int",
               ("long", False, True, True)  : "int",
               ("long", False, True, False) : "int",
+              
+              # long* not supproted:
+              ("long", True, False, True) : None,
+              ("long", True, False, False): None,
+              ("long", True, True, True)  : None,
+              ("long", True, True, False) : None,
 
               ("int",  False, False, True) : "int",
               ("int",  False, False, False): "int",
               ("int",  False, True, True)  : "int",
               ("int",  False, True, False) : "int",
 
+              # int* not supproted:
+              ("int", True, False, True) : None,
+              ("int", True, False, False): None,
+              ("int", True, True, True)  : None,
+              ("int", True, True, False) : None,
+
               ("float", False, False, False): "float",
               ("float", False, True, False): "float",
 
+              # float* not supproted:
+              ("float", True, False, False): None,
+              ("float", True, True, False): None,
+
               ("double", False, False, False): "float",
               ("double", False, True, False): "float",
-           }.get( key)
+
+              # double* not supproted:
+              ("double", True, False, False): None,
+              ("double", True, True, False): None,
+           }.get( key, type_.basetype)
 
 

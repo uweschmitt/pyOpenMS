@@ -121,13 +121,16 @@ class TestBasisObjects(unittest.TestCase):
         InstrumentSettings.__init__
         .getPolarity
         .setPolarity
-        IonSource.Polarity
+        Polarity.POLNULL
+        Polarity.POSITIVE
+        Polarity.NEGATIVE
+        Polarity.SIZE_OF_POLARITY
         """
         is_ = p.InstrumentSettings()
-        for e in [ p.IonSource.Polarity.POLNULL,
-                   p.IonSource.Polarity.POSITIVE,
-                   p.IonSource.Polarity.NEGATIVE,
-                   p.IonSource.Polarity.SIZE_OF_POLARITY,]:
+        for e in [ p.Polarity.POLNULL,
+                   p.Polarity.POSITIVE,
+                   p.Polarity.NEGATIVE,
+                   p.Polarity.SIZE_OF_POLARITY,]:
 
             is_.setPolarity(e)
             assert is_.getPolarity() == e

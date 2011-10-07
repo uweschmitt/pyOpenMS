@@ -1,4 +1,4 @@
-from Polarity cimport *
+from IonSource_Polarity cimport *
 
 cdef extern from "<OpenMS/METADATA/InstrumentSettings.h>" namespace "OpenMS":
 
