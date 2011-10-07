@@ -203,6 +203,7 @@ class TestBasisObjects(unittest.TestCase):
         .intValue
         .stringValue
         .floatValue
+        .stringList
         @end
         """
         
@@ -212,10 +213,13 @@ class TestBasisObjects(unittest.TestCase):
         assert dstr.stringValue() == "uwe"
         dflt = p.DataValue(0.125)
         assert dflt.floatValue()  == 0.125
+        dslst= p.DataValue(["a", "b"])
+        assert dslst.stringList() == ["a","b"]
 
         self.assert_exception(dint.stringValue, AssertionError)
         self.assert_exception(dstr.intValue, AssertionError)
         self.assert_exception(dflt.intValue, AssertionError)
+        self.assert_exception(dslst.intValue, AssertionError)
 
         
    

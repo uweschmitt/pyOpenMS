@@ -4,8 +4,8 @@ from Types import *
 from PXDParser import CPPClass, CPPMethod, Enum, parse
 import sys
 import os
+import re
 from   string import Template
-
 
 class Code(object):
 
@@ -56,6 +56,18 @@ class Code(object):
         return self
 
 
+def id_from(python_expression):
+    
+    # translate ()/[]. et al
+    return python_expression.replace("(","_bl_") \
+                            .replace(")","_br_") \
+                            .replace("]","_Br_") \
+                            .replace("[","_Br_") \
+                            .replace(".","_dt_")\
+                            .replace("'","_sq_")\
+                            .replace('"',"_dq_")
+
+
 class Generator(object):
 
     def __init__(self):
@@ -104,6 +116,7 @@ class Generator(object):
         c += "from cython.operator cimport dereference  as deref"
         c += "from cython.operator cimport address      as address"
         c += "from cython.operator cimport preincrement as preincrement"
+        c += "from cpython.string  cimport *"
         c += "from libcpp.vector cimport *"
         c += "from libcpp.string cimport *"
 
@@ -111,6 +124,33 @@ class Generator(object):
             c += "from $pxdpath cimport $name as $cy_id"
             c.resolve(pxdpath=pxdpath, name=name, cy_id=cy_id)
         return c
+
+    def generate_startup(self):
+        co = Code()
+        co.addCode(self.generate_import_statements(), indent=0)
+        co.addCode(self.generate_helper_functions(), indent=0)
+        return co
+
+    def generate_helper_functions(self):
+        
+        """ generates string representation of a python type 
+            supports only ints, floats, strs and lists with
+            these types """
+
+        co = Code()
+        co += "def _sig(a):"
+        co += "    t = type(a)" 
+        co += "    if t==list: "
+        co += "       if len(a)==0:"
+        co += "          return 'list[]'"
+        co += "       return 'list[%s]' % _sig(a[0])"
+        co += "    return { str: 'str', "
+        co += "             int: 'int', "
+        co += "             float: 'float', "
+        co += "            }[t] "
+
+        return co
+
 
     def generate_code_for_enum(self, enum):
 
@@ -130,6 +170,10 @@ class Generator(object):
         return c
 
     def generate_code_for_class(self, clz):
+
+        print
+        print "wrap", clz.cy_repr
+
         c = Code()
 
         c += "cdef class $py_repr:                       "
@@ -163,50 +207,90 @@ class Generator(object):
 
     def generate_constructor(self, clz, methods):
 
+        """
+             supports overloaded constructors.
+             the cython cons tries to match the python args against
+             the signatures of the declared c++ constructors
+             and calls an appropriate "subconstructor" for the match.
+
+             therefore we generate a constructor and some
+             subconstructors.
+        """
+
         c = Code()
-        c += 'def __init__(self, *a, **kw):                        '
-        c += '    self._cons_sig = map(type, a)                    '
-        c += '    if len(a)==0 and kw.get("_new_inst") is False:   '
-        c += '        return                                       '
+        c += 'def __init__(self, *a, **kw):                     '
+        c += '    self._cons_sig = map(_sig, a)                 '
+        c += '    if len(a)==0 and kw.get("_new_inst") is False:'
+        c += '        return                                    '
+
+        sub_constructors = []
 
         for meth in methods:
 
+            if not meth.wrap:
+                continue
             if len(meth.args) == 1:
                 argtype = meth.args[0][1]
                 if argtype.basetype == clz.name:
                     # copy cons ? not wrapped  !
                     continue
 
-            name_defaults = []
+            print "    wrap ", str(meth)
+
+            default_names = []
             cleaned_args = []
             for i, arg in enumerate(meth.args):
                 name, type_ = arg
                 #  remove arg names in constructors !
                 cleaned_args.append((None, type_))
-                name_defaults.append("a[%d]" % i)
+                default_names.append("a[%d]" % i)
 
             meth.args = cleaned_args
 
-            default_names = ["a[%d]" % i for i in range(len(meth.args))]
-            inp_conversion, conv_cleanup, cy_decl, py_decl, cpp_sig = \
+            inp_conversion, conv_cleanup, cy_decl, cpp_sig = \
                   self.collect_input_conversion_stuff(clz, meth, default_names)
+    
+            # resolve aliases
+            inp_types = [self.input_aliases.get(t,t) for (n,t) in meth.args]
+            
+            # python types which can be converted to the c++ cons arg types
+            py_types = [py_type_for_cpp_type(t) for t in inp_types]
+            
+            py_sig = ", ".join('"%s"' % t for t in py_types)
 
-            py_sig = ", ".join(py_decl)
+            # generate code which matches input args against available cons
+            # and call subsons in case of success:
             cs = Code()
-            cs += 'if self._cons_sig == [$py_sig]:     '
-            cs.addCode(inp_conversion, indent=1)
-            cs += '    self.inst = new $cy_type($cpp_sig)'
-            cs.addCode(conv_cleanup, indent=1)
-            cs += '    return                          '
+            cs += 'if self._cons_sig == [$py_sig]: '
+            cs += '   self.$subcons(*a)'
+            cs += '   return'
 
-            cy_type = cy_repr(clz.type_)
-            cs.resolve(**locals())
+            subcons= "__subcons_for_"+id_from(py_sig)
+            cs.resolve(py_sig=py_sig, subcons=subcons)
             c.addCode(cs, indent=1)
 
+            # generate code for subcons. this code is stored as it appears
+            # after the __init__() in the generated pyx file:
+            sc=Code()
+            sc += "def $subcons(self, *a):"
+    
+            sc.addCode(inp_conversion, indent=1)
+            sc += '    self.inst = new $cy_type($cpp_sig)'
+            sc.addCode(conv_cleanup, indent=1)
+            cy_type = cy_repr(clz.type_)
+            sc.resolve(**locals())
+            sub_constructors.append(sc)
+
+        # called in case of no match:
         c += '    raise Exception("input args do not match declaration")'
+
+        # __init__() done, now add subconstructors:
+        for subcons in sub_constructors:
+            c.addCode(subcons, indent=0)
+    
         return c
 
-    def input_conversion(self, clz, argpos, py_argname, type_):
+    def input_conversion(self, clz, argpos, py_arg, type_):
         """
            the generated python methods take python args as input
            which have to be converted (in most cases) for calling
@@ -215,7 +299,7 @@ class Generator(object):
            this function handles one argument
 
            argpos     is the position of the argument
-           py_argname is the name of the argument
+           py_arg     is the argument
            type_      is the type which the c++ method expects for
                       this argument.
 
@@ -224,7 +308,7 @@ class Generator(object):
               - input_ctype_decl: type decl for the cython method
               - conversion code: code which transforms python arg
                                  to c++ arg
-              - what value to pass to the c++ method
+              - what value/expression to pass to the c++ method
               - cleanup_code   : code for cleanup after the c++
                                  method is called
         """
@@ -236,34 +320,34 @@ class Generator(object):
         type_ = self.input_aliases.get(type_, type_)
 
         if type_.basetype == "char" and type_.is_ptr:
-            return "char *", Code(), "<char *>" + py_argname, Code()
+            return "char *", Code(), "<char *>" + py_arg, Code()
 
         if type_.is_ptr:
             raise Exception("ptr type '%s' not supported" % cpp_repr(type_))
 
         if type_.basetype in Type.CTYPES:
             # nothing to do
-            casted = "<%s>%s" % (cpp_repr(type_), py_argname)
+            casted = "<%s>%s" % (cpp_repr(type_), py_arg)
             return cy_repr(type_), co, casted, cl
 
         if type_.basetype in self.enums:
-            return "int", co, "<%s>%s" % (cy_repr(type_), py_argname), cl
+            return "int", co, "<%s>%s" % (cy_repr(type_), py_arg), cl
 
         if type_.basetype in self.classes_to_wrap:
-            return py_repr(type_), co, "deref(%s.inst)" % py_argname, cl
+            return py_repr(type_), co, "deref(%s.inst)" % py_arg, cl
 
         if type_.basetype == "bool":
             # cython has no bool, so bool -> int
-            return "int", co, py_argname, cl
+            return "int", co, py_arg, cl
 
         if type_.basetype == "string":
             # cython method declares char * which is how python strings can
             # be declared
             input_type_decl = "char *"
-            tempvar = "_%s_%d_as_str" % (py_argname, argpos)
+            tempvar = "_%s_%d_as_str" % (id_from(py_arg), argpos)
 
-            co += "cdef string * $tempvar = new string($py_argname)"
-            co.resolve(tempvar=tempvar, py_argname=py_argname)
+            co += "cdef string * $tempvar = new string($py_arg)"
+            co.resolve(tempvar=tempvar, py_arg=py_arg)
 
             cl += "del $tempvar"
             cl.resolve(tempvar=tempvar)
@@ -276,22 +360,29 @@ class Generator(object):
             assert len(type_.template_args) == 1, \
                                         "vector takes only one template arg"
             targ = type_.template_args[0]
-            loopvar = "_v_%d" % argpos
+            loopvar = "_loopvar_%d" % argpos
 
             cy_type = cy_repr(type_)
             py_arg_type = py_repr(targ)
 
-            tempvec = "_%s_%d_as_vec" % (py_argname, argpos)
+            tempvec = "_%s_as_vec" % (id_from(py_arg))
             # iterate over the python input and build temp vector.
             if targ.basetype in self.classes_to_wrap:
                 co += "cdef $cy_type * $tempvec = new $cy_type()"
                 co += "cdef $py_arg_type $loopvar"
-                co += "for $loopvar in $py_argname: "
+                co += "for $loopvar in $py_arg: " 
                 co += "    deref($tempvec).push_back(deref($loopvar.inst))"
             else:
+                decl, coo, cll, co_res = \
+                                self.convert_python_object_to(targ, loopvar)
+
                 co += "cdef $cy_type * $tempvec = new $cy_type()"
-                co += "for $loopvar in $py_argname: "
-                co += "    deref($tempvec).push_back($loopvar)"
+                co.addCode(decl, indent=0)
+
+                co += "for $loopvar in $py_arg: "
+                co.addCode(coo, indent=1)
+                co += "    deref($tempvec).push_back($co_res)"
+                co.addCode(cll, indent=1)
 
             co.resolve(**locals())
             cl += "del %s" % tempvec
@@ -299,6 +390,36 @@ class Generator(object):
             return input_type_decl, co, call_arg, cl
 
         raise Exception(cy_repr(type_) + "not supported yet")
+
+    def convert_python_object_to(self, type_, var):
+
+        """ used to convert python type to a "native" type.
+
+            returns:
+                - declaration code
+                - conversion code
+                - cleanup code
+                - expression for accessing native data
+        """
+        
+        decl = Code()
+        conv = Code()
+        clup = Code()
+        
+        if type_ == Type("string"):
+            tempvar = "_cpo_temp_%s" % var
+            decl += "cdef string * $tempvar"
+            conv += "$tempvar = new string(PyString_AsString($var))"
+            clup += "del $tempvar"
+
+            decl.resolve(tempvar=tempvar)
+            conv.resolve(tempvar=tempvar, var=var)
+            clup.resolve(tempvar=tempvar)
+
+            return decl, conv, clup, "deref(%s)"%tempvar
+       
+        raise Exception("py to %r conv not implemented" % cy_repr(type_)) 
+        
 
     def result_conversion(self, result_type, result_name):
 
@@ -366,29 +487,23 @@ class Generator(object):
             py_targ = py_repr(targ)
             cy_targ = cy_repr(targ)
 
-            # build python list from vector
-            if targ.basetype in self.classes_to_wrap:
-                
-                d += "_rv = list()"
-                d += "cdef $cy_targ _res"
-                d.resolve(cy_targ = cy_targ)
+            tempvar = "_t_%s" % result_name
+            d += "_rv = list()"
+            d += "cdef $cy_targ $tempvar"
+            d.resolve(**locals())
 
-                c += "for _i in range($result_name.size()):"
-                c += "    _res = $result_name.at(_i) "
+            c += "for _i in range($result_name.size()):"
+            c += "    $tempvar = $result_name.at(_i) "
 
-                dd, cc, res_name = self.result_conversion(targ, "_res")
+            dd, cc, res_name = self.result_conversion(targ, tempvar)
 
-                d.addCode(dd, indent=0)
-                c.addCode(cc, indent=1)
+            d.addCode(dd, indent=0)
+            c.addCode(cc, indent=1)
 
-                c += "    _rv.append(%s)" % res_name
-                c.resolve(**locals())
-                return d, c, "_rv"
+            c += "    _rv.append(%s)" % res_name
+            c.resolve(**locals())
+            return d, c, "_rv"
 
-            else:
-                msg = "result conv for %r is not handeld yet" % cy_repr(targ)
-                raise Exception(msg)
-            return co
         
         raise Exception("can not handle result of type %s" % cy_type)
 
@@ -455,14 +570,12 @@ class Generator(object):
         input_conversion = Code()
         conversion_cleanup = Code()
         cython_decl = []
-        python_types = []
         call_args = []
         for pos, (name, type_) in enumerate(method.args):
             name = name or default_names[pos]
             input_ctype_decl, conversion_code, call_arg, cleanup_code = \
                              self.input_conversion(clz, pos, name, type_)
 
-            python_types.append(py_type_for_cpp_type(type_))
             cython_decl.append((input_ctype_decl, name))
             call_args.append(call_arg)
 
@@ -472,7 +585,7 @@ class Generator(object):
         cpp_call_signature = ", ".join(call_args)
 
         return input_conversion, conversion_cleanup, cython_decl, \
-               python_types, cpp_call_signature
+               cpp_call_signature
 
     def generate_code_for_method(self, clz, name, methods):
 
@@ -490,8 +603,10 @@ class Generator(object):
 
         method = methods[0]
 
+        print "    wrap", method
+
         default_names = [chr(ord('a') + i) for i in range(len(method.args))]
-        inp_conversion, conv_cleanup, cy_decl, py_decl, cpp_sig = \
+        inp_conversion, conv_cleanup, cy_decl, cpp_sig = \
                 self.collect_input_conversion_stuff(clz, method, default_names)
 
         py_args = ["self"] + ["%s %s" % (t, n) for (t, n) in cy_decl]

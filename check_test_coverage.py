@@ -11,6 +11,8 @@ for clz_name, clz in pyOpenMS._pyOpenMS.__dict__.items():
     if clz_name in ignore or clz_name.startswith("__"):
         continue
 
+    if not hasattr(clz, "__dict__"):
+        continue
     for method_name, method in clz.__dict__.items():
        
         if method_name.startswith("__") and method_name != "__init__":

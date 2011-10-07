@@ -19,8 +19,8 @@ class Type(object):
     def __hash__(self):
 
         # this one is recursive if we have template_args !
-        return hash( (self.basetype, self.is_ptr, self.is_ref, self.is_unsigned,
-                     self.is_enum, hash(self.template_args) ) )
+        return hash( (self.basetype, self.is_ptr, self.is_ref, 
+                     self.is_unsigned, self.is_enum, hash(self.template_args) ) )
     def __eq__(self, other):
         """ for using Types as dict keys """
         # this one is recursive if we have template_args !
@@ -82,43 +82,59 @@ def py_repr(type_):
 def py_type_for_cpp_type(type_):
     key = (type_.basetype, type_.is_ptr, type_.is_ref, type_.is_unsigned)
                #bt     isptr isref  isunsigned
-    return {  ("char", True, False, False) : "str",
+    pybase   = {  ("char", True, False, False) : "str",
 
-              ("long", False, False, True) : "int",
-              ("long", False, False, False): "int",
-              ("long", False, True, True)  : "int",
-              ("long", False, True, False) : "int",
-              
-              # long* not supproted:
-              ("long", True, False, True) : None,
-              ("long", True, False, False): None,
-              ("long", True, True, True)  : None,
-              ("long", True, True, False) : None,
+                  ("long", False, False, True) : "int",
+                  ("long", False, False, False): "int",
+                  ("long", False, True, True)  : "int",
+                  ("long", False, True, False) : "int",
+                  
+                  # long* not supproted:
+                  ("long", True, False, True) : None,
+                  ("long", True, False, False): None,
+                  ("long", True, True, True)  : None,
+                  ("long", True, True, False) : None,
 
-              ("int",  False, False, True) : "int",
-              ("int",  False, False, False): "int",
-              ("int",  False, True, True)  : "int",
-              ("int",  False, True, False) : "int",
+                  ("int",  False, False, True) : "int",
+                  ("int",  False, False, False): "int",
+                  ("int",  False, True, True)  : "int",
+                  ("int",  False, True, False) : "int",
 
-              # int* not supproted:
-              ("int", True, False, True) : None,
-              ("int", True, False, False): None,
-              ("int", True, True, True)  : None,
-              ("int", True, True, False) : None,
+                  # int* not supproted:
+                  ("int", True, False, True) : None,
+                  ("int", True, False, False): None,
+                  ("int", True, True, True)  : None,
+                  ("int", True, True, False) : None,
 
-              ("float", False, False, False): "float",
-              ("float", False, True, False): "float",
+                  ("float", False, False, False): "float",
+                  ("float", False, True, False): "float",
 
-              # float* not supproted:
-              ("float", True, False, False): None,
-              ("float", True, True, False): None,
+                  # float* not supproted:
+                  ("float", True, False, False): None,
+                  ("float", True, True, False): None,
 
-              ("double", False, False, False): "float",
-              ("double", False, True, False): "float",
+                  ("double", False, False, False): "float",
+                  ("double", False, True, False): "float",
 
-              # double* not supproted:
-              ("double", True, False, False): None,
-              ("double", True, True, False): None,
-           }.get( key, type_.basetype)
+                  # double* not supproted:
+                  ("double", True, False, False): None,
+                  ("double", True, True, False): None,
 
+                  ("vector", False, False, False): "list",
+                  ("vector", False, True, False): "list",
 
+                  ("list", False, False, False): "list",
+                  ("list", False, True, False): "list",
+
+                  ("string", False, False, False): "str",
+                  ("string", False, True, False): "str",
+
+               }.get(key) # , type_.basetype)
+
+    if type_.template_args is None:
+        return pybase
+
+    else:
+        pyargs = [py_type_for_cpp_type(t) for t in type_.template_args]
+        return "%s[%s]" % (pybase, ", ".join(pyargs))
+        

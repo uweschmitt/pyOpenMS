@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
 
     c = Code()
-    c.addCode(g.generate_import_statements(), indent=0)
+    c.addCode(g.generate_startup(), indent=0)
 
     c += "cimport numpy as np"
     c += "import numpy as np"
