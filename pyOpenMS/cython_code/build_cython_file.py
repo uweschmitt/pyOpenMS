@@ -39,5 +39,7 @@ if __name__ == "__main__":
 
     c.addFile("MSSpectrumHelpers.pyx", indent=1)
 
+    c += (g.generate_converters(), 0)
+
     with open("_pyOpenMS.pyx", "w") as out: 
         c.write(out=out)

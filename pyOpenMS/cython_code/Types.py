@@ -29,6 +29,34 @@ class Type(object):
                 (other.basetype, other.is_ptr, other.is_ref, other.is_unsigned,
                      other.is_enum, other.template_args) 
 
+    def matches(self, basetype, **kw):
+
+        is_ptr = kw.get("is_ptr")
+        is_ref = kw.get("is_ref")
+        is_unsigned = kw.get("is_runsigned")
+        template_args = kw.get("template_args")
+        is_enum = kw.get("is_enum")
+
+        if self.basetype != basetype:
+            return False
+
+        if (is_ptr is not None and is_ptr != self.is_ptr):
+            return False
+
+        if (is_ref is not None and is_ref != self.is_ref):
+            return False
+
+        if (is_unsigned is not None and is_unsigned != self.is_unsigned):
+            return False
+
+        if (is_enum is not None and is_enum != self.is_enum):
+            return False
+
+        if (template_args is not None and template_args != self.template_args):
+            return False
+
+        return True
+       
 
 def cy_repr(type_):
     """ returns cython type representation """
@@ -80,61 +108,57 @@ def py_repr(type_):
     return type_.basetype
 
 def py_type_for_cpp_type(type_):
-    key = (type_.basetype, type_.is_ptr, type_.is_ref, type_.is_unsigned)
-               #bt     isptr isref  isunsigned
-    pybase   = {  ("char", True, False, False) : "str",
 
-                  ("long", False, False, True) : "int",
-                  ("long", False, False, False): "int",
-                  ("long", False, True, True)  : "int",
-                  ("long", False, True, False) : "int",
-                  
-                  # long* not supproted:
-                  ("long", True, False, True) : None,
-                  ("long", True, False, False): None,
-                  ("long", True, True, True)  : None,
-                  ("long", True, True, False) : None,
+    if type_.matches("char", is_ptr=True):
+            return "str"
 
-                  ("int",  False, False, True) : "int",
-                  ("int",  False, False, False): "int",
-                  ("int",  False, True, True)  : "int",
-                  ("int",  False, True, False) : "int",
+    if type_.is_ptr:
+        return None
 
-                  # int* not supproted:
-                  ("int", True, False, True) : None,
-                  ("int", True, False, False): None,
-                  ("int", True, True, True)  : None,
-                  ("int", True, True, False) : None,
+    if type_.is_enum:
+            return "int"
 
-                  ("float", False, False, False): "float",
-                  ("float", False, True, False): "float",
+    if type_.matches("long"):
+            return "int"
 
-                  # float* not supproted:
-                  ("float", True, False, False): None,
-                  ("float", True, True, False): None,
+    if type_.matches("int"):
+            return "int"
 
-                  ("double", False, False, False): "float",
-                  ("double", False, True, False): "float",
+    if type_.matches("bool"):
+            return "int"
 
-                  # double* not supproted:
-                  ("double", True, False, False): None,
-                  ("double", True, True, False): None,
+    if type_.matches("float"):
+            return "float"
 
-                  ("vector", False, False, False): "list",
-                  ("vector", False, True, False): "list",
+    if type_.matches("double"):
+            return "float"
 
-                  ("list", False, False, False): "list",
-                  ("list", False, True, False): "list",
+    if type_.matches("string"):
+            return "str"
 
-                  ("string", False, False, False): "str",
-                  ("string", False, True, False): "str",
+    if type_.matches("vector") or type_.matches("list"):
+        return "list"
 
-               }.get(key, type_.basetype)
+    return type_.basetype
 
+def cy_type_for_cpp_type(type_):
+
+    basetype = py_type_for_cpp_type(type_)
+    if basetype is None: return
+
+    return ("unsigned " if type_.is_unsigned else "")  + basetype + ("*" if type_.is_ptr  else "")
+
+
+def pysig_for_cpp_type(type_):
+
+    pybase = py_type_for_cpp_type(type_)
     if type_.template_args is None:
         return pybase
 
     else:
-        pyargs = [py_type_for_cpp_type(t) for t in type_.template_args]
+        pyargs = [pysig_for_cpp_type(t) for t in type_.template_args]
         return "%s[%s]" % (pybase, ", ".join(pyargs))
+
+
+ 
         
