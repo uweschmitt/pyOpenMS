@@ -1,5 +1,6 @@
 import unittest
 import pyOpenMS as p
+from   nose.tools import *
 
 class TestBasisObjects(unittest.TestCase):
 
@@ -59,7 +60,8 @@ class TestBasisObjects(unittest.TestCase):
         spec.setPrecursors([pc0, pc1])
 
         pcs = spec.getPrecursors()
-        assert len(pcs) == 2
+        print pcs
+        eq_(len(pcs), 2)
         assert pcs[0].getMZ() == pc0.getMZ()
         assert pcs[1].getMZ() == pc1.getMZ()
         assert pcs[0].getIntensity() == pc0.getIntensity()
@@ -213,8 +215,10 @@ class TestBasisObjects(unittest.TestCase):
         assert dstr.stringValue() == "uwe"
         dflt = p.DataValue(0.125)
         assert dflt.floatValue()  == 0.125
-        dslst= p.DataValue(["a", "b"])
-        assert dslst.stringList() == ["a","b"]
+        sl = p.StringList(["a","b"])
+        dslst= p.DataValue(sl)
+        
+        assert dslst.stringList() == sl, dslst.stringList()
 
         self.assert_exception(dint.stringValue, AssertionError)
         self.assert_exception(dstr.intValue, AssertionError)

@@ -24,6 +24,14 @@ class Code(object):
         self.lines.append(line)
         return self
 
+    def addFile(self, path, indent=0):
+        c = Code()
+        with open(path, "r") as fp:
+            for l in fp:
+                c += l.rstrip()
+        self.addCode(c, indent)
+        return self
+
     def resolve(_self, **parameters):
         # in some situtations **parameters contains a key "self", which
         # lets this method crash unless we use something else as "self" for
@@ -35,12 +43,6 @@ class Code(object):
             else:
                 resolved.append(Template(line).substitute(parameters))
         _self.lines = resolved
-
-    def addFile(self, file_, indent=0):
-        c = Code()
-        for l in file_:
-            c += l.rstrip()
-        self.addCode(c, indent)
 
     def __iadd__(self, line):
         return self.add(line)
@@ -137,10 +139,7 @@ class Generator(object):
             supports only ints, floats, strs and lists with
             these types """
 
-        co = Code()
-        co += "from helpers import _sig"
-
-        return co
+        return Code().addFile("included_helpers.py", indent=0)
 
 
     def generate_code_for_enum(self, enum):
@@ -239,7 +238,7 @@ class Generator(object):
 
             meth.args = cleaned_args
 
-            inp_conversion, conv_cleanup, cy_decl, cpp_sig = \
+            inp_conversion, decls, conv_cleanup, cy_decl, cpp_sig = \
                   self.collect_input_conversion_stuff(clz, meth, default_names)
     
             # resolve aliases
@@ -266,6 +265,7 @@ class Generator(object):
             sc=Code()
             sc += "def $subcons(self, *a):"
     
+            sc.addCode(decls, indent=1)
             sc.addCode(inp_conversion, indent=1)
             sc += '    self.inst = new $cy_type($cpp_sig)'
             sc.addCode(conv_cleanup, indent=1)
@@ -305,6 +305,7 @@ class Generator(object):
                                  method is called
         """
 
+        dcl = Code()  # declarations
         co = Code()   # conversion code
         cl = Code()   # cleanup code
 
@@ -312,7 +313,7 @@ class Generator(object):
         type_ = self.input_aliases.get(type_, type_)
 
         if type_.basetype == "char" and type_.is_ptr:
-            return "char *", Code(), "<char *>" + py_arg, Code()
+            return "char *", dcl, co, "<char *>" + py_arg, cl
 
         if type_.is_ptr:
             raise Exception("ptr type '%s' not supported" % cpp_repr(type_))
@@ -320,34 +321,35 @@ class Generator(object):
         if type_.basetype in Type.CTYPES:
             # nothing to do
             casted = "<%s>%s" % (cpp_repr(type_), py_arg)
-            return cy_repr(type_), co, casted, cl
+            return cy_repr(type_), dcl, co, casted, cl
 
         if type_.basetype in self.enums:
-            return "int", co, "<%s>%s" % (cy_repr(type_), py_arg), cl
+            return "int", dcl, co, "<%s>%s" % (cy_repr(type_), py_arg), cl
 
         if type_.basetype in self.classes_to_wrap:
             tempvar = "_ict_%s " % id_from(py_arg)
-            co += "cdef %s %s = %s" % (type_.basetype, tempvar, py_arg)
-            return py_repr(type_), co, "deref(%s.inst)" % tempvar, cl
+            dcl += "cdef %s %s" % (type_.basetype, tempvar)
+            co += "%s = %s" % (tempvar, py_arg)
+            return py_repr(type_), dcl, co, "deref(%s.inst)" % tempvar, cl
 
         if type_.basetype == "bool":
             # cython has no bool, so bool -> int
-            return "int", co, py_arg, cl
+            return "int", co, dcl, py_arg, cl
 
         if type_.basetype == "string":
-            # cython method declares char * which is how python strings can
-            # be declared
-            input_type_decl = "char *"
+            input_type_decl = "str"
             tempvar = "_%s_%d_as_str" % (id_from(py_arg), argpos)
+            dcl += "cdef string * $tempvar" 
+            dcl.resolve(tempvar=tempvar, py_arg=py_arg)
 
-            co += "cdef string * $tempvar = new string($py_arg)"
+            co += "$tempvar = new string(PyString_AsString($py_arg))"
             co.resolve(tempvar=tempvar, py_arg=py_arg)
 
             cl += "del $tempvar"
             cl.resolve(tempvar=tempvar)
 
             call_arg = "deref(%s)" % tempvar
-            return input_type_decl, co, call_arg, cl
+            return input_type_decl, dcl, co, call_arg, cl
 
         if type_.basetype == "vector":
             input_type_decl = ""                      # any iterable
@@ -357,31 +359,28 @@ class Generator(object):
             loopvar = "_loopvar_%d" % argpos
 
             cy_type = cy_repr(type_)
-            py_arg_type = py_repr(targ)
+            py_arg_type = py_type_for_cpp_type(targ)
 
             tempvec = "_%s_as_vec" % (id_from(py_arg))
-            # iterate over the python input and build temp vector.
-            if targ.basetype in self.classes_to_wrap:
-                co += "cdef $cy_type * $tempvec = new $cy_type()"
-                co += "cdef $py_arg_type $loopvar"
-                co += "for $loopvar in $py_arg: " 
-                co += "    deref($tempvec).push_back(deref($loopvar.inst))"
-            else:
-                decl, coo, cll, co_res = \
-                                self.convert_python_object_to(targ, loopvar)
 
-                co += "cdef $cy_type * $tempvec = new $cy_type()"
-                co.addCode(decl, indent=0)
+            decl, decl, coo, call_as, clean = \
+                                 self.input_conversion(clz, 0, loopvar, targ)
 
-                co += "for $loopvar in $py_arg: "
-                co.addCode(coo, indent=1)
-                co += "    deref($tempvec).push_back($co_res)"
-                co.addCode(cll, indent=1)
+            dcl += "cdef $cy_type * $tempvec = new $cy_type()"
+            dcl += "cdef $py_arg_type $loopvar"
+            dcl.resolve(**locals())
+            dcl.addCode(decl, indent=0)
 
+            co += "for $loopvar in $py_arg: " 
+            co.addCode(coo, indent=1)
+            co += "    deref($tempvec).push_back($call_as)"
+            co.addCode(clean, indent=1)
             co.resolve(**locals())
-            cl += "del %s" % tempvec
-            call_arg = "deref(%s)" % tempvec
-            return input_type_decl, co, call_arg, cl
+
+            cl += "del $tempvec"
+            cl.resolve(tempvec=tempvec)
+
+            return input_type_decl, dcl, co, "deref(%s)" %tempvec, cl
 
         raise Exception(cy_repr(type_) + "not supported yet")
 
@@ -562,23 +561,25 @@ class Generator(object):
         """
 
         input_conversion = Code()
+        declarations = Code()
         conversion_cleanup = Code()
         cython_decl = []
         call_args = []
         for pos, (name, type_) in enumerate(method.args):
             name = name or default_names[pos]
-            input_ctype_decl, conversion_code, call_arg, cleanup_code = \
+            input_ctype_decl, decl, conversion_code, call_arg, cleanup_code = \
                              self.input_conversion(clz, pos, name, type_)
 
             cython_decl.append((input_ctype_decl, name))
             call_args.append(call_arg)
 
+            declarations.addCode(decl, indent=0)
             input_conversion.addCode(conversion_code, indent=0)
             conversion_cleanup.addCode(cleanup_code,  indent=0)
 
         cpp_call_signature = ", ".join(call_args)
 
-        return input_conversion, conversion_cleanup, cython_decl, \
+        return input_conversion, declarations, conversion_cleanup, cython_decl, \
                cpp_call_signature
 
     def generate_code_for_method(self, clz, name, methods):
@@ -600,7 +601,7 @@ class Generator(object):
         print "    wrap", method
 
         default_names = [chr(ord('a') + i) for i in range(len(method.args))]
-        inp_conversion, conv_cleanup, cy_decl, cpp_sig = \
+        inp_conversion, decls, conv_cleanup, cy_decl, cpp_sig = \
                 self.collect_input_conversion_stuff(clz, method, default_names)
 
         py_args = ["self"] + ["%s %s" % (t, n) for (t, n) in cy_decl]
@@ -611,6 +612,7 @@ class Generator(object):
         c += "def %(name)s (%(py_sig)s):   " % locals()
 
         # perform input conversiond
+        c.addCode(decls, indent=1)
         c.addCode(inp_conversion, indent=1)
 
         # call c++ method
@@ -619,11 +621,11 @@ class Generator(object):
         else:
             c += "    _result = self.inst.%(name)s(%(cpp_sig)s)" % locals()
 
-        # cleanup temp variables from input conversion
-        c.addCode(conv_cleanup, indent=1)
 
         # return result, void functions return "self" for fluent interface
         if method.result_type.basetype == "void":
+            # cleanup temp variables from input conversion
+            c.addCode(conv_cleanup, indent=1)
             c += "    return self"
         else:
             decl, resconv, rv = self.result_conversion(method.result_type, 

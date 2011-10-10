@@ -37,9 +37,7 @@ if __name__ == "__main__":
 
     c.addCode(g.generate_code_for("MSSpectrum"), indent=0)
 
-    with open("MSSpectrumHelpers.pyx","r") as fp:
-        c.addFile(fp, indent=1)
-
+    c.addFile("MSSpectrumHelpers.pyx", indent=1)
 
     with open("_pyOpenMS.pyx", "w") as out: 
         c.write(out=out)

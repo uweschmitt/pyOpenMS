@@ -5,7 +5,7 @@ import pyOpenMS
 
 toTest = set()
 
-ignore = ["numpy", "np"]
+ignore = ["numpy", "np", "re"]
 
 for clz_name, clz in pyOpenMS._pyOpenMS.__dict__.items():
     if clz_name in ignore or clz_name.startswith("__"):
