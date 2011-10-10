@@ -86,17 +86,20 @@ class ToCppConverters(object):
     def get(self, from_, to, var):
 
         if not to.is_ptr:
-           if to.basetype in ["float", "double","int", "long"]:
+           if to.basetype in ["float", "double","int", "long", "bool"]:
                if from_ in ["float", "int", "long"]:
                    return var
            if to.is_enum and from_ in ["int", "long"]:
-                   return var
+                   return "<%s>%s" % (to.basetype, var)
 
         py_name = id_from(from_)
         cpp_name = id_from(cy_repr(to))
         name = "__py_%s_to_%s" % (py_name, cpp_name)
         self.converters.add((name, from_, to))
-        return "%s(%s).conv()" % (name, var)
+        return "%s().conv(%s)" % (name, var)
+
+    def __iter__(self):
+        return iter(self.converters)
 
 class ToPyConverters(object):
 
@@ -318,8 +321,7 @@ class Generator(object):
                               for i, (py_type, (_, cpptype)) 
                               in enumerate(zip(py_types, meth.args))]
            
-            args = ", ".join( "%s().toc(a%d)" % (conv, i) \
-                                     for i, conv in enumerate(converters) )
+            args = ", ".join( conv for  conv in converters )
         
             sc=Code()
             sc += "cdef $subcons(self, $a_resolved):"
@@ -365,11 +367,12 @@ class Generator(object):
 
         # take names if declared, else use ai
 
-        cy_sig = ", ".join("%s %s" % (t,n) for (t,n) in zip(flat_cy_types, 
-                                                           arg_names))
-
+        cy_sig = ["self"] + ["%s %s" % (t,n) for (t,n) in zip(flat_cy_types, 
+                                                                  arg_names)]
         c = Code()
-        c += "def %(name)s (%(cy_sig)s):   " % locals()
+        c += "def $name ($cy_sig):   " 
+
+        c.resolve(name=name, cy_sig=", ".join(cy_sig))
 
         # determine needed converters
         converters = [self.to_cpp_converters.get(py_type, cpptype, n)
@@ -438,19 +441,83 @@ class Generator(object):
 
     def generate_converters(self):
 
-        return self.generate_to_py_converters()
+        c = Code()
+        c += (self.generate_to_py_converters(), 0)
+        c += (self.generate_from_py_converters(), 0)
+
+        return c
 
     def generate_to_py_converters(self):    
 
         c = Code()
-        for name, type_ in self.to_py_converters:
+        # generate container wrapper first. these may call other
+        #  cy->py wrappers. therefore we use list() to fetch the full
+        # iterator, else the iterator may get invalid due to new
+        # registered converters
+        for name, type_ in list(self.to_py_converters): 
     
+            if type_.basetype == "vector":
+                c += ( self.generate_vector_to_py(name, type_), 0)
+
+        for name, type_ in self.to_py_converters:
+
             if type_.basetype in self.classes_to_wrap:
                 c += ( self.generate_wrapped_class_to_py(name, type_), 0)
-            
-            continue
 
+            if type_.basetype == "string":
+                c += ( self.generate_string_to_py(), 0)
+        
+            continue
         return c
+
+    def generate_from_py_converters(self):
+    
+        c = Code()
+        for name, type_py, type_cpp in list(self.to_cpp_converters):
+            #if type_cpp.basetype == "vector":
+            #    c += (self.generate_list_to_vector(name, type_py, type_cpp) , 0)
+            if type_cpp.basetype in self.classes_to_wrap:
+                c += ( self.generate_py_to_wrapped_class(name, type_py, type_cpp), 0)
+
+        c += (self.generate_py_str_to_string(), 0)
+        return c
+
+    def generate_py_to_wrapped_class(self, name, type_py, type_cpp):
+
+        c = Code()
+        c += """cdef class $name:
+                    cdef $cy_type conv(self, $py_type arg):
+                         return deref(arg.inst)
+             """
+        cy_type = cy_repr(type_cpp)
+        py_type = type_cpp.basetype
+
+        c.resolve(**locals())
+        return c
+
+    def generate_py_str_to_string(self):
+        c = Code()
+        c += """cdef class __py_str_to_string: 
+                     cdef string * inst
+                     def __dealloc__(self):
+                          del self.inst
+                     cdef string &conv(self, str arg):
+                          self.inst = new string(PyString_AsString(arg))
+                          return deref(self.inst)
+             """ 
+
+        c += """cdef class __py_str_to_char__ptr__: 
+                     cdef char * &conv(self, str arg):
+                          return PyString_AsString(arg)
+             """ 
+        return c
+                
+
+
+    def generate_list_to_vector(self, type_py, type_cpp):
+        assert type_py == "list"
+        targ = type_cpp.template_args
+        return Code()
 
 
     def generate_wrapped_class_to_py(self, name, type_):
@@ -458,18 +525,44 @@ class Generator(object):
         cy_type = cy_repr(type_)
         py_type = py_repr(type_)
         cc = Code()
-        cc += "cdef conv_$name($cy_type inst):      "
-        cc += "        cdef $py_type res = $py_type(_set_inst=False)"
-        cc += "        res.inst = inst"
-        cc += "        return res"
+        cc += """cdef conv_$name($cy_type & inst):      
+                       cdef $py_type res = $py_type(_set_inst=False)
+                       res.inst = new $cy_type(inst)
+                       return res"""
         cc.resolve(name=name, cy_type=cy_type, py_type=py_type)
 
         return cc
             
-
             
-            
+    def generate_string_to_py(self):
 
+        cc = Code()
+        cc += "cdef conv_string_to_py(string & str):          "
+        cc += "        return PyString_FromString(str.c_str())"
+        return cc
+            
+    
+    def generate_vector_to_py(self, name, type_):
+
+        assert len(type_.template_args) == 1
+        targ = type_.template_args[0]
+        targ_cy_type = cy_repr(targ)
+        cy_type = cy_repr(type_)
+
+        inner_conv = self.to_py_converters.get(targ, "item")
+
+        cc = Code()
+        cc += """cdef conv_$name($cy_type vec):      
+                      res = []
+                      cdef $targ_cy_type item
+                      for i in range(vec.size()):
+                          item = vec.at(i)
+                          res.append($inner_conv)
+                      return res
+              """
+        
+        cc.resolve(**locals())
+        return cc
     
 
     def input_conversion(self, clz, argpos, py_arg, type_):
