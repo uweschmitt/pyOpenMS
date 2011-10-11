@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
 
     c = Code()
-    c.addCode(g.generate_startup(), indent=0)
+    c += g.generate_startup()
 
     c += "cimport numpy as np"
     c += "import numpy as np"
@@ -33,13 +33,15 @@ if __name__ == "__main__":
                     "MzXMLFile", "MzMLFile", "MzDataFile", "StringList",
                     "SourceFile", "ChecksumType", "DataValue" ]:
 
-       c.addCode(g.generate_code_for(clz_name), indent=0)
+       c += g.generate_code_for(clz_name)
 
-    c.addCode(g.generate_code_for("MSSpectrum"), indent=0)
+    c += g.generate_code_for("MSSpectrum")
 
-    c.addFile("MSSpectrumHelpers.pyx", indent=1)
+    c>>1
+    c.addFile("MSSpectrumHelpers.pyx")
+    c<<1
 
-    c += (g.generate_converters(), 0)
+    c += g.generate_converters()
 
     with open("_pyOpenMS.pyx", "w") as out: 
         c.write(out=out)

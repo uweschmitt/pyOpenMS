@@ -30,23 +30,28 @@ def parse_annotations(node, lines):
 
 class Enum(object):
 
-    def __init__(self, node, lines):
-        self.name = node.name
-        self.items = []
-        self.line_number = node.pos[1]
-        self.file_name = node.pos[0].filename
-        self.annotations = parse_annotations(node, lines)
-        self.wrap = self.annotations.get("wrap", False)
+    def __init__(self, name, items, annotations):
+        self.name = name
+        self.items = items
+        self.annotations = annotations
+        self.wrap = annotations.get("wrap", False)
+        self.py_name = name
+        self.type_ = Type(self.name, is_enum=True)
+
+    @classmethod
+    def fromTree(cls, node, lines):
+        name = node.name
+        items = []
+        annotations = parse_annotations(node, lines)
 
         current_value = 0
         for item in node.items:
             if item.value is not None:
                 current_value = item.value.constant_result
-            self.items.append((item.name, current_value))
+            items.append((item.name, current_value))
             current_value += 1
 
-        self.py_name = self.name
-        self.type_ = Type(self.name, is_enum=True)
+        return cls(name, items, annotations)
 
     def __str__(self):
         res = "enum %s : " % self.name
@@ -63,33 +68,42 @@ class CPPClass(object):
     #    - further todo: individual Python names for distinct instances
     #      (maybe via comment:  inst PyClassOne=<B,C>
 
-    def __init__(self, node, lines):
-        self.name = node.name
-        self.line_number = node.pos[1]
-        self.file_name = node.pos[0].filename
-        
-        self.annotations = parse_annotations(node, lines)
-        self.wrap = not self.annotations.get("ignore", False)
+    def __init__(self, name, instances, targs, methods, annotations):
+        self.name = name
+        self.instances = instances
+        self.targs = targs
+        self.methods = methods
+        self.annotations = annotations
+        self.wrap = not annotations.get("ignore", False)
 
-        self.instances = dict()  # maps template args to instantiation types
-
-        targs = None
-        if node.templates is not None:
-            instargs = self.annotations.get("inst")
-            ttargs = None # noe nested templates supported 
-            targs = [Type(t.strip(), template_args = ttargs) for t in instargs]
-            self.instances = dict(zip(node.templates, targs))
-
-        self.type_ = Type(self.name, template_args = targs)
+        self.type_ = Type(name, template_args = targs)
         self.cy_repr = cy_repr(self.type_)
         self.py_name = py_name(self.type_)
 
-        self.methods = defaultdict(list)
+    @classmethod
+    def fromTree(cls, node, lines):
+        name = node.name
+        
+        annotations = parse_annotations(node, lines)
+
+        instances = dict()  # maps template args to instantiation types
+
+        targs = None
+        if node.templates is not None:
+            instargs = annotations.get("inst")
+            ttargs = None # noe nested templates supported 
+            targs = [Type(t.strip(), template_args = ttargs) for t in instargs]
+            instances = dict(zip(node.templates, targs))
+
+
+        methods = defaultdict(list)
 
         for att in node.attributes:
-            meth = CPPMethod(att, lines, self.instances)
+            meth = CPPMethod.fromTree(att, lines, instances)
             if meth is not None:
-                self.methods[meth.name].append(meth)
+                methods[meth.name].append(meth)
+
+        return cls(name, instances, targs, methods, annotations)
         
 
     def __str__(self):
@@ -99,7 +113,7 @@ class CPPClass(object):
         return "\n".join(rv)
 
 
-def parse_type(base_type, decl, instances):
+def extract_type(base_type, decl, instances):
     """ extracts type information from node in parse tree """
     targs = None
     if isinstance(base_type, TemplatedTypeNode):
@@ -130,30 +144,34 @@ def parse_type(base_type, decl, instances):
 
 class CPPMethod(object):
 
-    def __init__(self, node, lines, instances):
+    def __init__(self, result_type,  name, args, annotations):
 
-        self.annotations = parse_annotations(node, lines)
+        self.result_type = result_type
+        self.name = name
+        self.args = args
+        self.annotations = annotations
         self.wrap = not self.annotations.get("ignore", False)
+
+    @classmethod
+    def fromTree(cls, node, lines, instances):
+
+        annotations = parse_annotations(node, lines)
         
-        self.line_number = node.pos[1]
-        self.file_name = node.pos[0].filename
-
-
         decl = node.declarators[0]
-        self.result_type = parse_type(node.base_type, decl, instances)
+        result_type = extract_type(node.base_type, decl, instances)
 
         if isinstance(decl, CNameDeclaratorNode):
             if re.match("^operator\W*\(\)$", decl.name):
-                self.name = decl.name[:-2]
-                self.args = []
-                return
+                name = decl.name[:-2]
+                args = []
+                return cls(result_type, name, args, annotations)
             raise Exception("can not handle %s" % decl.name)
 
         if isinstance(decl.base, CFuncDeclaratorNode):
             decl = decl.base
 
-        self.name = decl.base.name
-        self.args = []
+        name = decl.base.name
+        args = []
         for arg in decl.args:
             argdecl = arg.declarator
             if isinstance(argdecl, CReferenceDeclaratorNode) or \
@@ -161,8 +179,10 @@ class CPPMethod(object):
                 argname = argdecl.base.name
             else:
                 argname = argdecl.name
-            self.args.append((argname,
-                              parse_type(arg.base_type, argdecl, instances)))
+            args.append((argname,
+                              extract_type(arg.base_type, argdecl, instances)))
+
+        return cls(result_type, name, args, annotations)
 
     def __str__(self):
         rv = cy_repr(self.result_type)
@@ -200,9 +220,9 @@ def parse(path):
     lines = open(path).readlines()
 
     if isinstance(body, CEnumDefNode):
-            return Enum(body, lines)
+            return Enum.fromTree(body, lines)
 
-    return CPPClass(body, lines)
+    return CPPClass.fromTree(body, lines)
 
 if __name__ == "__main__":
     import sys

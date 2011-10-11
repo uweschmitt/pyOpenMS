@@ -47,18 +47,81 @@ class TestAll(unittest.TestCase):
 
     def testAll(self):
 
+        with MemTester("string_conversions1"):
+            self.run_string_conversions1()
+
+        with MemTester("string_conversions2"):
+            self.run_string_conversions2()
+
+        with MemTester("string_lists"):
+            self.run_string_lists()
+
+        with MemTester("list_conversions"):
+            self.run_list_conversions()
+
         with MemTester("set_spec_peaks"):
             self.set_spec_peaks()
 
         with MemTester("set_spec_peaks2"):
             self.set_spec_peaks2()
 
-        with MemTester("specs from experiment"):
-            self.run_extractSpetraFromMSExperiment()
 
         with MemTester("test io"):
             self.run_fileformats_io()
 
+        with MemTester("specs from experiment"):
+            self.run_extractSpetraFromMSExperiment()
+
+    def run_string_conversions1(self):
+
+        basestr = 200000*" "
+        li = []
+        for i in range(1000):
+            if (i+1)%100 == 0:
+                show_mem("%4d runs" % i)
+            dv = pyOpenMS.DataValue(basestr)
+            dv = pyOpenMS.DataValue(basestr)
+            li.append(dv)
+        del li
+
+    def run_string_conversions2(self):
+
+        basestr = 200000*" "
+        li = []
+        for i in range(1000):
+            if (i+1)%100 == 0:
+                show_mem("%4d runs" % i)
+            sf = pyOpenMS.SourceFile()
+            sf.setNameOfFile(basestr)
+            sf.setNameOfFile(basestr)
+            li.append(sf)
+        del li
+
+    def run_string_lists(self):
+
+        basestr = 100000*" "
+        li = []
+        for i in range(1000):
+            if (i+1)%100 == 0:
+                show_mem("%4d runs" % i)
+            sl = pyOpenMS.StringList([basestr, basestr, basestr])
+            sl = pyOpenMS.StringList([basestr, basestr, basestr])
+            li.append(sl)
+        del li
+
+    def run_list_conversions(self):
+
+        pc = pyOpenMS.Precursor()
+        allpcs = 500*[pc]
+        li = []
+        for i in range(500):
+            if (i+1)%100 == 0:
+                show_mem("%4d runs" % i)
+            spec = pyOpenMS.MSSpectrum()
+            spec.setPrecursors(allpcs)
+            spec.setPrecursors(allpcs)
+            li.append(spec)
+        del li
 
     def set_spec_peaks(self):
 
@@ -68,6 +131,8 @@ class TestAll(unittest.TestCase):
             if (i+1)%100 == 0:
                 show_mem("%4d specs processed" % i)
             spec = pyOpenMS.MSSpectrum()
+            spec.set_peaks(data)
+            spec.set_peaks(data)
             spec.set_peaks(data)
             li.append(spec)
 
@@ -83,6 +148,8 @@ class TestAll(unittest.TestCase):
             if (i+1)%100 == 0:
                 show_mem("%4d specs processed" % i)
             spec = pyOpenMS.MSSpectrum()
+            spec.set_peaks(data)
+            spec.set_peaks(data)
             spec.set_peaks(data)
             spec.set_peaks(spec.get_peaks())
             li.append(spec)
