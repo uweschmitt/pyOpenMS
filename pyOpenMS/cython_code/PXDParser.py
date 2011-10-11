@@ -45,7 +45,7 @@ class Enum(object):
             self.items.append((item.name, current_value))
             current_value += 1
 
-        self.py_repr = self.name
+        self.py_name = self.name
         self.type_ = Type(self.name, is_enum=True)
 
     def __str__(self):
@@ -81,9 +81,8 @@ class CPPClass(object):
             self.instances = dict(zip(node.templates, targs))
 
         self.type_ = Type(self.name, template_args = targs)
-        self.cpp_repr = cpp_repr(self.type_)
         self.cy_repr = cy_repr(self.type_)
-        self.py_repr = py_repr(self.type_)
+        self.py_name = py_name(self.type_)
 
         self.methods = defaultdict(list)
 
@@ -94,7 +93,7 @@ class CPPClass(object):
         
 
     def __str__(self):
-        rv = ["class %s: " % cpp_repr(self.type_)]
+        rv = ["class %s: " % cy_repr(self.type_)]
         for meth_list in self.methods.values():
             rv += ["     " + str(method) for method in meth_list]
         return "\n".join(rv)
@@ -166,9 +165,9 @@ class CPPMethod(object):
                               parse_type(arg.base_type, argdecl, instances)))
 
     def __str__(self):
-        rv = cpp_repr(self.result_type)
+        rv = cy_repr(self.result_type)
         rv += " " + self.name
-        argl = [cpp_repr(type_) + " " + str(name) for name, type_ in self.args]
+        argl = [cy_repr(type_) + " " + str(name) for name, type_ in self.args]
         return rv + "(" + ", ".join(argl) + ")"
 
 

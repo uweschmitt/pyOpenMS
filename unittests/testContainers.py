@@ -52,7 +52,7 @@ class TestExperimentsAndSpecsAndPeaks(unittest.TestCase):
         p = pyOpenMS.MzXMLFile()
         e = pyOpenMS.MSExperiment()
         p.load("test.mzXML", e)
-        assert e.size() == 2884
+        assert e.size() == 2884, e.size()
         e.updateRanges()
 
 

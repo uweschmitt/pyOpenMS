@@ -81,7 +81,7 @@ def cy_repr(type_):
     return rv
 
 
-def cpp_repr(type_):
+def __cpp_repr(type_):
     """ returns C++ type representation """
 
     if type_.is_enum:
@@ -102,7 +102,7 @@ def cpp_repr(type_):
     return rv
 
 
-def py_repr(type_):
+def py_name(type_):
     """ returns Python representation, that is the name the module
         will expose to its users """
     return type_.basetype
@@ -110,48 +110,49 @@ def py_repr(type_):
 def py_type_for_cpp_type(type_):
 
     if type_.matches("char", is_ptr=True):
-            return "str"
+            return Type("str")
 
     if type_.is_ptr:
         return None
 
     if type_.is_enum:
-            return "int"
+            return Type("int")
 
     if type_.matches("long"):
-            return "int"
+            type_.basetype = "int" # preserve unsignedt...
+            return type_
 
     if type_.matches("int"):
-            return "int"
+            return type_
 
     if type_.matches("bool"):
-            return "int"
+            return Type("int")
 
     if type_.matches("float"):
-            return "float"
+            return type_
 
     if type_.matches("double"):
-            return "float"
+            return Type("float")
 
     if type_.matches("string"):
-            return "str"
+            return Type("str")
 
     if type_.matches("vector") or type_.matches("list"):
-        return "list"
+        return Type("list")
 
-    return type_.basetype
+    return type_
 
-def cy_type_for_cpp_type(type_):
+def cy_decl(type_):
 
-    basetype = py_type_for_cpp_type(type_)
-    if basetype is None: return
+    type_ = py_type_for_cpp_type(type_)
+    if type_ is None: return
 
-    return ("unsigned " if type_.is_unsigned else "")  + basetype + ("*" if type_.is_ptr  else "")
+    return ("unsigned " if type_.is_unsigned else "")  + type_.basetype + ("*" if type_.is_ptr  else "")
 
 
 def pysig_for_cpp_type(type_):
 
-    pybase = py_type_for_cpp_type(type_)
+    pybase = py_type_for_cpp_type(type_).basetype
     if type_.template_args is None:
         return pybase
 

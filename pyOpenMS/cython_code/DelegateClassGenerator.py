@@ -43,6 +43,7 @@ class Code(object):
             else:
                 resolved.append(Template(line).substitute(parameters))
         _self.lines = resolved
+        return _self
 
     def __iadd__(self, arg):
         if type(arg) == tuple:
@@ -87,7 +88,8 @@ class ToCppConverters(object):
 
         if not to.is_ptr:
            if to.basetype in ["float", "double","int", "long", "bool"]:
-               if from_ in ["float", "int", "long"]:
+               if from_ in ["float", "int", "long", "unsigned int", "unsigned long"]:
+                   print var
                    return var
            if to.is_enum and from_ in ["int", "long"]:
                    return "<%s>%s" % (to.basetype, var)
@@ -230,7 +232,7 @@ class Generator(object):
 
         c = Code()
 
-        c += "cdef class $py_repr:                       "
+        c += "cdef class $py_name:                       "
 
         c += "    cdef $cy_repr * inst                   "
         c += "    cdef list  _cons_sig                   "
@@ -296,13 +298,14 @@ class Generator(object):
             print "    wrap ", str(meth)
 
             # python types which can be converted to the c++ cons arg types
-            py_types = [pysig_for_cpp_type(t) for n, t in meth.args]
-            py_sig = ", ".join('"%s"' % t for t in py_types)
+            deep_py_types = [pysig_for_cpp_type(t) for n, t in meth.args]
+            cy_decls = [cy_decl(t) for n, t in meth.args]
+
+            py_sig = ", ".join('"%s"' % t for t in deep_py_types)
 
             a_unresolved = ", ".join("a[%d]" % i for i in range(len(meth.args)))
-            a_resolved = ", ".join("a%d" % i for i in range(len(meth.args)))
 
-            subcons= "__subcons_for_"+id_from(py_sig)
+            subcons= "__subcons_for_"+ ( id_from(py_sig.strip('"')) or "nonarg")
 
             # generate code which matches input args against available cons
             # and call subsons in case of success:
@@ -319,12 +322,13 @@ class Generator(object):
 
             converters = [self.to_cpp_converters.get( py_type, cpptype, "a%d" % i)
                               for i, (py_type, (_, cpptype)) 
-                              in enumerate(zip(py_types, meth.args))]
+                              in enumerate(zip(cy_decls, meth.args))]
            
             args = ", ".join( conv for  conv in converters )
         
+            subcons_sig = ", ".join("%s a%d" % (decl, i) for i, decl in enumerate(cy_decls))
             sc=Code()
-            sc += "cdef $subcons(self, $a_resolved):"
+            sc += "cdef $subcons(self, $subcons_sig):"
             sc += '    self.inst = new $cy_type($args)'
             sc.resolve(**locals())
 
@@ -362,12 +366,11 @@ class Generator(object):
         arg_types  = [t for (n,t) in args]
 
         # types for decl of python extension method
-        flat_cy_types = [cy_type_for_cpp_type(t) for _,t in args]
-        deep_py_types = [pysig_for_cpp_type(t) for _,t in args]
+        cy_decls = [cy_decl(t) for _,t in args]
 
         # take names if declared, else use ai
 
-        cy_sig = ["self"] + ["%s %s" % (t,n) for (t,n) in zip(flat_cy_types, 
+        cy_sig = ["self"] + ["%s %s" % (t,n) for (t,n) in zip(cy_decls, 
                                                                   arg_names)]
         c = Code()
         c += "def $name ($cy_sig):   " 
@@ -377,7 +380,7 @@ class Generator(object):
         # determine needed converters
         converters = [self.to_cpp_converters.get(py_type, cpptype, n)
                       for py_type, n, cpptype 
-                      in zip(deep_py_types, arg_names, arg_types)] 
+                      in zip(cy_decls, arg_names, arg_types)] 
            
         args = ", ".join( expr for expr in converters )
         # call c++ method
@@ -464,18 +467,19 @@ class Generator(object):
             if type_.basetype in self.classes_to_wrap:
                 c += ( self.generate_wrapped_class_to_py(name, type_), 0)
 
-            if type_.basetype == "string":
+            elif type_.basetype == "string":
                 c += ( self.generate_string_to_py(), 0)
         
-            continue
         return c
 
     def generate_from_py_converters(self):
     
         c = Code()
         for name, type_py, type_cpp in list(self.to_cpp_converters):
-            #if type_cpp.basetype == "vector":
-            #    c += (self.generate_list_to_vector(name, type_py, type_cpp) , 0)
+            if type_cpp.basetype == "vector":
+                c += (self.generate_list_to_vector(name, type_py, type_cpp) , 0)
+
+        for name, type_py, type_cpp in self.to_cpp_converters:
             if type_cpp.basetype in self.classes_to_wrap:
                 c += ( self.generate_py_to_wrapped_class(name, type_py, type_cpp), 0)
 
@@ -514,22 +518,49 @@ class Generator(object):
                 
 
 
-    def generate_list_to_vector(self, type_py, type_cpp):
-        assert type_py == "list"
-        targ = type_cpp.template_args
-        return Code()
+    def generate_list_to_vector(self, name, type_py, type_cpp):
+        
+        print "CONV", name, type_py, cy_repr(type_cpp)
+        assert type_py == "list", type_py
+        targs = type_cpp.template_args
+        assert len(targs) == 1
 
+        targ_type = targs[0]
+        cytype  = cy_decl(targ_type)
+        
+        conv = self.to_cpp_converters.get(cytype, targ_type, "item")
+
+
+        c = Code()
+        c += """cdef class $name:
+                    cdef $cy_vector * inst
+                    def __dealloc__(self):
+                         if self.inst:
+                            del self.inst
+
+                    cdef $cy_vector conv(self, list arg):
+                         self.inst = new $cy_vector()
+                         cdef $cytype item
+                         for item in arg:
+                             self.inst.push_back($conv)
+                         return deref(self.inst)
+             """
+        return c.resolve(name=name, cy_vector=cy_repr(type_cpp),
+                         cytype = cytype, conv=conv)
+        
+         
+        
 
     def generate_wrapped_class_to_py(self, name, type_):
 
         cy_type = cy_repr(type_)
-        py_type = py_repr(type_)
+        py_class = py_name(type_)
         cc = Code()
         cc += """cdef conv_$name($cy_type & inst):      
-                       cdef $py_type res = $py_type(_set_inst=False)
+                       cdef $py_class res = $py_class(_set_inst=False)
                        res.inst = new $cy_type(inst)
                        return res"""
-        cc.resolve(name=name, cy_type=cy_type, py_type=py_type)
+        cc.resolve(name=name, cy_type=cy_type, py_class=py_class)
 
         return cc
             
@@ -597,11 +628,11 @@ class Generator(object):
             return "char *", dcl, co, "<char *>" + py_arg, cl
 
         if type_.is_ptr:
-            raise Exception("ptr type '%s' not supported" % cpp_repr(type_))
+            raise Exception("ptr type '%s' not supported" % cy_repr(type_))
 
         if type_.basetype in Type.CTYPES:
             # nothing to do
-            casted = "<%s>%s" % (cpp_repr(type_), py_arg)
+            casted = "<%s>%s" % (cy_repr(type_), py_arg)
             return cy_repr(type_), dcl, co, casted, cl
 
         if type_.basetype in self.enums:
