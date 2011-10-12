@@ -47,6 +47,9 @@ class TestAll(unittest.TestCase):
 
     def testAll(self):
 
+        with MemTester("specs from experiment"):
+            self.run_extractSpetraFromMSExperiment()
+
         with MemTester("string_conversions1"):
             self.run_string_conversions1()
 
@@ -69,8 +72,6 @@ class TestAll(unittest.TestCase):
         with MemTester("test io"):
             self.run_fileformats_io()
 
-        with MemTester("specs from experiment"):
-            self.run_extractSpetraFromMSExperiment()
 
     def run_string_conversions1(self):
 
