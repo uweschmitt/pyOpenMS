@@ -49,7 +49,8 @@ if __name__ == "__main__":
                     "InstrumentSettings", "ChromatogramTools", "Polarity",
                     "MzXMLFile", "MzMLFile", "MzDataFile", "StringList",
                     "IntList", "DoubleList", "Param", "String",
-                    "SourceFile", "ChecksumType", "DataValue" ]:
+                    "SourceFile", "ChecksumType", "DataValue" ,
+                    "SavitzkyGolayFilter"]:
 
        c += g.generate_code_for(clz_name)
 
