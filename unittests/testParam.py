@@ -12,8 +12,6 @@ class TestParam(unittest.TestCase):
         """
         @tests
          Param.__init__
-         Param.addTag
-         Param.addTags
          Param.clear
          Param.clearTags
          Param.copy
@@ -21,7 +19,6 @@ class TestParam(unittest.TestCase):
          Param.exists
          Param.getDescription
          Param.getSectionDescription
-         Param.getTags
          Param.getValue
          Param.hasTag
          Param.insert
@@ -56,4 +53,15 @@ class TestParam(unittest.TestCase):
         assert sl.at(0)=="tag2"
         assert sl.at(1) == "testtag"
         
+        p.addTags(key, StringList(["a"]))
+        sl = p.getTags(key)
+        assert sl.size() == 3
+        assert sl.at(0)=="tag2"
+        assert sl.at(1) == "testtag"
+        assert sl.at(2) == "a"
+
+        assert p.hasTag(tag)
+        assert p.hasTag(String("tag2"))
+        assert p.hasTag(String("a"))
+        assert not p.hasTag(String("b"))
         

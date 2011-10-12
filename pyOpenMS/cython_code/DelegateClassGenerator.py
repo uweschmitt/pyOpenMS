@@ -66,8 +66,8 @@ class ToCppConverters(object):
         init += "$inst_name = $clz_name($var)"
         init.resolve(**locals())
 
-        cleanup += "del $inst_name"
-        cleanup.resolve(**locals())
+        #cleanup += "del $inst_name"
+        #cleanup.resolve(**locals())
 
         self.converters.add((clz_name, from_, to))
 
@@ -522,7 +522,9 @@ class Generator(object):
                  def __cinit__(self):
                       inst = NULL
                  def __dealloc__(self):
+                      #print "dealloc", self
                       if self.inst:
+                          #print "kill"
                           del self.inst
                  def __init__(self, str arg):
                       self.inst = new string(PyString_AsString(arg))
@@ -539,7 +541,9 @@ class Generator(object):
                  def __cinit__(self):
                      self.inst = NULL
                  def __dealloc__(self):
+                      #print "dealloc", self
                       if self.inst:
+                          #print "kill"
                           free(self.inst)
                  def __init__(self, str arg):
                       self.inst = PyString_AsString(arg)
@@ -567,8 +571,10 @@ class Generator(object):
                  def __cinit__(self):
                       inst = NULL
                  def __dealloc__(self):
+                      #print "dealloc", self
                       if self.inst:
-                         del self.inst
+                          #print "kill"
+                          del self.inst
                  def __init__(self, list arg):
                       self.inst = new $cy_vector()
                       $decl
