@@ -1,5 +1,5 @@
 import unittest
-import pyOpenMS 
+from   pyOpenMS import *
 from   nose.tools import *
 
 class TestBasisObjects(unittest.TestCase):
@@ -12,9 +12,9 @@ class TestBasisObjects(unittest.TestCase):
         .filterExperiment
         """
 
-        myfilter = pyOpenMS.SavitzkyGolayFilter()
-        p = pyOpenMS.MzXMLFile()
-        e = pyOpenMS.MSExperiment()
+        myfilter = SavitzkyGolayFilter()
+        p = MzXMLFile()
+        e = MSExperiment()
         p.load("test.mzXML", e)
 
         # Test the filter fxn
@@ -24,13 +24,13 @@ class TestBasisObjects(unittest.TestCase):
         spectrum_after = spectrum
 
         assert(spectrum_before.size() == spectrum_after.size() )
-        assert( abs(spectrum_before[0].getIntensity() - 2491.61669921875) < 1e-5)
-        assert( abs(spectrum_after[0].getIntensity() - 3746.34423828125) < 1e-5)
+        assert_almost_equal(spectrum_before[0].getIntensity() - 2491.61669921875, 0)
+        assert_almost_equal(spectrum_after[0].getIntensity() - 3746.34423828125, 0)
 
         # Test the filterExperiment fxn
-        myfilter = pyOpenMS.SavitzkyGolayFilter()
-        p = pyOpenMS.MzXMLFile()
-        e = pyOpenMS.MSExperiment()
+        myfilter = SavitzkyGolayFilter()
+        p = MzXMLFile()
+        e = MSExperiment()
         p.load("test.mzXML", e)
 
         spectrum_before = e[0]
@@ -38,8 +38,8 @@ class TestBasisObjects(unittest.TestCase):
         spectrum_after = e[0]
 
         assert(spectrum_before.size() == spectrum_after.size() )
-        assert( abs(spectrum_before[0].getIntensity() - 2491.61669921875) < 1e-5)
-        assert( abs(spectrum_after[0].getIntensity() - 3746.34423828125) < 1e-5)
+        assert_almost_equal(spectrum_before[0].getIntensity() - 2491.61669921875, 0)
+        assert_almost_equal(spectrum_after[0].getIntensity() - 3746.34423828125, 0)
 
 if __name__ == "__main__":
     unittest.main()

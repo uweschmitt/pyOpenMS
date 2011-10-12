@@ -1,6 +1,8 @@
 import unittest
 import numpy as np
-import pyOpenMS
+from  pyOpenMS import *
+
+from nose.tools import *
 
 class TestExperimentsAndSpecsAndPeaks(unittest.TestCase):
 
@@ -49,21 +51,21 @@ class TestExperimentsAndSpecsAndPeaks(unittest.TestCase):
 
         """
 
-        p = pyOpenMS.MzXMLFile()
-        e = pyOpenMS.MSExperiment()
+        p = MzXMLFile()
+        e = MSExperiment()
         p.load("test.mzXML", e)
         assert e.size() == 2884, e.size()
         e.updateRanges()
 
 
-        assert abs( e.getMinMZ()-202.001) < 0.01
-        assert abs( e.getMaxMZ()-649.99) < 0.01
-        assert abs( e.getMinRT()-0.002911) < 0.00001
-        assert abs( e.getMaxRT()-44.899) < 0.001
+        assert_almost_equal( e.getMinMZ()-202.001, 0.0, 3)
+        assert_almost_equal( e.getMaxMZ()-649.996,  0.0, 2)
+        assert_almost_equal( e.getMinRT()-0.002911, 0.0, 5)
+        assert_almost_equal( e.getMaxRT()-44.899,  0.0, 2)
 
         spec = e[0]
         spec.updateRanges()
-        assert abs(spec.getRT()-0.00291) < 0.0001
+        assert_almost_equal(spec.getRT()-0.00291, 0, 5)
         assert spec.getMSLevel() == 1 
         assert spec.size() == 281
 
@@ -83,10 +85,10 @@ class TestExperimentsAndSpecsAndPeaks(unittest.TestCase):
         assert peaks.dtype == np.float32
 
         xit = spec.intensityInRange(100,1000)
-        assert abs(xit-700144.3)<0.1, xit
+        assert_almost_equal(xit-700144.3, 0, 1)
 
         spec.set_peaks(peaks)
-        assert abs(spec.getRT()-0.00291) < 0.0001
+        assert_almost_equal(spec.getRT()-0.00291, 0, 5)
         assert spec.getMSLevel() == 1 
         assert spec.size() == 281
         assert spec.getName() == ""
@@ -94,12 +96,12 @@ class TestExperimentsAndSpecsAndPeaks(unittest.TestCase):
         assert spec.getPrecursors() == []
 
         polarity = spec.getInstrumentSettings().getPolarity()
-        assert polarity ==pyOpenMS.Polarity.POLNULL
+        assert polarity ==Polarity.POLNULL
 
         peak = spec[0]
 
-        assert abs(peak.getMZ() - 205.159) < 0.001
-        assert abs(peak.getIntensity() - 2491.6) < 0.1
+        assert_almost_equal(peak.getMZ() - 205.159, 0, 2)
+        assert_almost_equal(peak.getIntensity() - 2491.6, 0, 1)
 
         e.push_back(spec)
         assert e.size() == 2885

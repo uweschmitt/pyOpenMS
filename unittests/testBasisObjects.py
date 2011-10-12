@@ -37,7 +37,7 @@ class TestBasisObjects(unittest.TestCase):
         assert  spec.size() == 0
 
         spec.setRT(1.0)
-        assert abs(spec.getRT()-1.0) < 1e-5
+        assert_almost_equal(spec.getRT(),1.0)
 
         spec.setMSLevel(3)
         assert spec.getMSLevel() == 3
@@ -94,10 +94,10 @@ class TestBasisObjects(unittest.TestCase):
         peak = Peak1D()
 
         peak.setMZ(1.0)
-        assert abs(peak.getMZ()-1.0) < 1e-5
+        assert_almost_equal(peak.getMZ(),1.0)
 
         peak.setIntensity(4.0)
-        assert abs(peak.getIntensity()-4.0) < 1e-5
+        assert_almost_equal(peak.getIntensity(), 4.0)
 
     def test_Precursor(self):
         """
@@ -111,10 +111,10 @@ class TestBasisObjects(unittest.TestCase):
         pc = Precursor()
 
         pc.setMZ(1.0)
-        assert abs(pc.getMZ()-1.0) < 1e-5
+        assert_almost_equal(pc.getMZ(),1.0)
 
         pc.setIntensity(4.0)
-        assert abs(pc.getIntensity()-4.0) < 1e-5
+        assert_almost_equal(pc.getIntensity(), 4.0)
 
     def test_InstrumentSettings(self):
         """
