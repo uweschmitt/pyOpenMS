@@ -1,5 +1,5 @@
 import unittest
-import pyOpenMS as p
+from pyOpenMS import *
 from   nose.tools import *
 
 class TestBasisObjects(unittest.TestCase):
@@ -33,7 +33,7 @@ class TestBasisObjects(unittest.TestCase):
                           
         @end 
         """
-        spec = p.MSSpectrum()
+        spec = MSSpectrum()
         assert  spec.size() == 0
 
         spec.setRT(1.0)
@@ -49,29 +49,28 @@ class TestBasisObjects(unittest.TestCase):
             ex = e
         assert ex is not None
 
-        pc0 = p.Precursor()
+        pc0 = Precursor()
         pc0.setMZ(16.0)
         pc0.setIntensity(256.0)
 
-        pc1 = p.Precursor()
+        pc1 = Precursor()
         pc1.setMZ(32.0)
         pc1.setIntensity(128.0)
         
         spec.setPrecursors([pc0, pc1])
 
         pcs = spec.getPrecursors()
-        print pcs
         eq_(len(pcs), 2)
         assert pcs[0].getMZ() == pc0.getMZ()
         assert pcs[1].getMZ() == pc1.getMZ()
         assert pcs[0].getIntensity() == pc0.getIntensity()
         assert pcs[1].getIntensity() == pc1.getIntensity()
 
-        peak = p.Peak1D()
+        peak = Peak1D()
         peak.setMZ(1.25)
         peak.setIntensity(123.0)
 
-        spec = p.MSSpectrum()
+        spec = MSSpectrum()
         spec.push_back(peak)
         assert spec.size() == 1
         assert spec[0].getMZ() == 1.25
@@ -92,7 +91,7 @@ class TestBasisObjects(unittest.TestCase):
               .setIntensity
               .getIntensity
         """
-        peak = p.Peak1D()
+        peak = Peak1D()
 
         peak.setMZ(1.0)
         assert abs(peak.getMZ()-1.0) < 1e-5
@@ -109,7 +108,7 @@ class TestBasisObjects(unittest.TestCase):
                  .setIntensity
                  .getIntensity
         """
-        pc = p.Precursor()
+        pc = Precursor()
 
         pc.setMZ(1.0)
         assert abs(pc.getMZ()-1.0) < 1e-5
@@ -128,11 +127,11 @@ class TestBasisObjects(unittest.TestCase):
         Polarity.NEGATIVE
         Polarity.SIZE_OF_POLARITY
         """
-        is_ = p.InstrumentSettings()
-        for e in [ p.Polarity.POLNULL,
-                   p.Polarity.POSITIVE,
-                   p.Polarity.NEGATIVE,
-                   p.Polarity.SIZE_OF_POLARITY,]:
+        is_ = InstrumentSettings()
+        for e in [ Polarity.POLNULL,
+                   Polarity.POSITIVE,
+                   Polarity.NEGATIVE,
+                   Polarity.SIZE_OF_POLARITY,]:
 
             is_.setPolarity(e)
             assert is_.getPolarity() == e
@@ -166,10 +165,10 @@ class TestBasisObjects(unittest.TestCase):
 
         @end
         """
-        sf = p.SourceFile()
+        sf = SourceFile()
         sf.setFileSize(123)
         sf.setFileType("test type")
-        sf.setChecksum("0x123", p.ChecksumType.SHA1)
+        sf.setChecksum("0x123", ChecksumType.SHA1)
         sf.setNameOfFile("test.mzXML")
         sf.setPathToFile("./test.mzXML")
         sf.setNativeIDType("scan=")
@@ -177,23 +176,23 @@ class TestBasisObjects(unittest.TestCase):
         assert sf.getFileSize()  == 123
         assert sf.getFileType()  == "test type"
         assert sf.getChecksum()  == "0x123"
-        assert sf.getChecksumType() == p.ChecksumType.SHA1
+        assert sf.getChecksumType() == ChecksumType.SHA1
         assert sf.getNameOfFile()  == "test.mzXML"
         assert sf.getPathToFile()  == "./test.mzXML"
         assert sf.getNativeIDType()  == "scan="
 
-        assert p.ChecksumType.SHA1 > -1
-        assert p.ChecksumType.MD5 > -1
-        assert p.ChecksumType.UNKNOWN_CHECKSUM > -1
-        assert p.ChecksumType.SIZE_OF_CHECKSUMTYPE > -1
+        assert ChecksumType.SHA1 > -1
+        assert ChecksumType.MD5 > -1
+        assert ChecksumType.UNKNOWN_CHECKSUM > -1
+        assert ChecksumType.SIZE_OF_CHECKSUMTYPE > -1
 
-        spec = p.MSSpectrum()
+        spec = MSSpectrum()
         spec.setSourceFile(sf)
         sf = spec.getSourceFile()
         assert sf.getFileSize()  == 123
         assert sf.getFileType()  == "test type"
         assert sf.getChecksum()  == "0x123"
-        assert sf.getChecksumType() == p.ChecksumType.SHA1
+        assert sf.getChecksumType() == ChecksumType.SHA1
         assert sf.getNameOfFile()  == "test.mzXML"
         assert sf.getPathToFile()  == "./test.mzXML"
         assert sf.getNativeIDType()  == "scan="
@@ -202,43 +201,87 @@ class TestBasisObjects(unittest.TestCase):
         """
         @tests:
         DataValue.__init__
+        .isEmpty
         .intValue
         .stringValue
-        .floatValue
+        .doubleValue
         .stringList
+        .doubleList
+        .intList 
+        .valueType
+         DataType.DOUBLE_LIST
+         DataType.DOUBLE_VALUE
+         DataType.EMPTY_VALUE
+         DataType.INT_LIST
+         DataType.INT_VALUE
+         DataType.STRING_LIST
+         DataType.STRING_VALUE
         @end
         """
+
+        assert DataValue().isEmpty()
         
-        dint = p.DataValue(3)
+        dint = DataValue(3)
         assert dint.intValue() == 3
-        dstr = p.DataValue("uwe") 
+        dstr = DataValue("uwe") 
         assert dstr.stringValue() == "uwe"
-        dflt = p.DataValue(0.125)
-        assert dflt.floatValue()  == 0.125
-        sl = p.StringList(["a","b"])
-        dslst= p.DataValue(sl)
+        dflt = DataValue(0.125)
+        assert dflt.doubleValue()  == 0.125
+        sl = StringList(["a","b"])
+        dslst= DataValue(sl)
         
         lsb = dslst.stringList()
         assert lsb.size() == 2
         assert lsb.at(0) == "a"
         assert lsb.at(1) == "b"
 
-        self.assert_exception(dint.stringValue, AssertionError)
-        self.assert_exception(dstr.intValue, AssertionError)
-        self.assert_exception(dflt.intValue, AssertionError)
-        self.assert_exception(dslst.intValue, AssertionError)
+        assert_raises(AssertionError, dint.stringValue)
+        assert_raises(AssertionError, dstr.intValue)
+        assert_raises(AssertionError, dflt.intValue)
+        assert_raises(AssertionError, dslst.intValue)
+        assert_raises(AssertionError, dslst.doubleValue)
+        assert_raises(AssertionError, dslst.stringValue)
+        assert_raises(AssertionError, dslst.intList)
+        assert_raises(AssertionError, dslst.doubleList)
 
-        
-   
-    def assert_exception(self, callable_, error_type):
+        assert DataValue(IntList([1,2,3])).intList().size() == 3
+        assert DataValue(DoubleList([1.0,2.0,3.0])).doubleList().size() == 3
 
-        ex = None
-        try:
-            callable_()
-        except Exception as e:
-            ex = e
-        assert type(ex) == error_type
+        eq_( DataValue(1).valueType(), DataType.INT_VALUE)
+        eq_( DataValue(1.0).valueType(), DataType.DOUBLE_VALUE)
+        eq_( DataValue(IntList([1])).valueType(), DataType.INT_LIST)
+        eq_( DataValue(DoubleList([1.0])).valueType(), DataType.DOUBLE_LIST)
+
+        eq_( DataValue("1").valueType(), DataType.STRING_VALUE)
+        eq_( DataValue(StringList(["1"])).valueType(), DataType.STRING_LIST)
+
+    def testListObject(self):
+        """
+        @tests:
+         DoubleList.__init__
+         DoubleList.at
+         DoubleList.size
+         IntList.__init__
+         IntList.at
+         IntList.size
+         StringList.__init__
+         StringList.at
+         StringList.size
+
+        """
+
+        d = DoubleList([1.0, 2.0])
+        assert d.size() == 2
+        assert [ d.at(i) for i in range(d.size()) ] == [1.0, 2.0]
         
+        d = IntList([1, 2])
+        assert d.size() == 2
+        assert [ d.at(i) for i in range(d.size()) ] == [1, 2]
+    
+        d = StringList(["1", "2"])
+        assert d.size() == 2
+        assert [ d.at(i) for i in range(d.size()) ] == ["1", "2"]
+
 
 
 if __name__ == "__main__":

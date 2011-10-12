@@ -8,4 +8,4 @@ cdef extern from "<OpenMS/DATASTRUCTURES/IntList.h>" namespace "OpenMS":
         IntList(IntList)
         IntList(vector[int])
         int size()
-        string at(int)
+        int at(int)

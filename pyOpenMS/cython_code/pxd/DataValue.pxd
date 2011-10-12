@@ -3,6 +3,7 @@ from libcpp.vector cimport *
 from StringList cimport *
 from IntList cimport *
 from DoubleList cimport *
+from DataValue_DataType cimport *
 
 cdef extern from "<OpenMS/DATASTRUCTURES/DataValue.h>" namespace "OpenMS":
     
@@ -16,13 +17,17 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DataValue.h>" namespace "OpenMS":
          DataValue(int)   
          DataValue(double)   
          DataValue(StringList)    
-         DataValue(IntList) #ignore=True
-         DataValue(DoubleList) #ignore=True
-         int operator()     # name="intValue"; pre="assert self._cons_sig == ['int'], 'type mismatch'"
-         string operator()  # name="stringValue"; pre="assert self._cons_sig == ['str'], 'type mismatch'"
-         double operator()  # name="floatValue"; pre="assert self._cons_sig == ['float'], 'type mismatch'"
-         StringList operator() # name="stringList"
-         DoubleList operator() # ignore=True; name="floatList"
-         IntList operator() # ignore=True; name="intList"
+         DataValue(IntList) 
+         DataValue(DoubleList) 
+
+         int operator()        # name="intValue";    pre="assert self.valueType() == DataType.INT_VALUE"
+         string operator()     # name="stringValue"; pre="assert self.valueType() == DataType.STRING_VALUE"
+         double operator()     # name="doubleValue";  pre="assert self.valueType() in [DataType.DOUBLE_VALUE, DataType.INT_VALUE]"
+         StringList operator() # name="stringList";  pre="assert self.valueType() == DataType.STRING_LIST"
+         DoubleList operator() # name="doubleList";  pre="assert self.valueType() == DataType.DOUBLE_LIST"
+         IntList operator()    # name="intList";     pre="assert self.valueType() == DataType.INT_LIST"
+
+         DataType valueType()
+         int isEmpty()
 
 

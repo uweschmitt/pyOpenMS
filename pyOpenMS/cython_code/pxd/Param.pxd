@@ -9,34 +9,29 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS":
          Param()
          Param(Param)
          void setValue(String key, DataValue val, String desc, StringList tags)
-         DataValue getValue(String key)
+         DataValue getValue(String key) except +
          #ParamEntry getEntry(string key) # ignore=True
-         int exists(String key)
+         int exists(String key) except +
 
          void addTag(String key, String tag) except +
          void addTags(String key, StringList tags) except +
-         int hasTag(String key, String tag)
-         StringList getTags(String key)
+         int hasTag(String key, String tag) except +
+         StringList getTags(String key) except +
          void clearTags(String key) except +
 
-         string getDescription(String key)
-         void setSectionDescription(String key, String desc)
-         string getSectionDescription(String key)
+         string getDescription(String key) except +
+         void setSectionDescription(String key, String desc) except +
+         string getSectionDescription(String key) except +
 
          int size()
-         int empty()
-         void clear()
-         void insert(String prefix, Param param)
-         void remove(String key)
-         void removeAll(String prefix)
-         Param copy(String prefix, int remove_prefix)
+         void insert(String prefix, Param param) except +
 
-         void setValidStrings(String key, vector[String] strings)
-         void setMinInt(String key, int min)
-         void setMaxInt(String key, int max)
-         void setMinFloat(String key, double min)
-         void setMaxFloat(String key, double max)
+         void setValidStrings(String key, vector[String] strings) except +
+         void setMinInt(String key, int min) except +
+         void setMaxInt(String key, int max) except +
+         void setMinFloat(String key, double min) except +
+         void setMaxFloat(String key, double max) except +
 
-         void store(string filename)
-         void load(string filename)
+         void store(string filename) except +
+         void load(string filename) except +
 

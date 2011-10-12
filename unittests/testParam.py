@@ -12,28 +12,16 @@ class TestParam(unittest.TestCase):
         """
         @tests
          Param.__init__
-         Param.clear
-         Param.clearTags
-         Param.copy
-         Param.empty
-         Param.exists
-         Param.getDescription
-         Param.getSectionDescription
-         Param.getValue
-         Param.hasTag
-         Param.insert
-         Param.load
-         Param.remove
-         Param.removeAll
-         Param.setMaxFloat
-         Param.setMaxInt
-         Param.setMinFloat
-         Param.setMinInt
-         Param.setSectionDescription
-         Param.setValidStrings
-         Param.setValue
-         Param.size
-         Param.store
+         .addTag
+         .addTags
+         .exists
+         .getTags
+         .hasTag
+         .load
+         .store
+         .size
+         .getValue
+         .setValue
          String.__init__
          String.c_str
         @end 
@@ -41,27 +29,68 @@ class TestParam(unittest.TestCase):
         
         p = Param()
         key = String("testkey")
+        eq_(key.c_str(), "testkey")
         tag = String("testtag")
         value = DataValue("testvalue")
         assert_raises(Exception, p.addTag, (key, tag))
         assert_raises(Exception, p.getTags, (key, ))
 
         p.setValue(key, value, String("desc"), StringList(["tag2"]))
+        assert p.getValue(key).stringValue() == value.stringValue()
         p.addTag(key, tag)
+
         sl = p.getTags(key)
-        assert sl.size() == 2
-        assert sl.at(0)=="tag2"
-        assert sl.at(1) == "testtag"
+        eq_( sl.size(), 2)
+        eq_( sl.at(0), "tag2")
+        eq_( sl.at(1), "testtag")
+
+        eq_(p.size(), 1)
+
+        p.store("test.param")
+        p.load("test.param")
+
+        sl = p.getTags(key)
+        eq_( sl.size(), 2)
+        eq_( sl.at(0), "tag2")
+        eq_( sl.at(1), "testtag")
+
+        eq_(p.size(), 1)
+
+        assert p.exists(key)
+        assert not p.exists(String("b"))
         
         p.addTags(key, StringList(["a"]))
         sl = p.getTags(key)
-        assert sl.size() == 3
-        assert sl.at(0)=="tag2"
-        assert sl.at(1) == "testtag"
-        assert sl.at(2) == "a"
+        eq_( sl.size(), 3)
+        tags = set ( (sl.at(0), sl.at(1), sl.at(2)) )
+        eq_( tags, set( ("a", "tag2", "testtag")) )
 
-        assert p.hasTag(tag)
-        assert p.hasTag(String("tag2"))
-        assert p.hasTag(String("a"))
-        assert not p.hasTag(String("b"))
-        
+        assert p.hasTag(key, tag)
+        assert p.hasTag(key, String("tag2"))
+        assert p.hasTag(key, String("a"))
+        assert not p.hasTag(key, String("b"))
+       
+    def testFromIniFile(self):
+        """
+        @tests:
+        Param.__init__
+        .load
+        .exists
+        .getValue
+        .getDescription
+        .getSectionDescription
+        """
+
+        p = Param()
+        p.load("test.ini")
+        k = String("PeakPicker:1:in")
+        assert p.exists(k)
+        assert p.getTags(k).size() == 1
+        assert p.getTags(k).at(0) == "input file"
+
+        d = p.getValue(k)
+        assert d.stringValue() == ""
+
+        assert "input profile data file" in p.getDescription(k)
+        assert "Instance '1' section" in p.getSectionDescription(String("PeakPicker:1"))
+        assert p.getSectionDescription(String("PeakPicker")) == ""
