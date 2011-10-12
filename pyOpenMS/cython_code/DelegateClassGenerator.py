@@ -116,6 +116,11 @@ class Generator(object):
         self.to_cpp_converters = ToCppConverters(self.classes_to_wrap)
         self.to_py_converters = ToPyConverters(self.classes_to_wrap)
 
+        #self.additional_input_converters = dict()
+
+    #def register_additional_input_converter(self, cy_type_name, converter):
+        #self.additional_input_converters[cy_type_name] = converter
+
     def parse_all(self, sourcelist):
 
         self.enums = set()
@@ -369,12 +374,18 @@ class Generator(object):
 
         print "    wrap", name
 
+        #if name == "addTag":
+            #import pdb; pdb.set_trace()
+
         # take names if declared, else use ai
         arg_names = [n or ("arg%d" % i) for i, (n,t) in enumerate(args)]
         arg_types = [t for (n,t) in args]
 
         # types for decl of python extension method
         cy_decls = [cy_decl(t) for t in arg_types]
+        #cy_decls = ["" if t in self.additional_input_converters 
+        #               else cy_decl(t) for t in arg_types]
+        
 
         cy_sig = ["%s %s" % (t,n) for (t,n) in zip(cy_decls, arg_names)]
         c = Code()
@@ -383,9 +394,9 @@ class Generator(object):
         c.resolve(name=name, cy_sig=", ".join(cy_sig))
 
         # determine needed converters
-        converters = [self.to_cpp_converters.get(py_type, cpptype, n)
-                      for py_type, n, cpptype 
-                      in zip(cy_decls, arg_names, arg_types)] 
+        converters = [self.to_cpp_converters.get(cy_type, cpptype, n)
+                      for cy_type, cpptype, n
+                      in zip(cy_decls, arg_types, arg_names)] 
 
         if converters:
             # undzip 4-tuples
@@ -402,7 +413,8 @@ class Generator(object):
         if method.result_type.basetype == "void":
             c += "self.inst.$name($args)" 
         else:
-            c += "_result = self.inst.$name($args)" 
+            cast = method.annotations.get("result_cast", "")
+            c += "_result = $cast self.inst.$name($args)" 
         c.resolve(**locals())
 
         c += cleanups

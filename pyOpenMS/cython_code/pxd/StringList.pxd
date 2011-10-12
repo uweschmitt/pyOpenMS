@@ -3,7 +3,7 @@ from libcpp.vector cimport *
 
 cdef extern from "<OpenMS/DATASTRUCTURES/StringList.h>" namespace "OpenMS":
     
-    cdef cppclass StringList:
+    cdef cppclass StringList: #wrap=True
         StringList()
         StringList(StringList)
         StringList(vector[string])

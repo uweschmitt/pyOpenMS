@@ -26,11 +26,29 @@ if __name__ == "__main__":
     c += "cimport numpy as np"
     c += "import numpy as np"
 
+    css = Code()
+    css += """
+            cdef class str_to_String:
+                cdef String * inst 
+                def __calloc__(self):
+                    inst = NULL
+                def __dealloc__(self):
+                    if self.inst:
+                        del self.inst
+                def __init__(self, char * c):
+                    inst = String(c)
+                def conv(self):
+                    return inst
+           """
+
+    #g.register_additional_input_converter(Type(u"String"), css)
+                
     
 
     for clz_name in ["Peak1D", "Precursor", "MSExperiment",
                     "InstrumentSettings", "ChromatogramTools", "Polarity",
                     "MzXMLFile", "MzMLFile", "MzDataFile", "StringList",
+                    "IntList", "DoubleList", "Param", "String",
                     "SourceFile", "ChecksumType", "DataValue" ]:
 
        c += g.generate_code_for(clz_name)

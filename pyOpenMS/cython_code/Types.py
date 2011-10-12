@@ -9,7 +9,7 @@ class Type(object):
     def __init__(self, basetype, is_ptr=False, is_ref=False,
                        is_unsigned = False,
                        template_args=None, is_enum=False):
-        self.basetype = "void" if basetype is None else basetype
+        self.basetype =  "void" if basetype is None else basetype
         self.is_ptr = is_ptr
         self.is_ref = is_ref
         self.is_unsigned = is_unsigned
@@ -146,6 +146,8 @@ def cy_decl(type_):
 
     type_ = py_type_for_cpp_type(type_)
     if type_ is None: return
+    if type_.matches(None):
+       return ""
 
     return ("unsigned " if type_.is_unsigned else "")  + type_.basetype + ("*" if type_.is_ptr  else "")
 

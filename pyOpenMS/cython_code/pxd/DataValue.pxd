@@ -8,6 +8,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DataValue.h>" namespace "OpenMS":
     
     cdef cppclass DataValue: #wrap=True
          DataValue()
+         DataValue(DataValue)
          DataValue(vector[string]) #ignore=True
          DataValue(vector[int]) #ignore=True
          DataValue(vector[float]) #ignore=True
