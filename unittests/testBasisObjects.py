@@ -218,7 +218,10 @@ class TestBasisObjects(unittest.TestCase):
         sl = p.StringList(["a","b"])
         dslst= p.DataValue(sl)
         
-        assert dslst.stringList() == sl, dslst.stringList()
+        lsb = dslst.stringList()
+        assert lsb.size() == 2
+        assert lsb.at(0) == "a"
+        assert lsb.at(1) == "b"
 
         self.assert_exception(dint.stringValue, AssertionError)
         self.assert_exception(dstr.intValue, AssertionError)

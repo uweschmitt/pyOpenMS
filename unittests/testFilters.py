@@ -8,8 +8,8 @@ class TestBasisObjects(unittest.TestCase):
         """
         @tests:
         SavitzkyGolayFilter.__init__
-              .filter(MSSpectrum)
-              .filterExperiment(MSExperiment)
+        .filter
+        .filterExperiment
         """
 
         myfilter = pyOpenMS.SavitzkyGolayFilter()
