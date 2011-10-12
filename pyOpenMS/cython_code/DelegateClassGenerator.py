@@ -40,6 +40,9 @@ class ToCppConverters(object):
         if from_ in self.classes_to_wrap:
             return decl, init, "deref(%s.inst)" % var, cleanup
 
+        if from_ == "str" and to.matches("char", is_ptr=True):
+           return decl, init, "PyString_AsString(%s)" % var, cleanup
+
         # basis types are not wrapped, maybe casted:
         if not to.is_ptr:
            if to.basetype in ["float", "double","int", "long", "bool"]:
@@ -511,7 +514,6 @@ class Generator(object):
                 c += self.generate_list_to_vector(name, type_py, type_cpp)
 
         c += self.generate_py_str_to_string()
-        c += self.generate_py_str_to_char_ptr()
         return c
 
     def generate_py_str_to_string(self):
@@ -533,25 +535,6 @@ class Generator(object):
              """ 
         return c
 
-    def generate_py_str_to_char_ptr(self):
-        c = Code()
-        c += """
-             cdef class __Py_str_to_char__ptr__: 
-                 cdef char * inst 
-                 def __cinit__(self):
-                     self.inst = NULL
-                 def __dealloc__(self):
-                      #print "dealloc", self
-                      if self.inst:
-                          #print "kill"
-                          free(self.inst)
-                 def __init__(self, str arg):
-                      self.inst = PyString_AsString(arg)
-                 cdef char * conv(self):
-                      return self.inst
-             """ 
-        return c
-                
     def generate_list_to_vector(self, name, type_py, type_cpp):
         
         assert type_py == "list", type_py
