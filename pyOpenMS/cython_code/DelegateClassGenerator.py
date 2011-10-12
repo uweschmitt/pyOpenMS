@@ -580,7 +580,7 @@ class Generator(object):
         cc += """
               cdef $name($cy_type & inst):      
                    cdef $py_class res = $py_class(_new_inst=False)
-                   res.inst = new $cy_type(inst)
+                   res._set_inst(new $cy_type(inst))
                    return res
               """
         return cc.resolve(name=name, cy_type=cy_type, py_class=py_class)
