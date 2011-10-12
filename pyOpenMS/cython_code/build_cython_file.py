@@ -31,7 +31,8 @@ if __name__ == "__main__":
     for clz_name in ["Peak1D", "Precursor", "MSExperiment",
                     "InstrumentSettings", "ChromatogramTools", "Polarity",
                     "MzXMLFile", "MzMLFile", "MzDataFile", "StringList",
-                    "SourceFile", "ChecksumType", "DataValue" ]:
+                    "SourceFile", "ChecksumType", "DataValue" ,
+                    "SavitzkyGolayFilter"]:
 
        c += g.generate_code_for(clz_name)
 
