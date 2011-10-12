@@ -228,7 +228,6 @@ class Generator(object):
              cdef class $py_name:                       
 
                  cdef $cy_repr * inst                   
-                 cdef list  _cons_sig                   
 
                  def __cinit__(self):
                      self.inst = NULL
@@ -277,7 +276,7 @@ class Generator(object):
         c = Code()
         c += """
              def __init__(self, *a, **kw):                     
-                 self._cons_sig = map(_sig, a)                 
+                 _cons_sig = map(_sig, a)                 
                  if len(a)==0 and kw.get("_new_inst") is False:
                      return                                    
              """
@@ -314,7 +313,7 @@ class Generator(object):
             cs = Code()
             cs>>1
             cs += """ 
-                  if self._cons_sig == [$py_sig]: 
+                  if _cons_sig == [$py_sig]: 
                       self.$subcons($a_unresolved)
                       return
                   """
