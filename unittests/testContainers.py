@@ -58,14 +58,14 @@ class TestExperimentsAndSpecsAndPeaks(unittest.TestCase):
         e.updateRanges()
 
 
-        assert_almost_equal( e.getMinMZ()-202.001, 0.0, 3)
-        assert_almost_equal( e.getMaxMZ()-649.996,  0.0, 2)
-        assert_almost_equal( e.getMinRT()-0.002911, 0.0, 5)
-        assert_almost_equal( e.getMaxRT()-44.899,  0.0, 2)
+        assert_almost_equal( e.getMinMZ(), 202.001,  3)
+        assert_almost_equal( e.getMaxMZ(), 649.996,  2)
+        assert_almost_equal( e.getMinRT(), 0.002911, 5)
+        assert_almost_equal( e.getMaxRT(), 44.899,   2)
 
         spec = e[0]
         spec.updateRanges()
-        assert_almost_equal(spec.getRT()-0.00291, 0, 5)
+        assert_almost_equal(spec.getRT(), 0.00291, 5)
         assert spec.getMSLevel() == 1 
         assert spec.size() == 281
 
@@ -85,10 +85,10 @@ class TestExperimentsAndSpecsAndPeaks(unittest.TestCase):
         assert peaks.dtype == np.float32
 
         xit = spec.intensityInRange(100,1000)
-        assert_almost_equal(xit-700144.3, 0, 1)
+        assert_almost_equal(xit, 700144.3, 1)
 
         spec.set_peaks(peaks)
-        assert_almost_equal(spec.getRT()-0.00291, 0, 5)
+        assert_almost_equal(spec.getRT(), 0.00291, 5)
         assert spec.getMSLevel() == 1 
         assert spec.size() == 281
         assert spec.getName() == ""
@@ -100,8 +100,8 @@ class TestExperimentsAndSpecsAndPeaks(unittest.TestCase):
 
         peak = spec[0]
 
-        assert_almost_equal(peak.getMZ() - 205.159, 0, 2)
-        assert_almost_equal(peak.getIntensity() - 2491.6, 0, 1)
+        assert_almost_equal(peak.getMZ(), 205.159, 2)
+        assert_almost_equal(peak.getIntensity(), 2491.6, 1)
 
         e.push_back(spec)
         assert e.size() == 2885

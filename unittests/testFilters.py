@@ -24,8 +24,8 @@ class TestBasisObjects(unittest.TestCase):
         spectrum_after = spectrum
 
         assert(spectrum_before.size() == spectrum_after.size() )
-        assert_almost_equal(spectrum_before[0].getIntensity() - 2491.61669921875, 0)
-        assert_almost_equal(spectrum_after[0].getIntensity() - 3746.34423828125, 0)
+        assert_almost_equal(spectrum_before[0].getIntensity(),2491.61669921875, 0)
+        assert_almost_equal(spectrum_after[0].getIntensity(), 3746.34423828125, 0)
 
         # Test the filterExperiment fxn
         myfilter = SavitzkyGolayFilter()
@@ -38,8 +38,8 @@ class TestBasisObjects(unittest.TestCase):
         spectrum_after = e[0]
 
         assert(spectrum_before.size() == spectrum_after.size() )
-        assert_almost_equal(spectrum_before[0].getIntensity() - 2491.61669921875, 0)
-        assert_almost_equal(spectrum_after[0].getIntensity() - 3746.34423828125, 0)
+        assert_almost_equal(spectrum_before[0].getIntensity(), 2491.61669921875, 0)
+        assert_almost_equal(spectrum_after[0].getIntensity(), 3746.34423828125, 0)
 
 if __name__ == "__main__":
     unittest.main()
