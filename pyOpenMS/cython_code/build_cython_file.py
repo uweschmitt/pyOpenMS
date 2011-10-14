@@ -64,6 +64,7 @@ if __name__ == "__main__":
                      "DataValue" ,
                     "SavitzkyGolayFilter",
                     "DataType",
+                    "FileHandler",
                                 ]:
 
        c += g.generate_code_for(clz_name)

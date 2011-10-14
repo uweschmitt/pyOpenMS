@@ -71,6 +71,7 @@ include_dirs=[
               j(QT_HOME_DEVEL, "include"),
               j(QT_HOME_DEVEL, "include", "QtCore"),
               j(OPEN_MS_CONTRIB_BUILD_DIR, "include"),
+              j(OPEN_MS_CONTRIB_BUILD_DIR, "src", "boost_1_42_0", "include", "boost-1_42"),
               j(OPEN_MS_SRC ,  "include"),
               j(numpy.core.__path__[0],"include"), 
              ]
