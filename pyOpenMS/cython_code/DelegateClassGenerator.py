@@ -119,11 +119,6 @@ class Generator(object):
         self.to_cpp_converters = ToCppConverters(self.classes_to_wrap)
         self.to_py_converters = ToPyConverters(self.classes_to_wrap)
 
-        #self.additional_input_converters = dict()
-
-    #def register_additional_input_converter(self, cy_type_name, converter):
-        #self.additional_input_converters[cy_type_name] = converter
-
     def parse_all(self, sourcelist):
 
         self.enums = set()
