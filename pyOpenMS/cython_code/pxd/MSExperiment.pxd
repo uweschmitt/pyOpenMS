@@ -1,5 +1,7 @@
 from MSSpectrum cimport *
+from DataValue cimport *
 from ChromatogramPeak cimport *
+from String cimport *
 
 cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
 
@@ -17,6 +19,9 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         vector[MSSpectrum[PeakT]].iterator end()          # ignore=True
         void  erase(vector[MSSpectrum[PeakT]].iterator)   # ignore=True
         void push_back(MSSpectrum[PeakT])
+        String getLoadedFilePath()
+        void  setMetaValue(String key, DataValue value)
+        DataValue getMetaValue(String key) except + 
        
     
 
