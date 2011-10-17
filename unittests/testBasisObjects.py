@@ -202,12 +202,12 @@ class TestBasisObjects(unittest.TestCase):
         @tests:
         DataValue.__init__
         .isEmpty
-        .intValue
-        .stringValue
-        .doubleValue
-        .stringList
-        .doubleList
-        .intList 
+        .toInt
+        .toString
+        .toDouble
+        .toStringList
+        .toDoubleList
+        .toIntList 
         .valueType
          DataType.DOUBLE_LIST
          DataType.DOUBLE_VALUE
@@ -222,30 +222,30 @@ class TestBasisObjects(unittest.TestCase):
         assert DataValue().isEmpty()
         
         dint = DataValue(3)
-        assert dint.intValue() == 3
+        assert dint.toInt() == 3
         dstr = DataValue("uwe") 
-        assert dstr.stringValue() == "uwe"
+        assert dstr.toString() == "uwe"
         dflt = DataValue(0.125)
-        assert dflt.doubleValue()  == 0.125
+        assert dflt.toDouble()  == 0.125
         sl = StringList(["a","b"])
         dslst= DataValue(sl)
         
-        lsb = dslst.stringList()
+        lsb = dslst.toStringList()
         assert lsb.size() == 2
         assert lsb.at(0) == "a"
         assert lsb.at(1) == "b"
 
-        assert_raises(AssertionError, dint.stringValue)
-        assert_raises(AssertionError, dstr.intValue)
-        assert_raises(AssertionError, dflt.intValue)
-        assert_raises(AssertionError, dslst.intValue)
-        assert_raises(AssertionError, dslst.doubleValue)
-        assert_raises(AssertionError, dslst.stringValue)
-        assert_raises(AssertionError, dslst.intList)
-        assert_raises(AssertionError, dslst.doubleList)
+        assert_raises(AssertionError, dint.toString)
+        assert_raises(AssertionError, dstr.toInt)
+        assert_raises(AssertionError, dflt.toInt)
+        assert_raises(AssertionError, dslst.toInt)
+        assert_raises(AssertionError, dslst.toDouble)
+        assert_raises(AssertionError, dslst.toString)
+        assert_raises(AssertionError, dslst.toIntList)
+        assert_raises(AssertionError, dslst.toDoubleList)
 
-        assert DataValue(IntList([1,2,3])).intList().size() == 3
-        assert DataValue(DoubleList([1.0,2.0,3.0])).doubleList().size() == 3
+        assert DataValue(IntList([1,2,3])).toIntList().size() == 3
+        assert DataValue(DoubleList([1.0,2.0,3.0])).toDoubleList().size() == 3
 
         eq_( DataValue(1).valueType(), DataType.INT_VALUE)
         eq_( DataValue(1.0).valueType(), DataType.DOUBLE_VALUE)

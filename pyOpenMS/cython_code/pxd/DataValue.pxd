@@ -20,12 +20,13 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DataValue.h>" namespace "OpenMS":
          DataValue(IntList) 
          DataValue(DoubleList) 
 
-         int operator()        # name="intValue";    pre="assert self.valueType() == DataType.INT_VALUE"
-         string operator()     # name="stringValue"; pre="assert self.valueType() == DataType.STRING_VALUE"
-         double operator()     # name="doubleValue";  pre="assert self.valueType() in [DataType.DOUBLE_VALUE, DataType.INT_VALUE]"
-         StringList operator() # name="stringList";  pre="assert self.valueType() == DataType.STRING_LIST"
-         DoubleList operator() # name="doubleList";  pre="assert self.valueType() == DataType.DOUBLE_LIST"
-         IntList operator()    # name="intList";     pre="assert self.valueType() == DataType.INT_LIST"
+         #conversion ops, different declarations as in c++ !
+         int operator()(int) except +        #pre="assert self.valueType() == DataType.INT_VALUE"
+         string operator()(DataValue)      #pre="assert self.valueType() == DataType.STRING_VALUE"
+         double operator()(DataValue)      #pre="assert self.valueType() == DataType.DOUBLE_VALUE"
+         StringList operator()(DataValue)  #pre="assert self.valueType() == DataType.STRING_LIST"
+         DoubleList operator()(DataValue)  #pre="assert self.valueType() == DataType.DOUBLE_LIST"
+         IntList operator()(DataValue)     #pre="assert self.valueType() == DataType.INT_LIST"
 
          DataType valueType()
          int isEmpty()

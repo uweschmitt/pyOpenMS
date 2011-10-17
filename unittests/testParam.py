@@ -36,7 +36,7 @@ class TestParam(unittest.TestCase):
         assert_raises(Exception, p.getTags, (key, ))
 
         p.setValue(key, value, String("desc"), StringList(["tag2"]))
-        assert p.getValue(key).stringValue() == value.stringValue()
+        assert p.getValue(key).toString() == value.toString()
         p.addTag(key, tag)
 
         sl = p.getTags(key)
@@ -89,7 +89,7 @@ class TestParam(unittest.TestCase):
         assert p.getTags(k).at(0) == "input file"
 
         d = p.getValue(k)
-        assert d.stringValue() == ""
+        assert d.toString() == ""
 
         assert "input profile data file" in p.getDescription(k)
         assert "Instance '1' section" in p.getSectionDescription(String("PeakPicker:1"))

@@ -453,10 +453,12 @@ class Generator(object):
             co += "    return %s" % conv
             return co
 
-        elif name == "operator":  # cast ops
+        elif name == "operator" or name=="operator()":  # cast ops
             co = Code()
             for method in methods:
-                name = method.annotations.get("name")
+                pn = py_name(method.result_type)
+                defaultName = "to"+pn[0].upper()+pn[1:]
+                name = method.annotations.get("name", defaultName)
                 if name is None:
                     raise Exception("you have to provide a python name for "
                                     "%s" % method)
@@ -473,7 +475,7 @@ class Generator(object):
             return co
 
         else:
-            raise Exception("wrapping of %r not supported yet" % method.name)
+            raise Exception("wrapping of %r not supported yet" % methods[0].name)
 
     def generate_converters(self):
 
