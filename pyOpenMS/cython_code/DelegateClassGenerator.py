@@ -271,7 +271,7 @@ class Generator(object):
         c = Code()
         c += """
              def __init__(self, *a, **kw):                     
-                 _cons_sig = map(_sig, a)                 
+                 _cons_sig = map(__sig, a)                 
                  if len(a)==0 and kw.get("_new_inst") is False:
                      return                                    
              """
