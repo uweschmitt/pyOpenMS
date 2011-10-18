@@ -78,8 +78,8 @@ include_dirs=[
 
 
 ext = Extension(
-        "_pyOpenMS",
-        sources = ["pyOpenMS/_pyOpenMS.cpp"], 
+        "pyOpenMS",
+        sources = ["pyOpenMS/pyOpenMS.cpp"], 
         language="c++",
         library_dirs = library_dirs,
         libraries = libraries,

@@ -13,12 +13,6 @@ if __name__ == "__main__":
     g = Generator()
     g.parse_all(glob.glob("pxd/*.pxd"))
 
-    StringList    = Type(u"StringList")
-    string_vector = Type("vector", False, False, False, [ Type("string") ])
-
-    #g.add_result_alias(StringList, string_vector)
-    #g.add_input_alias(StringList, string_vector)
-
 
     c = Code()
     c += g.generate_startup()
@@ -77,5 +71,5 @@ if __name__ == "__main__":
 
     c += g.generate_converters()
 
-    with open("_pyOpenMS.pyx", "w") as out: 
+    with open("pyOpenMS.pyx", "w") as out: 
         c.write(out=out)

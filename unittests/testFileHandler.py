@@ -16,6 +16,7 @@ class TestLoadAndStoreInDifferentFileFormats(unittest.TestCase):
 
     """
     @tests:
+    FileHandler.__init__
     FileHandler.loadExperiment
     FileHandler.storeExperiment
     """

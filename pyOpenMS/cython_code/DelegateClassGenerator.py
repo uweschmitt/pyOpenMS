@@ -343,7 +343,7 @@ class Generator(object):
             sub_constructors.append(sc)
 
         # called in case of no match:
-        c += '    raise Exception("input args do not match declaration")'
+        c += '    raise Exception("input args %s do not match declaration" % _cons_sig)'
 
         # __init__() done, now add subconstructors:
         for subcons in sub_constructors:
