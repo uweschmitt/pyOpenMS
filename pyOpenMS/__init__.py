@@ -12,22 +12,4 @@ else:
 
 
 from pyOpenMS import *
-
-# we can not import the extension module without setting the variable
-# OPENMS_DATA_PATH beforehand. so the import above results in a namespace
-# pyOpenMS.pyOpenMS where the first pyOpenMS refers this package, and the
-# second pyOpenMS is the extsion module. 
-#
-# >>> import pyOpenMS.pyOpenMS
-# >>> print type(pyOpenMS.pyOpenMS.DataValue())
-# <type 'pyOpenMS.DataValue'>
-# 
-# we circumvate this by the following manipulation of sys.modules.  now we get:
-# >>> import pyOpenMS
-# >>> print type(pyOpenMS.DataValue())
-# <type 'pyOpenMS.DataValue'>
-
-#import sys
 import sysinfo
-#sys.modules["pyOpenMS"] = pyOpenMS
-#sys.modules["pyOpenMS.sysinfo"] = sysinfo
