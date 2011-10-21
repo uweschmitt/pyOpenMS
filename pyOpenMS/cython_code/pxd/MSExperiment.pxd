@@ -15,13 +15,15 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         int   size()                            
         MSSpectrum[PeakT] operator[](int)     
         void   updateRanges()                  
+        void push_back(MSSpectrum[PeakT] spec)
+        String getLoadedFilePath()
+        void setLoadedFilePath(String path)
+        void  setMetaValue(String key, DataValue value)
+        DataValue getMetaValue(String key) except + 
+
         vector[MSSpectrum[PeakT]].iterator begin()        # ignore=True
         vector[MSSpectrum[PeakT]].iterator end()          # ignore=True
         void  erase(vector[MSSpectrum[PeakT]].iterator)   # ignore=True
-        void push_back(MSSpectrum[PeakT])
-        String getLoadedFilePath()
-        void  setMetaValue(String key, DataValue value)
-        DataValue getMetaValue(String key) except + 
        
     
 
