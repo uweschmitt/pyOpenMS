@@ -61,6 +61,9 @@ if __name__ == "__main__":
                     "DataType",
                     "FileHandler",
                     "LogType",
+                    "Feature",
+                    "FeatureMap",
+                    "FeatureXMLFile"
                                 ]:
 
        c += g.generate_code_for(clz_name)
