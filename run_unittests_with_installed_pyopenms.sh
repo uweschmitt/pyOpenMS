@@ -1,4 +1,4 @@
 #!/bin/sh
-python check_test_coverage.py
-export PYTHONPATH=
+unset PYTHONPATH
+nosetests -w unittests --tests=testModuleLoad.py -s
 nosetests -w unittests $*
