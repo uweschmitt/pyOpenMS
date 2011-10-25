@@ -22,6 +22,7 @@ class TestParam(unittest.TestCase):
          .size
          .getValue
          .setValue
+         .getKeys
          String.__init__
          String.c_str
         @end 
@@ -69,6 +70,8 @@ class TestParam(unittest.TestCase):
         assert p.hasTag(key, String("tag2"))
         assert p.hasTag(key, String("a"))
         assert not p.hasTag(key, String("b"))
+
+        assert p.getKeys() == ["testkey"]
        
     def testFromIniFile(self):
         """
@@ -79,6 +82,7 @@ class TestParam(unittest.TestCase):
         .getValue
         .getDescription
         .getSectionDescription
+        .getKeys
         """
 
         p = Param()
@@ -94,3 +98,5 @@ class TestParam(unittest.TestCase):
         assert "input profile data file" in p.getDescription(k)
         assert "Instance '1' section" in p.getSectionDescription(String("PeakPicker:1"))
         assert p.getSectionDescription(String("PeakPicker")) == ""
+
+        assert len(p.getKeys())==50, len(p.getKeys())

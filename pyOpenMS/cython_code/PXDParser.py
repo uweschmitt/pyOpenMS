@@ -157,6 +157,9 @@ class CPPMethod(object):
 
         annotations = parse_annotations(node, lines)
         
+        if isinstance(node, CppClassNode):
+            return None # nested classes only can be delcared in pxd
+
         decl = node.declarators[0]
         result_type = extract_type(node.base_type, decl, instances)
 

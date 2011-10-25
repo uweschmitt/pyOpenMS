@@ -39,7 +39,9 @@ if __name__ == "__main__":
                 
     
 
-    for clz_name in ["Peak1D", 
+    for clz_name in [
+                    "PeakPickerHiRes",
+                    "Peak1D", 
                      "Precursor", 
                      "MSExperiment",
                     "InstrumentSettings", 
@@ -51,7 +53,6 @@ if __name__ == "__main__":
                      "StringList",
                     "IntList", 
                      "DoubleList", 
-                     "Param", 
                      "String",
                     "SourceFile",
                       "ChecksumType", 
@@ -59,6 +60,7 @@ if __name__ == "__main__":
                     "SavitzkyGolayFilter",
                     "DataType",
                     "FileHandler",
+                    "LogType",
                                 ]:
 
        c += g.generate_code_for(clz_name)
@@ -67,6 +69,11 @@ if __name__ == "__main__":
 
     c>>1
     c.addFile("MSSpectrumHelpers.pyx")
+    c<<1
+
+    c += g.generate_code_for("Param")
+    c>>1
+    c.addFile("ParamHelpers.pyx")
     c<<1
 
     c += g.generate_converters()

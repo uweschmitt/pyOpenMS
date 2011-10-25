@@ -2,6 +2,8 @@ from libcpp.string cimport *
 from libcpp.vector cimport *
 from DataValue cimport *
 from String cimport *
+from ParamIterator cimport *
+
 
 cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS":
     
@@ -35,3 +37,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS":
          void store(string filename) except +
          void load(string filename) except +
 
+
+         ParamIterator begin() # ignore=True
+         ParamIterator end() # ignore=True
+ 

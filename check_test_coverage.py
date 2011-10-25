@@ -26,18 +26,23 @@ def parse_doc(item, collection):
     if item.__doc__ is not None:
        it = iter(item.__doc__.split("\n"))
        for line in it:
-            if "@tests" in line:
-                for line in it:
-                    line = line.strip()
-                    if "@end" in line: 
-                        break
-                    if not line:
-                        continue
-                    clz, method = line.split(".")
-                    if clz=="":
-                        clz = oldclzz
-                    collection.add("%s.%s" % (clz, method))
-                    oldclzz = clz
+            if not "@tests" in line:
+                continue
+            for line in it:
+                line = line.strip()
+                if "@end" in line: 
+                    break
+                if not line:
+                    continue
+                clz, method = line.split(".")
+                if clz=="":
+                    clz = oldclzz
+                fullname = "%s.%s" % (clz, method)
+                if fullname.endswith("()"):
+                    print fullname, "declared with parentesis, fix it"
+                    fullname = fullname[:-2]
+                collection.add(fullname)
+                oldclzz = clz
                   
 
 def collectRecursed(obj, collection):
