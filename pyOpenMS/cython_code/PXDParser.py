@@ -74,16 +74,30 @@ class CPPClass(object):
         self.targs = targs
         self.methods = methods
         self.annotations = annotations
-        self.wrap = not annotations.get("ignore", False)
 
+        self.wrap = not annotations.get("ignore", False)
         self.type_ = Type(name, template_args = targs)
         self.cy_repr = cy_repr(self.type_)
         self.py_name = py_name(self.type_)
 
     @classmethod
     def fromTree(cls, node, lines):
+
+        typedefs = dict() # record here, but later not used
+        if hasattr(node, "stats"): # more than just class def
+            for stat in node.stats:
+                if isinstance(stat, CTypeDefNode):
+                    alias = stat.base_type.name
+                    basetype = stat.declarator.base.name
+                    args = [ Type(decl.name) for decl in stat.declarator.dimension.args ]
+                    typedefs[alias] = Type(basetype, template_args=args)
+                elif isinstance(stat, CppClassNode):
+                    node = stat
+                    break
+                else:
+                    print "ignore node", stat
+
         name = node.name
-        
         annotations = parse_annotations(node, lines)
 
         instances = dict()  # maps template args to instantiation types
@@ -129,9 +143,14 @@ def extract_type(base_type, decl, instances):
             elif isinstance(arg, NameNode):
                 name = arg.name
                 targs.append(instances.get(name, Type(name)))
+            elif isinstance(arg, IndexNode): # nested template !
+                # only handles one nesting level !
+                name = arg.base.name
+                args = [ Type(a.name) for a in arg.index.args ]
+                tt = Type(name, template_args=args)
+                targs.append(tt)
             else:
-                raise Exception("%s,%d: can not handle template arg %r"\
-                                % (self.file_name, self.line_number, arg))
+                raise Exception("can not handle template arg %r" % arg)
 
         base_type = base_type.base_type_node
 
@@ -182,8 +201,9 @@ class CPPMethod(object):
                 argname = argdecl.base.name
             else:
                 argname = argdecl.name
-            args.append((argname,
-                              extract_type(arg.base_type, argdecl, instances)))
+            tt = extract_type(arg.base_type, argdecl, instances)
+            args.append((argname,tt))
+                              
 
         return cls(result_type, name, args, annotations)
 

@@ -12,6 +12,7 @@ if __name__ == "__main__":
     import sys, glob
     g = Generator()
     g.parse_all(glob.glob("pxd/*.pxd"))
+    #g.parse_all(glob.glob("pxd/MapAlignment*.pxd"))
 
 
     c = Code()
@@ -63,7 +64,9 @@ if __name__ == "__main__":
                     "LogType",
                     "Feature",
                     "FeatureMap",
-                    "FeatureXMLFile"
+                    "FeatureXMLFile",
+                    "TransformationDescription",
+                    "MapAlignmentAlgorithmPoseClustering",
                                 ]:
 
        c += g.generate_code_for(clz_name)

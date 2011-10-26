@@ -103,7 +103,7 @@ class ToPyConverters(object):
         cpp_name = id_from(cy_repr(to))
         name = "conv_%s_to_py" % cpp_name 
         self.converters.add((name, to))
-        return "%s(%s)" % (name, var)
+        return "%s(address(%s))" % (name, var)
 
     def __iter__(self):
         return iter(self.converters)
@@ -469,8 +469,8 @@ class Generator(object):
     def generate_converters(self):
 
         c = Code()
-        c += self.generate_to_py_converters()
         c += self.generate_from_py_converters()
+        c += self.generate_to_py_converters()
 
         return c
 
@@ -533,7 +533,8 @@ class Generator(object):
 
         targ_type = targs[0]
         cy_type  = cy_decl(targ_type)
-        cy_vector = cy_repr(type_cpp)
+        
+        cy_vector = cy_repr(type_cpp.without_ref())
         
         decl, init, expr, cleanup = self.to_cpp_converters.get(cy_type, 
                                                            targ_type, "item")
@@ -554,9 +555,16 @@ class Generator(object):
                  cdef $cy_vector * conv(self):
                       return self.inst
                  def post_process(self, arg):
+                      if $is_ref:
+                          del arg[:]
+                          for i in range(self.inst.size()):
+                              arg.append($conv)
                       if self.inst:
                           del self.inst
+
              """
+        conv = self.to_py_converters.get(targ_type, "self.inst.at(i)")
+        is_ref = type_cpp.is_ref
         return c.resolve(**locals())
                         
 
@@ -566,9 +574,9 @@ class Generator(object):
         py_class = py_name(type_)
         cc = Code()
         cc += """
-              cdef $name($cy_type & inst):      
+              cdef $name($cy_type * inst):      
                    cdef $py_class res = $py_class(_new_inst=False)
-                   res._set_inst(new $cy_type(inst))
+                   res._set_inst(new $cy_type(deref(inst)))
                    return res
               """
         return cc.resolve(name=name, cy_type=cy_type, py_class=py_class)
@@ -578,7 +586,7 @@ class Generator(object):
 
         cc = Code()
         cc += """
-              cdef conv_string_to_py(string & str):          
+              cdef conv_string_to_py(string * str):          
                    return PyString_FromString(str.c_str())
               """
         return cc
@@ -591,11 +599,11 @@ class Generator(object):
         targ_cy_type = cy_repr(targ)
         cy_type = cy_repr(type_)
 
-        inner_conv = self.to_py_converters.get(targ, "item")
+        inner_conv = self.to_py_converters.get(targ, "(item)")
 
         cc = Code()
         cc += """
-              cdef $name($cy_type & vec):      
+              cdef $name($cy_type * vec):      
                   res = []
                   cdef $targ_cy_type item
                   for i in range(vec.size()):

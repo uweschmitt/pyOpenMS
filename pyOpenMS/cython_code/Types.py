@@ -1,5 +1,5 @@
 #encoding: utf-8
-
+import copy
 
 class Type(object):
 
@@ -29,6 +29,11 @@ class Type(object):
                 (other.basetype, other.is_ptr, other.is_ref, other.is_unsigned,
                      other.is_enum, other.template_args) 
 
+    def without_ref(self):
+        rv = copy.copy(self)
+        rv.is_ref = False
+        return rv
+
     def matches(self, basetype, **kw):
 
         is_ptr = kw.get("is_ptr")
@@ -56,6 +61,20 @@ class Type(object):
             return False
 
         return True
+
+    def resolve_typedefs(self, typedefs):
+        replacement = typedefs.get(self.basetype)
+        if replacement is not None:
+            self.basetype = replacement.basetype
+            self.is_ptr = replacement.is_ptr
+            self.is_ref = replacement.is_ref
+            self.is_unsigned = replacement.is_unsigned
+            self.is_enum = replacement.is_enum
+            self.template_args = replacement.template_args
+        else:
+            if self.template_args:
+                for t in self.template_args:
+                    t.resolve_typedefs(typedefs)
        
 
 def cy_repr(type_):

@@ -7,6 +7,8 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
 
     cdef cppclass MSExperiment[PeakT, ChromoPeakT]: # wrap=True; inst=("Peak1D", "ChromatogramPeak")
         MSExperiment()
+        MSExperiment(MSExperiment[PeakT, ChromoPeakT] &) #ignore=True;
+
         double getMinMZ()                         
         double getMaxMZ()                           
         double getMinRT()                          
