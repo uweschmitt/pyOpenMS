@@ -69,8 +69,8 @@ class ToCppConverters(object):
         init += "$inst_name = $clz_name($var)"
         init.resolve(**locals())
 
-        #cleanup += "del $inst_name"
-        #cleanup.resolve(**locals())
+        cleanup += "$inst_name.post_process($var)"
+        cleanup.resolve(inst_name=inst_name, var=var)
 
         self.converters.add((clz_name, from_, to))
 
@@ -371,18 +371,12 @@ class Generator(object):
 
         print "    wrap", name
 
-        #if name == "addTag":
-            #import pdb; pdb.set_trace()
-
         # take names if declared, else use ai
         arg_names = [n or ("arg%d" % i) for i, (n,t) in enumerate(args)]
         arg_types = [t for (n,t) in args]
 
         # types for decl of python extension method
         cy_decls = [cy_decl(t) for t in arg_types]
-        #cy_decls = ["" if t in self.additional_input_converters 
-        #               else cy_decl(t) for t in arg_types]
-        
 
         cy_sig = ["%s %s" % (t,n) for (t,n) in zip(cy_decls, arg_names)]
         c = Code()
@@ -396,7 +390,7 @@ class Generator(object):
                       in zip(cy_decls, arg_types, arg_names)] 
 
         if converters:
-            # undzip 4-tuples
+            # unzip 4-tuples
             decls, inits, expressions, cleanups = zip(*converters) 
         else:
             decls, inits, expressions, cleanups = Code(), Code(), [], Code()
@@ -519,15 +513,15 @@ class Generator(object):
                  cdef string * inst 
                  def __cinit__(self):
                       inst = NULL
-                 def __dealloc__(self):
-                      #print "dealloc", self
-                      if self.inst:
-                          #print "kill"
-                          del self.inst
                  def __init__(self, str arg):
                       self.inst = new string(PyString_AsString(arg))
                  cdef string * conv(self):
                       return self.inst
+                 def post_process(self, arg):
+                      #print "dealloc", self
+                      if self.inst:
+                          #print "kill"
+                          del self.inst
              """ 
         return c
 
@@ -549,11 +543,6 @@ class Generator(object):
                  cdef $cy_vector * inst
                  def __cinit__(self):
                       inst = NULL
-                 def __dealloc__(self):
-                      #print "dealloc", self
-                      if self.inst:
-                          #print "kill"
-                          del self.inst
                  def __init__(self, list arg):
                       self.inst = new $cy_vector()
                       $decl
@@ -564,6 +553,9 @@ class Generator(object):
                           $cleanup
                  cdef $cy_vector * conv(self):
                       return self.inst
+                 def post_process(self, arg):
+                      if self.inst:
+                          del self.inst
              """
         return c.resolve(**locals())
                         
