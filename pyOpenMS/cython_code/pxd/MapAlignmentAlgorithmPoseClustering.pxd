@@ -11,12 +11,12 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClusteri
     #ctypedef MSE MSExperiment[Peak1D, ChromatogramPeak]
     cdef cppclass MapAlignmentAlgorithmPoseClustering: #wrap=True
         MapAlignmentAlgorithmPoseClustering()
-        void alignPeakMaps(vector[MSExperiment[Peak1D, ChromatogramPeak]], vector[TransformationDescription] &)
+        void alignPeakMaps(vector[MSExperiment[Peak1D, ChromatogramPeak]], vector[TransformationDescription] &) except +
     
         void setReference(int idx, String file)
         void getDefaultModel(String model_type, Param p)
-        void fitModel(String model_type, Param p, vector[TransformationDescription])
-        void transformPeakMaps(vector[MSExperiment[Peak1D, ChromatogramPeak]] &, vector[TransformationDescription]) 
+        void fitModel(String model_type, Param p, vector[TransformationDescription]) except +
+        void transformPeakMaps(vector[MSExperiment[Peak1D, ChromatogramPeak]] &, vector[TransformationDescription])  except +
         
         void setLogType(LogType type)
 
