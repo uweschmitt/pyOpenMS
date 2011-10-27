@@ -4,7 +4,7 @@ import copy
 class Type(object):
 
     CTYPES = ["int", "long", "double", "float", "char", "void"]
-    LIBCPPTYPES = ["vector", "string", "list"]
+    LIBCPPTYPES = ["vector", "string", "list", "pair"]
 
     def __init__(self, basetype, is_ptr=False, is_ref=False,
                        is_unsigned = False,
@@ -62,19 +62,6 @@ class Type(object):
 
         return True
 
-    def resolve_typedefs(self, typedefs):
-        replacement = typedefs.get(self.basetype)
-        if replacement is not None:
-            self.basetype = replacement.basetype
-            self.is_ptr = replacement.is_ptr
-            self.is_ref = replacement.is_ref
-            self.is_unsigned = replacement.is_unsigned
-            self.is_enum = replacement.is_enum
-            self.template_args = replacement.template_args
-        else:
-            if self.template_args:
-                for t in self.template_args:
-                    t.resolve_typedefs(typedefs)
        
 
 def cy_repr(type_):
@@ -158,6 +145,9 @@ def py_type_for_cpp_type(type_):
 
     if type_.matches("vector") or type_.matches("list"):
         return Type("list")
+
+    if type_.matches("pair"):
+        return Type("tuple")
 
     return type_
 

@@ -108,6 +108,13 @@ class ToPyConverters(object):
     def __iter__(self):
         return iter(self.converters)
 
+    def __len__(self):
+        return len(self.converters)
+
+    def pop(self):
+        return self.converters.pop()
+        
+
 
 class Generator(object):
 
@@ -170,6 +177,7 @@ class Generator(object):
              from cython.operator cimport preincrement as preincrement
              from cpython.string  cimport *
              from libcpp.vector cimport *
+             from libcpp.pair   cimport *
              from libcpp.string cimport *
              from libc.stdlib cimport free
              """
@@ -477,16 +485,17 @@ class Generator(object):
     def generate_to_py_converters(self):    
 
         c = Code()
-        # generate container wrapper first. these may call other
-        #  cy->py wrappers. therefore we use list() to fetch the full
-        # iterator, else the iterator may get invalid due to new
-        # registered converters
-        for name, type_ in list(self.to_py_converters): 
+        # pop as some of the called generators register needed converters
+        # in self.to_py_converters
+
+        while len(self.to_py_converters):
+            name, type_ = self.to_py_converters.pop()
     
             if type_.basetype == "vector":
                 c += self.generate_vector_to_py(name, type_)
 
-        for name, type_ in self.to_py_converters:
+            if type_.basetype == "pair":
+                c += self.generate_pair_to_py(name, type_)
 
             if type_.basetype in self.classes_to_wrap:
                 c += self.generate_wrapped_class_to_py(name, type_)
@@ -590,6 +599,25 @@ class Generator(object):
                    return PyString_FromString(str.c_str())
               """
         return cc
+
+    def generate_pair_to_py(self, name, type_):
+        cc = Code()
+        assert len(type_.template_args) == 2
+        targ1 = type_.template_args[0]
+        targ2 = type_.template_args[1]
+        targ_cy_type1 = cy_repr(targ1)
+        targ_cy_type2 = cy_repr(targ2)
+        cy_type = cy_repr(type_)
+
+        inner_conv1 = self.to_py_converters.get(targ1, "pair.first")
+        inner_conv2 = self.to_py_converters.get(targ2, "pair.second")
+
+        cc += """
+              cdef $name($cy_type *pair):
+                   return $inner_conv1, $inner_conv2
+              """
+
+        return cc.resolve(**locals())
             
     
     def generate_vector_to_py(self, name, type_):
