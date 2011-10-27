@@ -117,7 +117,7 @@ setup(
   packages = ["pyOpenMS"],
   ext_package = "pyOpenMS",
 
-  version="0.1",
+  version="0.15.27102011",
   url="http://github.com/uweschmitt/msExpert",
   author="uwe schmitt",
   author_email="uschmitt@mineway.de",

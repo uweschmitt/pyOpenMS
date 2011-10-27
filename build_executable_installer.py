@@ -24,7 +24,19 @@ def pack(p):
     print "write", p
     zf.write(p, basename)
     zf.close()
+    return target_path
 
 for p in glob.glob("dist/*.zip"):
-    if re.match("dist.pyOpenMS-.*(linux|win32).*.zip", p):
-        pack(p)
+
+        generated = pack(p)
+        basename = os.path.basename(generated)
+        dirname  = os.path.dirname(generated)
+        newname = "setup_"+basename[len("install_"):-4]+".zip"
+        target = os.path.join(dirname, newname)
+        zf = zipfile.ZipFile(target, "w", compression = zipfile.ZIP_STORED)
+        zf.write(generated, basename)
+        zf.close()
+       
+        
+        
+        
