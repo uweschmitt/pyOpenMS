@@ -6,9 +6,9 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
     cdef cppclass FeatureMap[FeatureT]: # wrap=True; inst=("Feature",)
         FeatureMap()
         int   size()                            
-        Feature operator[](int)     
+        Feature operator[](int)      except +
         void   updateRanges()                  
-        void push_back(FeatureT spec)
+        void push_back(FeatureT spec) except +
         void setUniqueId()
 
 

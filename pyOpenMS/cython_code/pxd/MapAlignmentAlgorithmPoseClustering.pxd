@@ -13,14 +13,14 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClusteri
         MapAlignmentAlgorithmPoseClustering()
         void alignPeakMaps(vector[MSExperiment[Peak1D, ChromatogramPeak]], vector[TransformationDescription] &) except +
     
-        void setReference(int idx, String file)
+        void setReference(int idx, String file) except +
         void getDefaultModel(String model_type, Param p)
         void fitModel(String model_type, Param p, vector[TransformationDescription]) except +
         void transformPeakMaps(vector[MSExperiment[Peak1D, ChromatogramPeak]] &, vector[TransformationDescription])  except +
         
-        void setLogType(LogType type)
+        void setLogType(LogType type) except +
 
         Param getDefaults()
         Param getParameters()
-        void setParameters(Param)
+        void setParameters(Param) except +
         

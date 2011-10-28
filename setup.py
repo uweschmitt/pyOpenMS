@@ -3,6 +3,15 @@
 from distutils.core import setup, Extension
 import glob, os, shutil
 import sys
+import datetime
+
+dd = datetime.date.today()
+timestamp = "%02d%02d%4d" % (dd.day, dd.month, dd.year)
+version="0.16."+timestamp
+
+update = sys.argv[-1] == "update"
+if update:
+    del sys.argv[-1]
 
 
 # ADAPT THESE LINES ! ##################################
@@ -111,19 +120,20 @@ for root, _, files in os.walk(local_share_dir):
 if iswin:
     share_data +=[ "OpenMS.dll", MSVCRDLL, "xerces-c_3_0.dll"] 
 
+
 setup(
 
-  name = "pyOpenMS",
+  name = "pyOpenMS_update" if update else "pyOpenMS",
   packages = ["pyOpenMS"],
   ext_package = "pyOpenMS",
 
-  version="0.15.27102011",
+  version = version,
   url="http://github.com/uweschmitt/msExpert",
   author="uwe schmitt",
   author_email="uschmitt@mineway.de",
 
   ext_modules = [ext ],
  
-  package_data={ "pyOpenMS": share_data }
+  package_data= dict() if update else { "pyOpenMS": share_data }
                ,
 )

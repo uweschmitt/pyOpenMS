@@ -6,5 +6,5 @@ cdef extern from "<OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>" namespace 
     
     cdef cppclass SavitzkyGolayFilter:  # wrap=True
         SavitzkyGolayFilter()
-        void filter (MSSpectrum[Peak1D])
-        void filterExperiment (MSExperiment[Peak1D, ChromatogramPeak])
+        void filter (MSSpectrum[Peak1D]) except +
+        void filterExperiment (MSExperiment[Peak1D, ChromatogramPeak]) except +

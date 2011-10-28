@@ -9,19 +9,20 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DataValue.h>" namespace "OpenMS":
     
     cdef cppclass DataValue: #wrap=True
          DataValue()
-         DataValue(DataValue)
-         DataValue(vector[string]) #ignore=True
-         DataValue(vector[int]) #ignore=True
-         DataValue(vector[float]) #ignore=True
-         DataValue(char *)
-         DataValue(int)   
-         DataValue(double)   
-         DataValue(StringList)    
-         DataValue(IntList) 
-         DataValue(DoubleList) 
+         DataValue(DataValue) except +
+         DataValue(vector[string]) except + #ignore=True
+         DataValue(vector[int])  except +#ignore=True
+         DataValue(vector[float])  except +#ignore=True
+         DataValue(char *) except +
+         DataValue(int)    except +
+         DataValue(double)    except +
+         DataValue(StringList)     except +
+         DataValue(IntList)  except +
+         DataValue(DoubleList)  except +
 
          #conversion ops, different declarations as in c++ !
-         int operator()(int) except +        #pre="assert self.valueType() == DataType.INT_VALUE"
+         # except+ does not work here, so we have a pre steatment
+         int operator()(int)      #pre="assert self.valueType() == DataType.INT_VALUE"
          string operator()(DataValue)      #pre="assert self.valueType() == DataType.STRING_VALUE"
          double operator()(DataValue)      #pre="assert self.valueType() == DataType.DOUBLE_VALUE"
          StringList operator()(DataValue)  #pre="assert self.valueType() == DataType.STRING_LIST"

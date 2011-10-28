@@ -6,5 +6,5 @@ cdef extern from "<OpenMS/KERNEL/Peak1D.h>" namespace "OpenMS":
         Peak1D(Peak1D &)
         double getMZ() 
         double getIntensity()
-        void setMZ(double) 
-        void setIntensity(double)
+        void setMZ(double)  except +
+        void setIntensity(double) except +

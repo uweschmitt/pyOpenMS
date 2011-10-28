@@ -7,24 +7,24 @@ cdef extern from "<OpenMS/METADATA/SourceFile.h>" namespace "OpenMS":
         SourceFile()
         SourceFile(SourceFile)
         string getNameOfFile()
-        void setNameOfFile(string)
+        void setNameOfFile(string) except +
 
         string getPathToFile()
-        void setPathToFile(string)
+        void setPathToFile(string) except +
 
         float getFileSize()
-        void setFileSize(float)
+        void setFileSize(float) except +
 
         string getFileType()
-        void setFileType(string)
+        void setFileType(string) except +
 
         string getChecksum()
-        void setChecksum(string, ChecksumType)
+        void setChecksum(string, ChecksumType) except +
 
         ChecksumType getChecksumType()
 
         string getNativeIDType()
-        void setNativeIDType(string)
+        void setNativeIDType(string) except +
        
     
 

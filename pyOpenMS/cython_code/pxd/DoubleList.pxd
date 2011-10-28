@@ -8,4 +8,4 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DoubleList.h>" namespace "OpenMS":
         DoubleList(DoubleList)
         DoubleList(vector[double])
         int size()
-        double at(int)
+        double at(int) except +

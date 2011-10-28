@@ -10,10 +10,10 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>" namespace
     cdef cppclass PeakPickerHiRes:  # wrap=True
         PeakPickerHiRes()
         PeakPickerHiRes(PeakPickerHiRes)
-        void pick(MSSpectrum[Peak1D] input, MSSpectrum[Peak1D] output)
-        void pickExperiment(MSExperiment[Peak1D, ChromatogramPeak] input, MSExperiment[Peak1D, ChromatogramPeak] output)
+        void pick(MSSpectrum[Peak1D] input, MSSpectrum[Peak1D] output) except +
+        void pickExperiment(MSExperiment[Peak1D, ChromatogramPeak] input, MSExperiment[Peak1D, ChromatogramPeak] output) except +
         Param getParameters()
         Param getDefaults()
-        void setParameters(Param param)
+        void setParameters(Param param) except +
 
-        void setLogType(LogType type)
+        void setLogType(LogType type) except +

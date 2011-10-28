@@ -15,12 +15,12 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         double getMaxRT()                         
         void sortSpectra(bool)                   
         int   size()                            
-        MSSpectrum[PeakT] operator[](int)     
+        MSSpectrum[PeakT] operator[](int)      except +
         void   updateRanges()                  
-        void push_back(MSSpectrum[PeakT] spec)
+        void push_back(MSSpectrum[PeakT] spec) except +
         String getLoadedFilePath()
-        void setLoadedFilePath(String path)
-        void  setMetaValue(String key, DataValue value)
+        void setLoadedFilePath(String path) except +
+        void  setMetaValue(String key, DataValue value) except +
         DataValue getMetaValue(String key) except + 
 
         vector[MSSpectrum[PeakT]].iterator begin()        # ignore=True
