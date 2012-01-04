@@ -5,18 +5,20 @@ from MSExperiment cimport *
 from String cimport *
 from Param cimport *
 from ProgressLogger_LogType cimport *
+from Feature cimport *
+from FeatureMap cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>" namespace "OpenMS":
     
     #ctypedef MSE MSExperiment[Peak1D, ChromatogramPeak]
     cdef cppclass MapAlignmentAlgorithmPoseClustering: #wrap=True
         MapAlignmentAlgorithmPoseClustering()
-        void alignPeakMaps(vector[MSExperiment[Peak1D, ChromatogramPeak]], vector[TransformationDescription] &) except +
+        void alignFeatureMaps(vector[FeatureMap[Feature]], vector[TransformationDescription] &) except +
     
         void setReference(int idx, String file) except +
         void getDefaultModel(String model_type, Param p)
         void fitModel(String model_type, Param p, vector[TransformationDescription]) except +
-        void transformPeakMaps(vector[MSExperiment[Peak1D, ChromatogramPeak]] &, vector[TransformationDescription])  except +
+        void transformFeatureMaps(vector[FeatureMap[Feature]] &, vector[TransformationDescription])  except +
         
         void setLogType(LogType type) except +
 

@@ -9,11 +9,6 @@ dd = datetime.date.today()
 timestamp = "%02d%02d%4d" % (dd.day, dd.month, dd.year)
 version="0.16."+timestamp
 
-update = sys.argv[-1] == "update"
-if update:
-    del sys.argv[-1]
-
-
 # ADAPT THESE LINES ! ##################################
 
 OPEN_MS_SRC = "e:/OpenMS-1.8/"
@@ -113,6 +108,9 @@ for root, _, files in os.walk(local_share_dir):
     fields = root.split(os.path.sep)
     if fields[0]=="pyOpenMS": 
         fields = fields[1:]
+    # omit examples, make package too large and are not needed
+    if len(fields) > 2 and fields[2] == "examples":
+        continue
     root = os.path.sep.join(fields)
     for f in files:
         share_data.append(j(root, f))
@@ -123,7 +121,7 @@ if iswin:
 
 setup(
 
-  name = "pyOpenMS_update" if update else "pyOpenMS",
+  name = "pyOpenMS",
   packages = ["pyOpenMS"],
   ext_package = "pyOpenMS",
 
@@ -134,6 +132,5 @@ setup(
 
   ext_modules = [ext ],
  
-  package_data= dict() if update else { "pyOpenMS": share_data }
-               ,
+  package_data= { "pyOpenMS": share_data },
 )

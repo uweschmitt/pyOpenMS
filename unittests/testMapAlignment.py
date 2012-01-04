@@ -6,9 +6,9 @@ def testMapAlignment():
     @tests
     MapAlignmentAlgorithmPoseClustering.__init__
     .getDefaultModel
-    .alignPeakMaps
+    .alignFeatureMaps
     .fitModel
-    .transformPeakMaps
+    .transformFeatureMaps
     .setReference
     .setLogType
 
@@ -18,7 +18,9 @@ def testMapAlignment():
     .getKeys
     .getValue
     """
-    
+
+    raise Exception("INVALID TEST ! ADAPT AS SOON AS POSSIBLE")
+ 
     ma = MapAlignmentAlgorithmPoseClustering()
     s = String()
     p = Param()

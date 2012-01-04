@@ -146,7 +146,10 @@ def extract_type(base_type, decl, instances):
             elif isinstance(arg, IndexNode): # nested template !
                 # only handles one nesting level !
                 name = arg.base.name
-                args = [ Type(a.name) for a in arg.index.args ]
+                if hasattr(arg.index, "args"):
+                    args = [ Type(a.name) for a in arg.index.args ]
+                else:
+                    args = [ Type(arg.index.name) ]
                 tt = Type(name, template_args=args)
                 targs.append(tt)
             else:

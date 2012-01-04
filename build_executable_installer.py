@@ -27,7 +27,8 @@ def pack(p):
     return target_path
 
 for p in glob.glob("dist/*.zip"):
-
+    fname = os.path.basename(p)
+    if fname.startswith("pyOpenMS-"):
         generated = pack(p)
         basename = os.path.basename(generated)
         dirname  = os.path.dirname(generated)
