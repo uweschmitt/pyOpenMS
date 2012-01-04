@@ -1,15 +1,12 @@
 #encoding: utf-8
 
 from Types import *
-from PXDParser import CPPClass, CPPMethod, Enum, parse
+from PXDParser import CPPClass, Enum, parse
 from CodeGenerator import Code
-import sys
 import os
-import re
 
 
 def id_from(python_expression):
-    
     # translate ()/[]. et al
     return python_expression.replace("(","_bl_") \
                             .replace(")","_br_") \
@@ -35,7 +32,7 @@ class ToCppConverters(object):
         decl = Code()
         init = Code()
         cleanup = Code()
-    
+
         # no extra functions for wrapped classes
         if from_ in self.classes_to_wrap:
             return decl, init, "deref(%s.inst)" % var, cleanup

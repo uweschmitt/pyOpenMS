@@ -17,8 +17,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClusteri
     
         void setReference(int idx, String file) except +
         void getDefaultModel(String model_type, Param p)
-        void fitModel(String model_type, Param p, vector[TransformationDescription]) except +
-        void transformFeatureMaps(vector[FeatureMap[Feature]] &, vector[TransformationDescription])  except +
+        void fitModel(String model_type, Param p, vector[TransformationDescription] &) except +
         
         void setLogType(LogType type) except +
 
