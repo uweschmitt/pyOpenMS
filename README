@@ -16,6 +16,16 @@ Python Bindings for open-MS
 
 7) installation to a different target:
    "python setup.py install --help" helps
+
+build zip incl. own installer:
+
+  python setup.py bdist
+
+  python build_zip_for_install.py
+
+  -> dist\setup_pyOpenMS-*zip
+
+
     
 
 
