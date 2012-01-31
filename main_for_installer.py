@@ -21,7 +21,7 @@ class App(object):
         fr = Frame(root)
         fr.pack()
         self.fr = fr
-        
+
 
         self.local_path = local_path
         self.system_path = system_path
@@ -41,15 +41,20 @@ class App(object):
             set_grid(l, r, c, sticky=W, **kw)
 
         row = 0
-        build_button(row, 0, "local install to ", self.install_local)
-        build_label(row, 1, text=local_path)
-
         row += 1
-        build_button(row, 0, "global install to ", self.install_global)
+        build_button(row, 0, "global install to\n(if you have admin rights)",
+                     self.install_global)
         build_label(row, 1, text=system_path)
 
         row += 1
-        b = build_button(row, 0, "individual install to ", self.install_individual)
+        build_button(row, 0, "local install to\n(for personal purposes)",
+                     self.install_local)
+        build_label(row, 1, text=local_path)
+
+
+        row += 1
+        build_button(row, 0, "individual install to\n(if you know what you do)",
+                     self.install_individual)
         self.path = Entry(fr, width=80)
         set_grid(self.path, row, 1, sticky=W)
         build_button(row, 2, "choose Destination",  self.file_dialog)

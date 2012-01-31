@@ -1,13 +1,14 @@
 #input-encoding: utf-8
 
 from distutils.core import setup, Extension
-import glob, os, shutil
+import  os, shutil
 import sys
-import datetime
+import time
 
-dd = datetime.date.today()
-timestamp = "%02d%02d%4d" % (dd.day, dd.month, dd.year)
-version="0.16."+timestamp
+ctime = os.stat("pyOpenMS").st_mtime
+ts = time.gmtime(ctime)
+timestamp = "%02d-%02d-%4d" % (ts.tm_mday, ts.tm_mon, ts.tm_year)
+version="0.18."+timestamp
 
 # ADAPT THESE LINES ! ##################################
 
@@ -118,6 +119,8 @@ for root, _, files in os.walk(local_share_dir):
 if iswin:
     share_data +=[ "OpenMS.dll", MSVCRDLL, "xerces-c_3_0.dll"] 
 
+
+share_data.append("License.txt")
 
 setup(
 
