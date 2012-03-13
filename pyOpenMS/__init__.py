@@ -11,5 +11,8 @@ else:
     os.environ["OPENMS_DATA_PATH"] = j(here, "share", "OpenMS") 
 
 
+
 from pyOpenMS import *
 import sysinfo
+
+version="0.18"
