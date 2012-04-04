@@ -8,7 +8,9 @@ import time
 ctime = os.stat("pyOpenMS").st_mtime
 ts = time.gmtime(ctime)
 timestamp = "%02d-%02d-%4d" % (ts.tm_mday, ts.tm_mon, ts.tm_year)
-version="0.18."+timestamp
+
+from pyOpenMS.version import version
+full_version= "%s_%s" % (version, timestamp)
 
 # ADAPT THESE LINES ! ##################################
 
@@ -120,14 +122,7 @@ if iswin:
     share_data +=[ "OpenMS.dll", MSVCRDLL, "xerces-c_3_0.dll"] 
 
 
-print open("version.txt","w"), version
 share_data.append("License.txt")
-share_data.append("version.txt")
-
-init_py = open("pyOpenMs/__init__.py").readlines()
-if init_py[-1].startswith("version="):
-    init_py[-1]="version=%r" % version
-    open("pyOpenMS/__init__.py","w").write("\n".join(init_py))
 
 setup(
 
@@ -135,7 +130,7 @@ setup(
   packages = ["pyOpenMS"],
   ext_package = "pyOpenMS",
 
-  version = version,
+  version = full_version,
   url="http://github.com/uweschmitt/msExpert",
   author="uwe schmitt",
   author_email="uschmitt@mineway.de",

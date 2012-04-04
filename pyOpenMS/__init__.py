@@ -15,4 +15,4 @@ else:
 from pyOpenMS import *
 import sysinfo
 
-version="0.18"
+from version import version as __version__

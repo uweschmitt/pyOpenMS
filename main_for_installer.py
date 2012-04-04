@@ -139,7 +139,7 @@ class Meter(Tkinter.Frame):
     def _update_coords(self, event):
         '''Updates the position of the text and rectangle inside the canvas when the size of
         the widget gets changed.'''
-        # looks like we have to call update_idletasks() twice to make sure
+        # ld_looks like we have to call update_idletasks() twice to make sure
         # to get the results we expect
         self._canv.update_idletasks()
         self._canv.coords(self._text, self._canv.winfo_width()/2, self._canv.winfo_height()/2)
