@@ -1,23 +1,9 @@
 #input-encoding: utf-8
-from distutils.core import setup
-from distutils.extension import Extension
-from Cython.Distutils import build_ext
 
-import glob
-import autowrap
-
-decls = autowrap.parse(glob.glob(r"pyOpenMS\cython_code\selected_pxd\*.pxd"))
-autowrap.generate(decls, r"pyOpenMS\cython_code\pyOpenMS.pyx", debug=True)
-
-ext_modules = [Extension("pyOpenMS", ["pyOpenMS\cython_code\pyOpenMS.pyx"])]
-
-setup(
-  name = 'pyOpenMS',
-  cmdclass = {'build_ext': build_ext},
-  ext_modules = ext_modules
-)
-
-exit(0)
+from distutils.core import setup, Extension
+import  os, shutil
+import sys
+import time
 
 ctime = os.stat("pyOpenMS").st_mtime
 ts = time.gmtime(ctime)
