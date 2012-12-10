@@ -4,20 +4,22 @@ from distutils.extension import Extension
 from Cython.Distutils import build_ext
 
 import glob
+import os
+import time
 import autowrap
+import shutil
 
 decls = autowrap.parse(glob.glob(r"pyOpenMS\cython_code\selected_pxd\*.pxd"))
 autowrap.generate(decls, r"pyOpenMS\cython_code\pyOpenMS.pyx", debug=True)
 
 ext_modules = [Extension("pyOpenMS", ["pyOpenMS\cython_code\pyOpenMS.pyx"])]
 
-setup(
-  name = 'pyOpenMS',
-  cmdclass = {'build_ext': build_ext},
-  ext_modules = ext_modules
-)
 
-exit(0)
+#^setup(
+#  name = 'pyOpenMS',
+#  cmdclass = {'build_ext': build_ext},
+#  ext_modules = ext_modules
+#)
 
 ctime = os.stat("pyOpenMS").st_mtime
 ts = time.gmtime(ctime)
@@ -138,11 +140,17 @@ if iswin:
 
 share_data.append("License.txt")
 
+#^setup(
+#  name = 'pyOpenMS',
+#  cmdclass = {'build_ext': build_ext},
+#  ext_modules = ext_modules
+#)
 setup(
 
   name = "pyOpenMS",
   packages = ["pyOpenMS"],
   ext_package = "pyOpenMS",
+  cmdclass = {'build_ext': build_ext},
 
   version = full_version,
   url="http://github.com/uweschmitt/msExpert",
