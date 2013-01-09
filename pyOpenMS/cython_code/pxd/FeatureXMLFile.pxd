@@ -8,5 +8,5 @@ cdef extern from "<OpenMS/FORMAT/FeatureXMLFile.h>" namespace "OpenMS":
         FeatureXMLFile()
         # cython does not support free template args, so Peak1D has
         # to be used as a fixed argument
-        void load(string, FeatureMap[Feature]) except+
-        void store(string, FeatureMap[Feature]) except+
+        #void load(string, FeatureMap[Feature]) except+
+        #void store(string, FeatureMap[Feature]) except+
