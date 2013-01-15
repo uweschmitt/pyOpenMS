@@ -2,3 +2,6 @@
 dist/
 share
 *.swp
+*.swo
+*.swm
+*.swn

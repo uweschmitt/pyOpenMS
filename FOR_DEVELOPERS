@@ -1,6 +1,6 @@
 one iteration is:
 
-  - adapt files in pyOpenMS/cython_code
+  - adapt files in pyOpenMS/pyopenms/pxds
 
   - adapt unittests and maybe memoryleaktests
 

@@ -1,10 +1,12 @@
+import pdb
 import sys
 import unittest
 import time
 import contextlib
-import pyOpenMS
-from   pyOpenMS.sysinfo import free_mem
+import pyopenms
+from   pyopenms.sysinfo import free_mem
 import numpy as np
+pdb.set_trace() ############################## Breakpoint ##############################
 
 
 def show_mem(label):
@@ -13,7 +15,7 @@ def show_mem(label):
     p /= 1024.0 * 1024
     print (label+" ").ljust(50, "."), ": %8.2f MB" % p
     sys.stdout.flush()
- 
+
 
 @contextlib.contextmanager
 def MemTester(name):
@@ -21,7 +23,7 @@ def MemTester(name):
         print
         show_mem("start test '%s' with" % name)
         yield
-        missing = mem_at_start - free_mem() 
+        missing = mem_at_start - free_mem()
         show_mem("end with")
         print
         assert missing < 0.1* mem_at_start, "possible mem leak"
@@ -31,18 +33,18 @@ class TestAll(unittest.TestCase):
 
     def setUp(self):
         self.mem_at_start = free_mem()
-        
-        print 
+
+        print
         show_mem("AT THE BEGINNING ")
-        print 
+        print
 
     def tearDown(self):
-        
+
         time.sleep(3)
-        print 
+        print
         show_mem("AT THE END ")
-        print 
-        missing = self.mem_at_start - free_mem() 
+        print
+        missing = self.mem_at_start - free_mem()
         assert missing < 0.1* self.mem_at_start, "possible mem leak"
 
     def testAll(self):
@@ -80,8 +82,8 @@ class TestAll(unittest.TestCase):
         for i in range(1000):
             if (i+1)%100 == 0:
                 show_mem("%4d runs" % i)
-            dv = pyOpenMS.DataValue(basestr)
-            dv = pyOpenMS.DataValue(basestr)
+            dv = pyopenms.DataValue(basestr)
+            dv = pyopenms.DataValue(basestr)
             li.append(dv)
         del li
 
@@ -92,7 +94,7 @@ class TestAll(unittest.TestCase):
         for i in range(1000):
             if (i+1)%100 == 0:
                 show_mem("%4d runs" % i)
-            sf = pyOpenMS.SourceFile()
+            sf = pyopenms.SourceFile()
             sf.setNameOfFile(basestr)
             sf.setNameOfFile(basestr)
             li.append(sf)
@@ -102,26 +104,28 @@ class TestAll(unittest.TestCase):
 
         basestr = 100000*" "
         li = []
-        for i in range(1000):
+        for i in range(100):
             if (i+1)%100 == 0:
                 show_mem("%4d runs" % i)
-            sl = pyOpenMS.StringList([basestr, basestr, basestr])
-            sl = pyOpenMS.StringList([basestr, basestr, basestr])
+            sl = pyopenms.StringList([basestr, basestr, basestr])
+            sl = pyopenms.StringList([basestr, basestr, basestr])
             li.append(sl)
+            del sl
         del li
 
     def run_list_conversions(self):
 
-        pc = pyOpenMS.Precursor()
+        pc = pyopenms.Precursor()
         allpcs = 500*[pc]
         li = []
         for i in range(500):
             if (i+1)%100 == 0:
                 show_mem("%4d runs" % i)
-            spec = pyOpenMS.MSSpectrum()
+            spec = pyopenms.MSSpectrum()
             spec.setPrecursors(allpcs)
             spec.setPrecursors(allpcs)
             li.append(spec)
+            del spec
         del li
 
     def set_spec_peaks(self):
@@ -131,10 +135,10 @@ class TestAll(unittest.TestCase):
         for i in range(1000):
             if (i+1)%100 == 0:
                 show_mem("%4d specs processed" % i)
-            spec = pyOpenMS.MSSpectrum()
-            spec.set_peaks(data)
-            spec.set_peaks(data)
-            spec.set_peaks(data)
+            spec = pyopenms.MSSpectrum()
+            #spec.set_peaks(data)
+            #spec.set_peaks(data)
+            #spec.set_peaks(data)
             li.append(spec)
 
         for spec in li:
@@ -148,11 +152,11 @@ class TestAll(unittest.TestCase):
         for i in range(1000):
             if (i+1)%100 == 0:
                 show_mem("%4d specs processed" % i)
-            spec = pyOpenMS.MSSpectrum()
-            spec.set_peaks(data)
-            spec.set_peaks(data)
-            spec.set_peaks(data)
-            spec.set_peaks(spec.get_peaks())
+            spec = pyopenms.MSSpectrum()
+            #spec.set_peaks(data)
+            #spec.set_peaks(data)
+            #spec.set_peaks(data)
+            #spec.set_peaks(spec.get_peaks())
             li.append(spec)
 
         for spec in li:
@@ -160,17 +164,17 @@ class TestAll(unittest.TestCase):
         del data
 
     def run_extractSpetraFromMSExperiment(self):
-            p = pyOpenMS.MzXMLFile()
-            e = pyOpenMS.MSExperiment()
-            p.load("../unittests/test.mzXML", e)
+            p = pyopenms.FileHandler()
+            e = pyopenms.MSExperiment()
+            p.loadExperiment("test.mzXML", e)
             show_mem("data loaded")
 
             li = []
             print "please be patient :",
             for k in range(5):
                 sys.stdout.flush()
-                li.append([ e[i] for i in range(e.size()) ])
-                li.append([ e[i] for i in range(e.size()) ])
+                #li.append([ e[i] for i in range(e.size()) ])
+                #li.append([ e[i] for i in range(e.size()) ])
                 print (20*k+20), "%",
 
             print
@@ -181,38 +185,38 @@ class TestAll(unittest.TestCase):
             del e
 
     def run_fileformats_io(self):
-        p = pyOpenMS.MzXMLFile()
-        e = pyOpenMS.MSExperiment()
+        p = pyopenms.FileHandler()
+        e = pyopenms.MSExperiment()
 
-        p.load("../unittests/test.mzXML", e)
+        p.loadExperiment("test.mzXML", e)
         show_mem("after load mzXML")
 
-        ct = pyOpenMS.ChromatogramTools()
+        ct = pyopenms.ChromatogramTools()
         ct.convertChromatogramsToSpectra(e)
-        p.store("test.mzXML", e)
+        p.storeExperiment("test.mzXML", e)
         show_mem("after store mzXML")
 
-        p.load("test.mzXML", e)
+        p.loadExperiment("test.mzXML", e)
         show_mem("after load mzXML")
 
-        p = pyOpenMS.MzMLFile()
+        p = pyopenms.FileHandler()
         ct.convertSpectraToChromatograms(e, True)
-        p.store("test.mzML", e)
+        p.storeExperiment("test.mzML", e)
         show_mem("after store mzML")
-        p.load("test.mzML", e)
+        p.loadExperiment("test.mzML", e)
         show_mem("after load mzML")
 
-        p = pyOpenMS.MzDataFile()
+        p = pyopenms.FileHandler()
         ct.convertChromatogramsToSpectra(e)
-        p.store("test.mzData", e)
+        p.storeExperiment("test.mzData", e)
         show_mem("after store mzData")
-        p.load("test.mzData", e)
+        p.loadExperiment("test.mzData", e)
         show_mem("after load mzData")
 
         del e
         del p
         del ct
-       
+
 
 if __name__ == "__main__":
     unittest.main()
