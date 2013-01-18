@@ -18,7 +18,7 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         double getMaxRT()
         void sortSpectra(bool)
         int   size()
-        MSSpectrum[PeakT] operator[](int)      except + # wrap-ignore
+        MSSpectrum[PeakT] operator[](int)      except +
         void   updateRanges()
         void push_back(MSSpectrum[PeakT] spec) except +
         String getLoadedFilePath()

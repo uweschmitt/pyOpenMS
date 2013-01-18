@@ -11,8 +11,17 @@ print autowrap.__file__
 import glob
 
 pxd_files = glob.glob("pyopenms/pxds/*.pxd")
-autowrap_include_dirs = autowrap.parse_and_generate_code(*pxd_files,
-                                                target="pyopenms/pyopenms.pyx")
+
+spectra_extra_code = autowrap.Code.Code().add(
+                             open("pyopenms/spectrum_addons.pyx", "r").read()
+        )
+
+extra_methods = dict(MSSpectrum = [spectra_extra_code])
+
+autowrap_include_dirs = autowrap.parse_and_generate_code(pxd_files, ".",
+                                                "pyopenms/pyopenms.pyx",
+                                                False,
+                                                extra_methods)
 
 # call cython to generate cpp source file for extension.
 #

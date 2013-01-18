@@ -1,4 +1,3 @@
-import pdb
 import sys
 import unittest
 import time
@@ -6,7 +5,6 @@ import contextlib
 import pyopenms
 from   pyopenms.sysinfo import free_mem
 import numpy as np
-pdb.set_trace() ############################## Breakpoint ##############################
 
 
 def show_mem(label):
@@ -136,9 +134,9 @@ class TestAll(unittest.TestCase):
             if (i+1)%100 == 0:
                 show_mem("%4d specs processed" % i)
             spec = pyopenms.MSSpectrum()
-            #spec.set_peaks(data)
-            #spec.set_peaks(data)
-            #spec.set_peaks(data)
+            spec.set_peaks(data)
+            spec.set_peaks(data)
+            spec.set_peaks(data)
             li.append(spec)
 
         for spec in li:
@@ -153,10 +151,10 @@ class TestAll(unittest.TestCase):
             if (i+1)%100 == 0:
                 show_mem("%4d specs processed" % i)
             spec = pyopenms.MSSpectrum()
-            #spec.set_peaks(data)
-            #spec.set_peaks(data)
-            #spec.set_peaks(data)
-            #spec.set_peaks(spec.get_peaks())
+            spec.set_peaks(data)
+            spec.set_peaks(data)
+            spec.set_peaks(data)
+            spec.set_peaks(spec.get_peaks())
             li.append(spec)
 
         for spec in li:
@@ -173,8 +171,8 @@ class TestAll(unittest.TestCase):
             print "please be patient :",
             for k in range(5):
                 sys.stdout.flush()
-                #li.append([ e[i] for i in range(e.size()) ])
-                #li.append([ e[i] for i in range(e.size()) ])
+                li.append([ e[i] for i in range(e.size()) ])
+                li.append([ e[i] for i in range(e.size()) ])
                 print (20*k+20), "%",
 
             print
