@@ -26,8 +26,8 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         void  setMetaValue(String key, DataValue value) except +
         DataValue getMetaValue(String key) except +
 
-        libcpp_vector[MSSpectrum[PeakT]].iterator begin()        # wrap-ignore
-        libcpp_vector[MSSpectrum[PeakT]].iterator end()          # wrap-ignore
+        libcpp_vector[MSSpectrum[PeakT]].iterator begin()        # wrap-iter-begin:__iter__(MSSpectrum)
+        libcpp_vector[MSSpectrum[PeakT]].iterator end()          # wrap-iter-end:__iter__(MSSpectrum)
         void  erase(libcpp_vector[MSSpectrum[PeakT]].iterator)   # wrap-ignore
 
 
