@@ -1,6 +1,6 @@
 import unittest, sys
-import pyOpenMS
-from   pyOpenMS.sysinfo import free_mem
+import pyopenms
+from   pyopenms.sysinfo import free_mem
 
 
 def show_mem(label):
@@ -42,14 +42,14 @@ class TestLoadAndStoreInDifferentFileFormats(unittest.TestCase):
         print
         show_mem("start")
         
-        p = pyOpenMS.MzXMLFile()
-        e = pyOpenMS.MSExperiment()
+        p = pyopenms.MzXMLFile()
+        e = pyopenms.MSExperiment()
 
         p.load("test.mzXML", e)
         self.check(e)
         show_mem("after load mzXML")
 
-        ct = pyOpenMS.ChromatogramTools()
+        ct = pyopenms.ChromatogramTools()
         ct.convertChromatogramsToSpectra(e)
         p.store("test.mzXML", e)
         show_mem("after store mzXML")
@@ -58,7 +58,7 @@ class TestLoadAndStoreInDifferentFileFormats(unittest.TestCase):
         self.check(e)
         show_mem("after load mzXML")
 
-        p = pyOpenMS.MzMLFile()
+        p = pyopenms.MzMLFile()
         ct.convertSpectraToChromatograms(e, True)
         p.store("test.mzML", e)
         show_mem("after store mzML")
@@ -66,7 +66,7 @@ class TestLoadAndStoreInDifferentFileFormats(unittest.TestCase):
         self.check(e)
         show_mem("after load mzML")
 
-        p = pyOpenMS.MzDataFile()
+        p = pyopenms.MzDataFile()
         ct.convertChromatogramsToSpectra(e)
         p.store("test.mzData", e)
         show_mem("after store mzData")

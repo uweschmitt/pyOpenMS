@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from  pyOpenMS import *
+from  pyopenms import *
 
 from nose.tools import *
 

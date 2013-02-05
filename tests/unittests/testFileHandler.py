@@ -1,6 +1,6 @@
 import unittest, sys
-from  pyOpenMS import *
-from   pyOpenMS.sysinfo import free_mem
+from  pyopenms import *
+from   pyopenms.sysinfo import free_mem
 
 
 def show_mem(label):

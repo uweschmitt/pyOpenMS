@@ -4,8 +4,8 @@ from Types cimport *
 cdef extern from "<OpenMS/KERNEL/Peak2D.h>" namespace "OpenMS":
 
     cdef cppclass Peak2D:
-        Peak2D()
-        Peak2D(Peak2D &)
+        Peak2D()               except +
+        Peak2D(Peak2D &)               except +
         Real getIntensity()     except +
         DoubleReal getMZ()     except +
         DoubleReal getRT()     except +

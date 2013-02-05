@@ -1,4 +1,4 @@
-from pyOpenMS import *
+from pyopenms import *
 import numpy as np
 
 def testMapAlignment():

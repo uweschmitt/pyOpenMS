@@ -1,3 +1,4 @@
+import pdb
 #input-encoding: latin-1
 
 import distribute_setup
@@ -11,12 +12,20 @@ print autowrap.__file__
 import glob
 
 pxd_files = glob.glob("pyopenms/pxds/*.pxd")
+#pxd_files = ["pyopenms/pxds/DataValue.pxd"]
+
+import openms_type_converters
+openms_type_converters.register_all()
 
 spectra_extra_code = autowrap.Code.Code().add(
                              open("pyopenms/spectrum_addons.pyx", "r").read()
         )
+param_extra_code = autowrap.Code.Code().add(
+                             open("pyopenms/param_addons.pyx", "r").read()
+        )
 
-extra_methods = dict(MSSpectrum = [spectra_extra_code])
+extra_methods = dict(MSSpectrum = [spectra_extra_code],
+                     Param = [param_extra_code])
 
 autowrap_include_dirs = autowrap.parse_and_generate_code(pxd_files, ".",
                                                 "pyopenms/pyopenms.pyx",

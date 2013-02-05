@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.6" id="fm_8226697105822753744" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.6" id="fm_4627791435563554179" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<featureList count="2">
-		<feature id="f_5429478031809734644">
+		<feature id="f_5399030945568129884">
 			<position dim="0">2</position>
 			<position dim="1">1</position>
 			<intensity>20</intensity>
@@ -10,7 +10,7 @@
 			<overallquality>0</overallquality>
 			<charge>0</charge>
 		</feature>
-		<feature id="f_13765823354901865300">
+		<feature id="f_16767984519505601726">
 			<position dim="0">4</position>
 			<position dim="1">2</position>
 			<intensity>30</intensity>

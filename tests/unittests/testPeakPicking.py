@@ -2,7 +2,7 @@
 import unittest
 import numpy as np
 
-from pyOpenMS import *
+from pyopenms import *
 
 from   nose.tools import *
 
@@ -17,7 +17,7 @@ class TestPickPicker(unittest.TestCase):
          .getParameters
          .setParameters
         Param.getKeys
-        @end 
+        @end
         """
 
         pp = PeakPickerHiRes()
@@ -27,15 +27,15 @@ class TestPickPicker(unittest.TestCase):
         assert "signal_to_noise" in keys
         assert "ms1_only" in keys
 
-        param.setValue(String("ms1_only"), DataValue("true"), String(""), StringList())
+        param.setValue("ms1_only", DataValue("true"), "", StringList())
         pp.setParameters(param)
-        
+
         param = pp.getParameters()
         keys = param.getKeys()
         assert len(keys)==2
         assert "signal_to_noise" in keys
         assert "ms1_only" in keys
-        assert param.getValue(String("ms1_only")).toString() == "true"
+        assert param.getValue("ms1_only").toString() == "true"
 
     def test_picking(self):
 
@@ -52,7 +52,7 @@ class TestPickPicker(unittest.TestCase):
         LogType.GUI
         LogType.NONE
         """
-        
+
         ein = MSExperiment()
         FileHandler().loadExperiment("test.mzML", ein)
 
@@ -73,6 +73,6 @@ class TestPickPicker(unittest.TestCase):
         LogType.GUI
         LogType.NONE
 
-        
+
 
 

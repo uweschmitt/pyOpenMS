@@ -12,39 +12,39 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         #   MSSpectrum := MSSpectrum[Peak1D]
 
 
-        MSSpectrum()
-        MSSpectrum(MSSpectrum)
-        double getRT()
+        MSSpectrum() except +
+        MSSpectrum(MSSpectrum) except +
+        double getRT() except +
         void   setRT(double) except +
-        unsigned int getMSLevel()
+        unsigned int getMSLevel() except +
         void setMSLevel(unsigned int) except +
 
-        libcpp_string getName()
+        libcpp_string getName() except +
         void setName(libcpp_string) except +
 
-        int size()
-        PeakT operator[](int) except + # wrap-ignore
+        int size() except +
+        PeakT operator[](int) except +
 
-        void updateRanges()
-        void clear(int)
+        void updateRanges() except +
+        void clear(int) except +
         void push_back(PeakT)  except +
 
 
-        InstrumentSettings getInstrumentSettings()
+        InstrumentSettings getInstrumentSettings() except +
         void setInstrumentSettings(InstrumentSettings) except +
 
         int findNearest(double) except+
-        libcpp_vector[Precursor] getPrecursors()
+        libcpp_vector[Precursor] getPrecursors() except +
         void setPrecursors(libcpp_vector[Precursor])   except +
 
-        void assign(libcpp_vector[Peak1D].iterator, libcpp_vector[Peak1D].iterator) # wrap-ignore
-        libcpp_vector[Peak1D].iterator begin() # wrap-ignore
-        libcpp_vector[Peak1D].iterator end() # wrap-ignore
+        void assign(libcpp_vector[Peak1D].iterator, libcpp_vector[Peak1D].iterator) except + # wrap-ignore
+        libcpp_vector[Peak1D].iterator begin() except + # wrap-ignore
+        libcpp_vector[Peak1D].iterator end() except + # wrap-ignore
 
-        libcpp_string getNativeID()
+        libcpp_string getNativeID() except +
         void   setNativeID(libcpp_string) except +
 
-        SourceFile getSourceFile()
+        SourceFile getSourceFile() except +
         void setSourceFile(SourceFile) except +
 
 

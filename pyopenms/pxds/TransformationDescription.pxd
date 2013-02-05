@@ -4,7 +4,7 @@ from libcpp.pair   cimport pair as libcpp_pair
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>" namespace "OpenMS":
 
     cdef cppclass TransformationDescription:
-        TransformationDescription()
-        TransformationDescription(TransformationDescription)
-        libcpp_vector[libcpp_pair[double,double]] getDataPoints()
-        double apply(double)
+        TransformationDescription() except +
+        TransformationDescription(TransformationDescription) except +
+        libcpp_vector[libcpp_pair[double,double]] getDataPoints() except +# wrap-ignore
+        double apply(double) except +

@@ -6,13 +6,13 @@ from DoubleList cimport *
 from DataValue_DataType cimport *
 
 cdef extern from "<OpenMS/DATASTRUCTURES/DataValue.h>" namespace "OpenMS":
-    
-    cdef cppclass DataValue: #wrap=True
+
+    cdef cppclass DataValue:
          DataValue()
-         DataValue(DataValue) except +
-         DataValue(libcpp_vector[libcpp_string]) except + #ignore=True
-         DataValue(libcpp_vector[int])  except +#ignore=True
-         DataValue(libcpp_vector[float])  except +#ignore=True
+         DataValue(DataValue) except + # wrap-ignore
+         DataValue(libcpp_vector[libcpp_string]) except +
+         DataValue(libcpp_vector[int])  except +
+         DataValue(libcpp_vector[float])  except +
          DataValue(char *) except +
          DataValue(int)    except +
          DataValue(double)    except +
@@ -21,15 +21,14 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DataValue.h>" namespace "OpenMS":
          DataValue(DoubleList)  except +
 
          #conversion ops, different declarations as in c++ !
-         # except+ does not work here, so we have a pre steatment
-         int operator()(int)      #wrap-ignore
-         libcpp_string operator()(DataValue)      #wrap-ignore
-         double operator()(DataValue)      #wrap-ignore
-         StringList operator()(DataValue)  #wrap-ignore
-         DoubleList operator()(DataValue)  #wrap-ignore
-         IntList operator()(DataValue)     #wrap-ignore
+         int operator()(int)    except +  #wrap-cast:toInt
+         libcpp_string operator()(DataValue)  except +  #wrap-cast:toString
+         double operator()(DataValue)  except +         #wrap-cast:toFloat
+         StringList operator()(DataValue) except +      #wrap-cast:toStringList
+         DoubleList operator()(DataValue) except +      #wrap-cast:toDoubleList
+         IntList operator()(DataValue)  except +        #wrap-cast:toIntList
 
-         DataType valueType()
-         int isEmpty()
+         DataType valueType() except +
+         int isEmpty() except +
 
 

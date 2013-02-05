@@ -2,9 +2,9 @@ from IonSource_Polarity cimport *
 
 cdef extern from "<OpenMS/METADATA/InstrumentSettings.h>" namespace "OpenMS":
 
-    cdef cppclass InstrumentSettings:   #wrap=True
-        
-        InstrumentSettings()
-        InstrumentSettings(InstrumentSettings) 
-        Polarity getPolarity()      
+    cdef cppclass InstrumentSettings:
+
+        InstrumentSettings()     except +
+        InstrumentSettings(InstrumentSettings)     except +
+        Polarity getPolarity()     except +
         void setPolarity(Polarity)  except +

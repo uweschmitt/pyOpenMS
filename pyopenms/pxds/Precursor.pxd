@@ -4,9 +4,9 @@ from libcpp.string cimport string as libcpp_string
 cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
 
     cdef cppclass Precursor:
-        Precursor()
-        Precursor(Precursor)
-        double getMZ()
-        double getIntensity()
+        Precursor()           except +
+        Precursor(Precursor)           except +
+        double getMZ()           except +
+        double getIntensity()           except +
         void setMZ(double ) except +
         void setIntensity(double ) except +

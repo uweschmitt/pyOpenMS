@@ -4,7 +4,7 @@ from MSExperiment cimport *
 
 cdef extern from "<OpenMS/KERNEL/ChromatogramTools.h>" namespace "OpenMS":
 
-    cdef cppclass ChromatogramTools:  #wrap=True
+    cdef cppclass ChromatogramTools:
         ChromatogramTools()
 
         void convertChromatogramsToSpectra(MSExperiment[Peak1D, ChromatogramPeak] & epx) except +

@@ -1,10 +1,11 @@
+# the following empty line is important
 
-    def get_peaks(self): 
+    def get_peaks(self):
 
         cdef _MSSpectrum[_Peak1D] * spec_ = self.inst.get()
 
         cdef unsigned int n = spec_.size()
-        cdef np.ndarray[np.float32_t, ndim=2] peaks 
+        cdef np.ndarray[np.float32_t, ndim=2] peaks
         peaks = np.zeros( [n,2], dtype=np.float32)
         cdef _Peak1D p
 
@@ -19,7 +20,7 @@
         return peaks
 
     def set_peaks(self, np.ndarray[np.float32_t, ndim=2] peaks):
-        
+
         cdef _MSSpectrum[_Peak1D] * spec_ = self.inst.get()
 
         #cdef int delete_meta = 0
@@ -41,7 +42,7 @@
         spec_.updateRanges()
 
     def intensityInRange(self, float mzmin, float mzmax):
-       
+
         cdef int n
         cdef double I
 

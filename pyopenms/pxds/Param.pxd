@@ -8,9 +8,9 @@ from ParamIterator cimport *
 cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS":
 
     cdef cppclass Param:
-         Param()
-         Param(Param)
-         void setValue(String key, DataValue val, String desc, StringList tags)
+         Param() except +
+         Param(Param) except +
+         void setValue(String key, DataValue val, String desc, StringList tags) except +
          DataValue getValue(String key) except +
          int exists(String key) except +
 
@@ -24,7 +24,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS":
          void setSectionDescription(String key, String desc) except +
          libcpp_string getSectionDescription(String key) except +
 
-         int size()
+         int size() except +
          void insert(String prefix, Param param) except +
 
          void setValidStrings(String key, libcpp_vector[String] strings) except +
@@ -37,6 +37,6 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS":
          void load(libcpp_string filename) except +
 
 
-         ParamIterator begin() # wrap-ignore
-         ParamIterator end()   # wrap-ignore
+         ParamIterator begin() except + # wrap-ignore
+         ParamIterator end()   except + # wrap-ignore
 

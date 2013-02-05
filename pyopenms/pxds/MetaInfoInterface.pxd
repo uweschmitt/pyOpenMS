@@ -7,14 +7,14 @@ from Types cimport *
 cdef extern from "<OpenMS/METADATA/MetaInfoInterface.h>" namespace "OpenMS":
 
     cdef cppclass MetaInfoInterface:
-        MetaInfoInterface()
-        bool operator==(MetaInfoInterface)
-        DataValue getMetaValue(unsigned int)
-        DataValue getMetaValue(String)
-        bool metaValueExists(String)
-        bool metaValueExists(unsigned int)
+        MetaInfoInterface() except +
+        bool operator==(MetaInfoInterface) except +
+        DataValue getMetaValue(unsigned int) except +
+        DataValue getMetaValue(String) except +
+        bool metaValueExists(String) except +
+        bool metaValueExists(unsigned int) except +
         #void getKeys(libcpp_vector[String] & keys)
         #void getKeys(libcpp_vector[unsigned int] & keys)
-        bool isMetaEmpty()
-        void clearMetaInfo()
+        bool isMetaEmpty() except +
+        void clearMetaInfo() except +
 

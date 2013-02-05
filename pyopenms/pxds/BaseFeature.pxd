@@ -16,7 +16,7 @@ cdef extern from "<OpenMS/KERNEL/BaseFeature.h>" namespace "OpenMS":
         void setCharge(Int q) except +
         bool operator==(BaseFeature) except +
 
-        void getKeys(libcpp_vector[String] & keys)
-        void getKeys(libcpp_vector[unsigned int] & keys)
+        void getKeys(libcpp_vector[String] & keys) except +
+        void getKeys(libcpp_vector[unsigned int] & keys) except +
 
 

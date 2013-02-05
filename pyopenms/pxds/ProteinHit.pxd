@@ -10,22 +10,22 @@ cdef extern from "<OpenMS/METADATA/ProteinHit.h>" namespace "OpenMS":
 
     cdef cppclass ProteinHit:
 
-        ProteinHit()
-        ProteinHit(ProteinHit &) # wrap-ignore
-        bool operator==(ProteinHit)
-        bool metaValueExists(String)
-        bool metaValueExists(unsigned int)
-        void getKeys(libcpp_vector[String] & keys)
-        void getKeys(libcpp_vector[unsigned int] & keys)
+        ProteinHit()           except +
+        ProteinHit(ProteinHit &) except + # wrap-ignore
+        bool operator==(ProteinHit)           except +
+        bool metaValueExists(String)           except +
+        bool metaValueExists(unsigned int)           except +
+        void getKeys(libcpp_vector[String] & keys)           except +
+        void getKeys(libcpp_vector[unsigned int] & keys)           except +
 
-        Real getScore()
-        UInt getRank()
-        String getSequence()
-        String getAccession()
-        DoubleReal getCoverage()
+        Real getScore()           except +
+        UInt getRank()           except +
+        String getSequence()           except +
+        String getAccession()           except +
+        DoubleReal getCoverage()           except +
 
-        void setScore(Real)
-        void setRank(UInt)
-        void setAccession(String)
-        void setCoverage(DoubleReal)
+        void setScore(Real)           except +
+        void setRank(UInt)           except +
+        void setAccession(String)           except +
+        void setCoverage(DoubleReal)           except +
 

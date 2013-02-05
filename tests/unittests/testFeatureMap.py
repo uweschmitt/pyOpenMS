@@ -1,4 +1,4 @@
-from pyOpenMS import *
+from pyopenms import *
 
 def testFeatureMap():
     """

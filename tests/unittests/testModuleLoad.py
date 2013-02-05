@@ -3,11 +3,11 @@ import unittest
 class TestModuleLoad(unittest.TestCase):
 
     def test_load(self):
-        import pyOpenMS
-        print  "loaded", pyOpenMS
+        import pyopenms
+        print  "loaded", pyopenms
         import os
-        assert "pyOpenMS" in  os.environ.get("OPENMS_DATA_PATH")
-        assert  pyOpenMS.__package__ == "pyOpenMS"
+        assert "pyopenms" in  os.environ.get("OPENMS_DATA_PATH")
+        assert  pyopenms.__package__ == "pyopenms"
 
 
 if __name__ == "__main__":

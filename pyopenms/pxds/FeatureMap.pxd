@@ -7,13 +7,13 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
         # wrap-instances:
         #   FeatureMap := FeatureMap[Feature]
 
-        FeatureMap()
-        FeatureMap(FeatureMap)  # wrap-ignore
-        int   size()
-        Feature operator[](int)      except + # wrap-ignore
-        void   updateRanges()
+        FeatureMap() except +
+        FeatureMap(FeatureMap) except + # wrap-ignore
+        int   size()  except +
+        Feature operator[](int)      except +
+        void   updateRanges() except +
         void push_back(FeatureT spec) except +
-        void setUniqueId()
+        void setUniqueId() except +
         void sortByIntensity() except +
         void sortByIntensity(bool reverse) except +
         void sortByPosition() except +
