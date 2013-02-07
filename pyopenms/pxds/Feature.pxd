@@ -3,12 +3,12 @@
 cdef extern from "<OpenMS/KERNEL/Feature.h>" namespace "OpenMS":
 
     cdef cppclass Feature:
-        Feature() except +
-        Feature(Feature &) except +
-        void setMZ(double)  except +
-        void setRT(double)  except +
-        void setIntensity(double) except +
-        double getMZ() except +
-        double getRT() except +
-        double getIntensity() except +
-        void setUniqueId() except +
+        Feature() nogil except +
+        Feature(Feature &) nogil except +
+        void setMZ(double)  nogil except +
+        void setRT(double)  nogil except +
+        void setIntensity(double) nogil except +
+        double getMZ() nogil except +
+        double getRT() nogil except +
+        double getIntensity() nogil except +
+        void setUniqueId() nogil except +

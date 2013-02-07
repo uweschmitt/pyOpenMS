@@ -12,40 +12,40 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         #   MSSpectrum := MSSpectrum[Peak1D]
 
 
-        MSSpectrum() except +
-        MSSpectrum(MSSpectrum) except +
-        double getRT() except +
-        void   setRT(double) except +
-        unsigned int getMSLevel() except +
-        void setMSLevel(unsigned int) except +
+        MSSpectrum() nogil except +
+        MSSpectrum(MSSpectrum) nogil except +
+        double getRT() nogil except +
+        void   setRT(double) nogil except +
+        unsigned int getMSLevel() nogil except +
+        void setMSLevel(unsigned int) nogil except +
 
-        libcpp_string getName() except +
-        void setName(libcpp_string) except +
+        libcpp_string getName() nogil except +
+        void setName(libcpp_string) nogil except +
 
-        int size() except +
-        PeakT operator[](int) except +
+        int size() nogil except +
+        PeakT operator[](int) nogil except +
 
-        void updateRanges() except +
-        void clear(int) except +
-        void push_back(PeakT)  except +
+        void updateRanges() nogil except +
+        void clear(int) nogil except +
+        void push_back(PeakT)  nogil except +
 
 
-        InstrumentSettings getInstrumentSettings() except +
-        void setInstrumentSettings(InstrumentSettings) except +
+        InstrumentSettings getInstrumentSettings() nogil except +
+        void setInstrumentSettings(InstrumentSettings) nogil except +
 
-        int findNearest(double) except+
-        libcpp_vector[Precursor] getPrecursors() except +
-        void setPrecursors(libcpp_vector[Precursor])   except +
+        int findNearest(double) nogil except+
+        libcpp_vector[Precursor] getPrecursors() nogil except +
+        void setPrecursors(libcpp_vector[Precursor])   nogil except +
 
-        void assign(libcpp_vector[Peak1D].iterator, libcpp_vector[Peak1D].iterator) except + # wrap-ignore
-        libcpp_vector[Peak1D].iterator begin() except + # wrap-ignore
-        libcpp_vector[Peak1D].iterator end() except + # wrap-ignore
+        void assign(libcpp_vector[Peak1D].iterator, libcpp_vector[Peak1D].iterator) nogil except + # wrap-ignore
+        libcpp_vector[Peak1D].iterator begin() nogil except + # wrap-ignore
+        libcpp_vector[Peak1D].iterator end() nogil except + # wrap-ignore
 
-        libcpp_string getNativeID() except +
-        void   setNativeID(libcpp_string) except +
+        libcpp_string getNativeID() nogil except +
+        void   setNativeID(libcpp_string) nogil except +
 
-        SourceFile getSourceFile() except +
-        void setSourceFile(SourceFile) except +
+        SourceFile getSourceFile() nogil except +
+        void setSourceFile(SourceFile) nogil except +
 
 
 

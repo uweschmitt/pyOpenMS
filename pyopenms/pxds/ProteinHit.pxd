@@ -10,22 +10,22 @@ cdef extern from "<OpenMS/METADATA/ProteinHit.h>" namespace "OpenMS":
 
     cdef cppclass ProteinHit:
 
-        ProteinHit()           except +
-        ProteinHit(ProteinHit &) except + # wrap-ignore
-        bool operator==(ProteinHit)           except +
-        bool metaValueExists(String)           except +
-        bool metaValueExists(unsigned int)           except +
-        void getKeys(libcpp_vector[String] & keys)           except +
-        void getKeys(libcpp_vector[unsigned int] & keys)           except +
+        ProteinHit()           nogil except +
+        ProteinHit(ProteinHit &) nogil except + # wrap-ignore
+        bool operator==(ProteinHit)           nogil except +
+        bool metaValueExists(String)           nogil except +
+        bool metaValueExists(unsigned int)           nogil except +
+        void getKeys(libcpp_vector[String] & keys)           nogil except +
+        void getKeys(libcpp_vector[unsigned int] & keys)           nogil except +
 
-        Real getScore()           except +
-        UInt getRank()           except +
-        String getSequence()           except +
-        String getAccession()           except +
-        DoubleReal getCoverage()           except +
+        Real getScore()           nogil except +
+        UInt getRank()           nogil except +
+        String getSequence()           nogil except +
+        String getAccession()           nogil except +
+        DoubleReal getCoverage()           nogil except +
 
-        void setScore(Real)           except +
-        void setRank(UInt)           except +
-        void setAccession(String)           except +
-        void setCoverage(DoubleReal)           except +
+        void setScore(Real)           nogil except +
+        void setRank(UInt)           nogil except +
+        void setAccession(String)           nogil except +
+        void setCoverage(DoubleReal)           nogil except +
 

@@ -6,17 +6,17 @@ cdef extern from "<OpenMS/KERNEL/BaseFeature.h>" namespace "OpenMS":
 
     cdef cppclass BaseFeature:
 
-        BaseFeature()
+        BaseFeature()  nogil except +
         BaseFeature(BaseFeature &) # wrap-ignore
-        Real getQuality() except +
-        void setQuality(Real q) except +
-        Real getWidth() except +
-        void setWidth(Real q) except +
-        Int getCharge() except +
-        void setCharge(Int q) except +
-        bool operator==(BaseFeature) except +
+        Real getQuality()  nogil except +
+        void setQuality(Real q) nogil except +
+        Real getWidth() nogil except +
+        void setWidth(Real q) nogil except +
+        Int getCharge() nogil except +
+        void setCharge(Int q) nogil except +
+        bool operator==(BaseFeature) nogil except +
 
-        void getKeys(libcpp_vector[String] & keys) except +
-        void getKeys(libcpp_vector[unsigned int] & keys) except +
+        void getKeys(libcpp_vector[String] & keys) nogil except +
+        void getKeys(libcpp_vector[unsigned int] & keys) nogil except +
 
 

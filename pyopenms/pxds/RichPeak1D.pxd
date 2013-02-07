@@ -9,9 +9,9 @@ cdef extern from "<OpenMS/KERNEL/Peak1D.h>" namespace "OpenMS":
         # wrap-inherits:
         #    Peak1D
 
-        RichPeak1D() except +
+        RichPeak1D() nogil except +
 
         # declare again: cython complains for overloaded methods in base
         # classes
-        void getKeys(libcpp_vector[String] & keys) except +
-        void getKeys(libcpp_vector[unsigned int] & keys) except +
+        void getKeys(libcpp_vector[String] & keys) nogil except +
+        void getKeys(libcpp_vector[unsigned int] & keys) nogil except +

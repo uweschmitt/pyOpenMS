@@ -4,25 +4,25 @@ from ChecksumType cimport *
 cdef extern from "<OpenMS/METADATA/SourceFile.h>" namespace "OpenMS":
 
     cdef cppclass SourceFile:
-        SourceFile() except +
-        SourceFile(SourceFile) except +
-        libcpp_string getNameOfFile() except +
-        void setNameOfFile(libcpp_string) except +
+        SourceFile() nogil except +
+        SourceFile(SourceFile) nogil except +
+        libcpp_string getNameOfFile() nogil except +
+        void setNameOfFile(libcpp_string) nogil except +
 
-        libcpp_string getPathToFile() except +
-        void setPathToFile(libcpp_string) except +
+        libcpp_string getPathToFile() nogil except +
+        void setPathToFile(libcpp_string) nogil except +
 
-        float getFileSize() except +
-        void setFileSize(float) except +
+        float getFileSize() nogil except +
+        void setFileSize(float) nogil except +
 
-        libcpp_string getFileType() except +
-        void setFileType(libcpp_string) except +
+        libcpp_string getFileType() nogil except +
+        void setFileType(libcpp_string) nogil except +
 
-        libcpp_string getChecksum() except +
-        void setChecksum(libcpp_string, ChecksumType) except +
+        libcpp_string getChecksum() nogil except +
+        void setChecksum(libcpp_string, ChecksumType) nogil except +
 
-        ChecksumType getChecksumType() except +
+        ChecksumType getChecksumType() nogil except +
 
-        libcpp_string getNativeIDType() except +
-        void setNativeIDType(libcpp_string) except +
+        libcpp_string getNativeIDType() nogil except +
+        void setNativeIDType(libcpp_string) nogil except +
 

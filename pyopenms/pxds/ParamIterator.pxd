@@ -5,12 +5,12 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS::Param":
          cppclass ParamIterator:
              # wrap-ignore
              #ParamEntry& operator*()
-             ParamIterator operator++() except +
-             ParamIterator operator--() except +
-             String getName() except +
-             int operator==(ParamIterator) except +
-             int operator!=(ParamIterator) except +
-             int operator<(ParamIterator) except +
-             int operator>(ParamIterator) except +
-             int operator<=(ParamIterator) except +
-             int operator>=(ParamIterator) except +
+             ParamIterator operator++() nogil except +
+             ParamIterator operator--() nogil except +
+             String getName() nogil except +
+             int operator==(ParamIterator) nogil except +
+             int operator!=(ParamIterator) nogil except +
+             int operator<(ParamIterator) nogil except +
+             int operator>(ParamIterator) nogil except +
+             int operator<=(ParamIterator) nogil except +
+             int operator>=(ParamIterator) nogil except +

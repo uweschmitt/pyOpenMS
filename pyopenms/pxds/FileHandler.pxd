@@ -6,14 +6,14 @@ from Types cimport *
 cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
 
     cdef cppclass FileHandler:  # wrap=True
-        FileHandler() except +
-        FileHandler(FileHandler) except +
+        FileHandler() nogil except +
+        FileHandler(FileHandler) nogil except +
 
-        void loadExperiment(libcpp_string, MSExperiment[Peak1D, ChromatogramPeak] &) except+
-        void storeExperiment(libcpp_string, MSExperiment[Peak1D, ChromatogramPeak]) except+
+        void loadExperiment(libcpp_string, MSExperiment[Peak1D, ChromatogramPeak] &) nogil except+
+        void storeExperiment(libcpp_string, MSExperiment[Peak1D, ChromatogramPeak]) nogil except+
 
 
 
 cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS::FileHandler":
 
-    int  getType(String filename) except + # wrap-attach:FileHandler
+    int  getType(String filename) nogil except + # wrap-attach:FileHandler

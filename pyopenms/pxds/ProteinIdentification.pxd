@@ -10,18 +10,18 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS":
 
     cdef cppclass ProteinIdentification:
 
-        ProteinIdentification() except +
-        bool operator==(ProteinIdentification) except +
-        DataValue getMetaValue(unsigned int) except +
-        DataValue getMetaValue(String) except +
-        bool metaValueExists(String) except +
-        bool metaValueExists(unsigned int) except +
-        void getKeys(libcpp_vector[String] & keys) except +
-        void getKeys(libcpp_vector[unsigned int] & keys) except +
-        bool isMetaEmpty() except +
-        void clearMetaInfo() except +
+        ProteinIdentification() nogil except +
+        bool operator==(ProteinIdentification) nogil except +
+        DataValue getMetaValue(unsigned int) nogil except +
+        DataValue getMetaValue(String) nogil except +
+        bool metaValueExists(String) nogil except +
+        bool metaValueExists(unsigned int) nogil except +
+        void getKeys(libcpp_vector[String] & keys) nogil except +
+        void getKeys(libcpp_vector[unsigned int] & keys) nogil except +
+        bool isMetaEmpty() nogil except +
+        void clearMetaInfo() nogil except +
 
-        libcpp_vector[ProteinHit] getHits() except +
-        void insertHit(ProteinHit) except +
-        void setHits(libcpp_vector[ProteinHit]) except +
+        libcpp_vector[ProteinHit] getHits() nogil except +
+        void insertHit(ProteinHit) nogil except +
+        void setHits(libcpp_vector[ProteinHit]) nogil except +
 

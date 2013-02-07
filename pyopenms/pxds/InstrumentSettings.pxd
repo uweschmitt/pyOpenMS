@@ -4,7 +4,7 @@ cdef extern from "<OpenMS/METADATA/InstrumentSettings.h>" namespace "OpenMS":
 
     cdef cppclass InstrumentSettings:
 
-        InstrumentSettings()     except +
-        InstrumentSettings(InstrumentSettings)     except +
-        Polarity getPolarity()     except +
-        void setPolarity(Polarity)  except +
+        InstrumentSettings()     nogil except +
+        InstrumentSettings(InstrumentSettings)     nogil except +
+        Polarity getPolarity()     nogil except +
+        void setPolarity(Polarity)  nogil except +
