@@ -22,7 +22,7 @@ class TestPickPicker(unittest.TestCase):
 
         pp = PeakPickerHiRes()
         param = pp.getParameters()
-        keys = param.getKeys()
+        keys = param.asBunch().keys()
         assert len(keys)==2
         assert "signal_to_noise" in keys
         assert "ms1_only" in keys
@@ -31,7 +31,7 @@ class TestPickPicker(unittest.TestCase):
         pp.setParameters(param)
 
         param = pp.getParameters()
-        keys = param.getKeys()
+        keys = param.asBunch().keys()
         assert len(keys)==2
         assert "signal_to_noise" in keys
         assert "ms1_only" in keys

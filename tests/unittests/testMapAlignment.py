@@ -19,42 +19,53 @@ def testMapAlignment():
     .getValue
     """
 
-    return True
-    raise Exception("INVALID TEST ! ADAPT AS SOON AS POSSIBLE")
- 
+
     ma = MapAlignmentAlgorithmPoseClustering()
-    s = String()
-    p = Param()
-    ma.getDefaultModel(s, p)
+    p = ma.getDefaults()
+    bunch = p.asBunch()
+    bunch.pairfinder.ignore_charge="false"
+    p.store("temp_test.ini")
+    bunch.pairfinder.ignore_charge="true"
+    p.updateFrom(bunch)
+
+
+    p.load("temp_test.ini")
+    bunch = p.asBunch()
+    assert bunch.pairfinder.ignore_charge == "false"
+
+    bunch.pairfinder.ignore_charge="false"
+    p.updateFrom(bunch)
+
     ma.setLogType(LogType.CMD)
 
     # check default settings
-    assert s.c_str() == "linear"
-    assert p.getKeys() == ["symmetric_regression"]
-    assert p.getValue(String("symmetric_regression")).toString() == "true"
+    # assert p.getValue("symmetric_regression")
 
     mse = MSExperiment()
     FileHandler().loadExperiment("test.mzML", mse)
 
     transformations = []
     maps = [mse,mse]
-    ma.setReference(2, String())
+    ma.setReference(2, "")
     ma.alignPeakMaps(maps, transformations)
 
     assert len(transformations) == 2
 
     ps = transformations[0].getDataPoints()
     assert type(ps) == list
-    assert type(ps[0]) == tuple
-    
+    ps = transformations[1].getDataPoints()
+    assert type(ps) == list
+ 
     #print ma.getDefaults().getKeys()
     #print len(ps), mse.size()
     #assert len(ps) == mse.size()
 
-    ma.fitModel(s, p, transformations)
+    ma.fitModel("linear", p, transformations)
 
     pvorher0 = mse[0].get_peaks()[:10,:]
     pvorher1 = mse[1].get_peaks()[:10,:]
+
+    return 
 
     ma.transformPeakMaps(maps,  transformations)
 
