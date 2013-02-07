@@ -12,7 +12,7 @@ print autowrap.__file__
 import glob
 
 pxd_files = glob.glob("pyopenms/pxds/*.pxd")
-#pxd_files = ["pyopenms/pxds/DataValue.pxd"]
+#pxd_files = ["pyopenms/pxds/TransformationDescription.pxd"]
 
 import openms_type_converters
 openms_type_converters.register_all()

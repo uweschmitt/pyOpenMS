@@ -27,7 +27,7 @@ class TestPickPicker(unittest.TestCase):
         assert "signal_to_noise" in keys
         assert "ms1_only" in keys
 
-        param.setValue("ms1_only", DataValue("true"), "", StringList())
+        param.setValue("ms1_only", DataValue("true"), "", [])
         pp.setParameters(param)
 
         param = pp.getParameters()

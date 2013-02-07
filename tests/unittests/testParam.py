@@ -1,6 +1,6 @@
 import unittest
 
-from pyopenms import Param, StringList, DataValue
+from pyopenms import Param, DataValue
 
 from   nose.tools import *
 
@@ -19,7 +19,6 @@ class TestParam(unittest.TestCase):
          .hasTag
          .load
          .store
-         .size
          .getValue
          .setValue
          .getKeys
@@ -35,14 +34,14 @@ class TestParam(unittest.TestCase):
         assert_raises(Exception, p.addTag, (key, tag))
         assert_raises(Exception, p.getTags, (key, ))
 
-        p.setValue(key, value, "desc", StringList(["tag2"]))
+        p.setValue(key, value, "desc", ["tag2"])
         assert p.getValue(key).toString() == value.toString()
         p.addTag(key, tag)
 
         sl = p.getTags(key)
-        eq_( sl.size(), 2)
-        eq_( sl.at(0), "tag2")
-        eq_( sl.at(1), "testtag")
+        eq_( len(sl), 2)
+        eq_( sl[0], "tag2")
+        eq_( sl[1], "testtag")
 
         eq_(p.size(), 1)
 
@@ -50,19 +49,19 @@ class TestParam(unittest.TestCase):
         p.load("test.param")
 
         sl = p.getTags(key)
-        eq_( sl.size(), 2)
-        eq_( sl.at(0), "tag2")
-        eq_( sl.at(1), "testtag")
+        eq_( len(sl), 2)
+        eq_( sl[0], "tag2")
+        eq_( sl[1], "testtag")
 
         eq_(p.size(), 1)
 
         assert p.exists(key)
         assert not p.exists("b")
 
-        p.addTags(key, StringList(["a"]))
+        p.addTags(key, ["a"])
         sl = p.getTags(key)
-        eq_( sl.size(), 3)
-        tags = set ( (sl.at(0), sl.at(1), sl.at(2)) )
+        eq_( len(sl), 3)
+        tags = set ( (sl[0], sl[1], sl[2]) )
         eq_( tags, set( ("a", "tag2", "testtag")) )
 
         assert p.hasTag(key, tag)
@@ -88,8 +87,8 @@ class TestParam(unittest.TestCase):
         p.load("test.ini")
         k = "PeakPicker:1:in"
         assert p.exists(k)
-        assert p.getTags(k).size() == 1
-        assert p.getTags(k).at(0) == "input file"
+        assert len(p.getTags(k)) == 1
+        assert p.getTags(k)[0]== "input file"
 
         d = p.getValue(k)
         assert d.toString() == ""

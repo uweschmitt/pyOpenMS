@@ -252,33 +252,6 @@ class TestBasisObjects(unittest.TestCase):
         eq_( DataValue("1").valueType(), DataType.STRING_VALUE)
         eq_( DataValue(StringList(["1"])).valueType(), DataType.STRING_LIST)
 
-    def testListObject(self):
-        """
-        @tests:
-         DoubleList.__init__
-         DoubleList.at
-         DoubleList.size
-         IntList.__init__
-         IntList.at
-         IntList.size
-         StringList.__init__
-         StringList.at
-         StringList.size
-
-        """
-
-        d = DoubleList([1.0, 2.0])
-        assert d.size() == 2
-        assert [ d.at(i) for i in range(d.size()) ] == [1.0, 2.0]
-        
-        d = IntList([1, 2])
-        assert d.size() == 2
-        assert [ d.at(i) for i in range(d.size()) ] == [1, 2]
-    
-        d = StringList(["1", "2"])
-        assert d.size() == 2
-        assert [ d.at(i) for i in range(d.size()) ] == ["1", "2"]
-
 
 
 if __name__ == "__main__":

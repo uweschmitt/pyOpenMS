@@ -104,13 +104,13 @@ if int(os.environ.get("WITH_MEMLEAK_TESTS", 0)):
 
         def run_string_lists(self):
 
-            basestr = 100000*" "
+            basestr = 10000*" "
             li = []
             for i in range(100):
                 if (i+1)%100 == 0:
                     show_mem("%4d runs" % i)
-                sl = pyopenms.StringList([basestr, basestr, basestr])
-                sl = pyopenms.StringList([basestr, basestr, basestr])
+                sl = pyopenms.DataValue([basestr]*30)
+                sl = pyopenms.DataValue([basestr]*30)
                 li.append(sl)
                 del sl
             del li

@@ -8,22 +8,38 @@ from smart_ptr cimport shared_ptr
 cimport numpy as np
 import numpy as np
 from cython.operator cimport dereference as deref, preincrement as inc, address as address
-from BaseFeature cimport BaseFeature as _BaseFeature
+from DPosition cimport DPosition1
+from Types cimport DoubleReal
+from Types cimport Int
+from Types cimport Int32
+from Types cimport Int64
+from Types cimport Real
+from Types cimport SignedSize
+from Types cimport Size
+from Types cimport Time
+from Types cimport UID
+from Types cimport UInt
+from Types cimport UInt32
+from Types cimport UInt64
 from ChecksumType cimport ChecksumType as _ChecksumType
+from DataValue_DataType cimport DataType as _DataType
+from FileTypes cimport FileTypes as _FileTypes
+from ProgressLogger_LogType cimport LogType as _LogType
+from IonSource_Polarity cimport Polarity as _Polarity
+from FileHandler cimport getType as _getType
+from BaseFeature cimport BaseFeature as _BaseFeature
 from ChromatogramPeak cimport ChromatogramPeak as _ChromatogramPeak
 from ChromatogramTools cimport ChromatogramTools as _ChromatogramTools
 from ConsensusFeature cimport ConsensusFeature as _ConsensusFeature
-from DataValue_DataType cimport DataType as _DataType
 from DataValue cimport DataValue as _DataValue
+from DefaultParamHandler cimport DefaultParamHandler as _DefaultParamHandler
 from DoubleList cimport DoubleList as _DoubleList
 from Feature cimport Feature as _Feature
 from FeatureMap cimport FeatureMap as _FeatureMap
 from FeatureXMLFile cimport FeatureXMLFile as _FeatureXMLFile
 from FileHandler cimport FileHandler as _FileHandler
-from FileTypes cimport FileTypes as _FileTypes
 from InstrumentSettings cimport InstrumentSettings as _InstrumentSettings
 from IntList cimport IntList as _IntList
-from ProgressLogger_LogType cimport LogType as _LogType
 from MSExperiment cimport MSExperiment as _MSExperiment
 from MSSpectrum cimport MSSpectrum as _MSSpectrum
 from MapAlignmentAlgorithmPoseClustering cimport MapAlignmentAlgorithmPoseClustering as _MapAlignmentAlgorithmPoseClustering
@@ -36,7 +52,6 @@ from ParamIterator cimport ParamIterator as _ParamIterator
 from Peak1D cimport Peak1D as _Peak1D
 from Peak2D cimport Peak2D as _Peak2D
 from PeakPickerHiRes cimport PeakPickerHiRes as _PeakPickerHiRes
-from IonSource_Polarity cimport Polarity as _Polarity
 from Precursor cimport Precursor as _Precursor
 from ProgressLogger cimport ProgressLogger as _ProgressLogger
 from ProteinHit cimport ProteinHit as _ProteinHit
@@ -49,7 +64,6 @@ from StringList cimport StringList as _StringList
 from TransformationDescription cimport TransformationDescription as _TransformationDescription
 from UniqueIdGenerator cimport UniqueIdGenerator as _UniqueIdGenerator
 from UniqueIdInterface cimport UniqueIdInterface as _UniqueIdInterface
-from FileHandler cimport getType as _getType
 cdef extern from "autowrap_tools.hpp":
     char * _cast_const_away(char *)
 def __static_FileHandler_getType(bytes filename ):
@@ -196,12 +210,9 @@ cdef class ProteinHit:
         del v0
     def _getKeys_1(self, list keys ):
         assert isinstance(keys, list) and all(isinstance(li, int) for li in keys), 'arg keys invalid'
-        cdef libcpp_vector[unsigned int] * v0 = new libcpp_vector[unsigned int]()
-        cdef unsigned int item0
-        for item0 in keys:
-           v0.push_back(item0)
-        self.inst.get().getKeys(deref(v0))
-        del v0
+        cdef libcpp_vector[unsigned int] v0 = keys
+        self.inst.get().getKeys(v0)
+        keys[:] = v0
     def getKeys(self, *args):
         if (len(args)==1) and (isinstance(args[0], list) and all(isinstance(i, bytes) for i in args[0])):
             return self._getKeys_0(*args)
@@ -366,12 +377,9 @@ cdef class ProteinIdentification:
         del v0
     def _getKeys_1(self, list keys ):
         assert isinstance(keys, list) and all(isinstance(li, int) for li in keys), 'arg keys invalid'
-        cdef libcpp_vector[unsigned int] * v0 = new libcpp_vector[unsigned int]()
-        cdef unsigned int item0
-        for item0 in keys:
-           v0.push_back(item0)
-        self.inst.get().getKeys(deref(v0))
-        del v0
+        cdef libcpp_vector[unsigned int] v0 = keys
+        self.inst.get().getKeys(v0)
+        keys[:] = v0
     def getKeys(self, *args):
         if (len(args)==1) and (isinstance(args[0], list) and all(isinstance(i, bytes) for i in args[0])):
             return self._getKeys_0(*args)
@@ -509,9 +517,12 @@ cdef class Param:
     def getTags(self, bytes key ):
         assert isinstance(key, bytes), 'arg key invalid'
     
-        cdef _StringList * _r = new _StringList(self.inst.get().getTags((_String(<char *>key))))
-        cdef StringList py_result = StringList.__new__(StringList)
-        py_result.inst = shared_ptr[_StringList](_r)
+        cdef _StringList _r = self.inst.get().getTags((_String(<char *>key)))
+        py_result = []
+        cdef int i, n
+        n = _r.size()
+        for i in range(n):
+            py_result.append(<libcpp_string>_r.at(i))
         return py_result
     def insert(self, bytes prefix , Param param ):
         assert isinstance(prefix, bytes), 'arg prefix invalid'
@@ -519,26 +530,28 @@ cdef class Param:
     
     
         self.inst.get().insert((_String(<char *>prefix)), <_Param>deref(param.inst.get()))
-    def setValue(self, bytes key , DataValue val , bytes desc , StringList tags ):
+    def setValue(self, bytes key , DataValue val , bytes desc , list tags ):
         assert isinstance(key, bytes), 'arg key invalid'
         assert isinstance(val, DataValue), 'arg val invalid'
         assert isinstance(desc, bytes), 'arg desc invalid'
-        assert isinstance(tags, StringList), 'arg tags invalid'
+        assert isinstance(tags, list) and all(isinstance(li, bytes) for li in tags), 'arg tags invalid'
     
     
     
+        cdef libcpp_vector[libcpp_string] _v3 = tags
+        cdef _StringList v3 = _StringList(_v3)
+        self.inst.get().setValue((_String(<char *>key)), <_DataValue>deref(val.inst.get()), (_String(<char *>desc)), (v3))
+    def load(self, bytes filename ):
+        assert isinstance(filename, bytes), 'arg filename invalid'
     
-        self.inst.get().setValue((_String(<char *>key)), <_DataValue>deref(val.inst.get()), (_String(<char *>desc)), <_StringList>deref(tags.inst.get()))
-    def load(self, str filename ):
-        assert isinstance(filename, str), 'arg filename invalid'
-    
-        self.inst.get().load((<libcpp_string>filename))
-    def addTags(self, bytes key , StringList tags ):
+        self.inst.get().load((_String(<char *>filename)))
+    def addTags(self, bytes key , list tags ):
         assert isinstance(key, bytes), 'arg key invalid'
-        assert isinstance(tags, StringList), 'arg tags invalid'
+        assert isinstance(tags, list) and all(isinstance(li, bytes) for li in tags), 'arg tags invalid'
     
-    
-        self.inst.get().addTags((_String(<char *>key)), <_StringList>deref(tags.inst.get()))
+        cdef libcpp_vector[libcpp_string] _v1 = tags
+        cdef _StringList v1 = _StringList(_v1)
+        self.inst.get().addTags((_String(<char *>key)), (v1))
     def exists(self, bytes key ):
         assert isinstance(key, bytes), 'arg key invalid'
     
@@ -615,10 +628,10 @@ cdef class Param:
     
     
         self.inst.get().setMinInt((_String(<char *>key)), (<int>min))
-    def store(self, str filename ):
-        assert isinstance(filename, str), 'arg filename invalid'
+    def store(self, bytes filename ):
+        assert isinstance(filename, bytes), 'arg filename invalid'
     
-        self.inst.get().store((<libcpp_string>filename))
+        self.inst.get().store((_String(<char *>filename)))
     def setSectionDescription(self, bytes key , bytes desc ):
         assert isinstance(key, bytes), 'arg key invalid'
         assert isinstance(desc, bytes), 'arg desc invalid'
@@ -645,16 +658,89 @@ cdef class Param:
         return py_result
     # the following empty line is important
 
-    def getKeys(Param self):
+    def asBunch(Param self):
 
-        cdef list rv = list()
+
+        class Bunch(dict):
+            __getattr__ = dict.__getitem__
+            def __setattr__(self, k, v):
+                self[k] = v
+
+            def __missing__(self, k):
+                self[k] = Bunch()
+                return self[k]
+
+            def __str__(self):
+                return "\n".join(self._to_str_list())
+
+            def _to_str_list(self):
+                rv = []
+                # two similar for loops to get output in nice order:
+                for k, v in self.items():
+                    if not isinstance(v, Bunch):
+                        rv.append("%s=%s" % (k,v))
+                for k, v in self.items():
+                    if isinstance(v, Bunch):
+                        for postfix in v._to_str_list():
+                            rv.append("%s.%s" % (k, postfix))
+                return rv
+
+
+        cdef list keys = list()
 
         cdef _ParamIterator param_it = self.inst.get().begin()
         while param_it != self.inst.get().end():
-            rv.append(param_it.getName().c_str())
+            keys.append(param_it.getName().c_str())
             inc(param_it)
 
-        return rv 
+        result = Bunch()
+
+        for k in keys:
+            fields = k.split(":")
+            d = result
+            for f in fields[:-1]:
+                if not f in d:
+                    d[f]=Bunch()
+                d = d[f]
+            value = self.getValue(k)
+
+            dt = value.valueType()
+            if dt == DataType.STRING_VALUE:
+                value = value.toString()
+            elif dt == DataType.INT_VALUE:
+                value = value.toInt()
+            elif dt == DataType.DOUBLE_VALUE:
+                value = value.toFloat()
+            elif dt == DataType.DOUBLE_LIST:
+                value = value.toDoubleList()
+            elif dt == DataType.STRING_LIST:
+                value = value.toStringList()
+            elif dt == DataType.INT_LIST:
+                value = value.toIntList()
+
+            d[fields[-1]] = value
+
+        return Bunch(result)
+
+    def updateFrom(self, dd):
+        assert isinstance(dd, dict)
+
+        def to_items(dd):
+            rv = []
+            # two similar for loops to get output in nice order:
+            for k, v in dd.items():
+                if not isinstance(v, dict):
+                    rv.append((k,v))
+            for k, v in dd.items():
+                if isinstance(v, dict):
+                    for postfix, v in to_items(v):
+                        rv.append(("%s:%s" % (k, postfix), v))
+            return rv
+
+        for key, v in to_items(dd):
+            tags = self.getTags(key)
+            desc = self.getDescription(key)
+            self.setValue(key, DataValue(v), desc, tags) 
 cdef class MzDataFile:
     cdef shared_ptr[_MzDataFile] inst
     def __dealloc__(self):
@@ -701,12 +787,9 @@ cdef class BaseFeature:
         del v0
     def _getKeys_1(self, list keys ):
         assert isinstance(keys, list) and all(isinstance(li, int) for li in keys), 'arg keys invalid'
-        cdef libcpp_vector[unsigned int] * v0 = new libcpp_vector[unsigned int]()
-        cdef unsigned int item0
-        for item0 in keys:
-           v0.push_back(item0)
-        self.inst.get().getKeys(deref(v0))
-        del v0
+        cdef libcpp_vector[unsigned int] v0 = keys
+        self.inst.get().getKeys(v0)
+        keys[:] = v0
     def getKeys(self, *args):
         if (len(args)==1) and (isinstance(args[0], list) and all(isinstance(i, bytes) for i in args[0])):
             return self._getKeys_0(*args)
@@ -742,43 +825,6 @@ cdef class BaseFeature:
         cdef BaseFeature self_casted = self
         if op==2:
             return deref(self_casted.inst.get()) == deref(other_casted.inst.get()) 
-cdef class StringList:
-    cdef shared_ptr[_StringList] inst
-    def __dealloc__(self):
-         self.inst.reset()
-    def at(self, int in_0 ):
-        assert isinstance(in_0, int), 'arg in_0 invalid'
-    
-        cdef libcpp_string _r = self.inst.get().at((<int>in_0))
-        py_result = <libcpp_string>_r
-        return py_result
-    def _init_0(self):
-        self.inst = shared_ptr[_StringList](new _StringList())
-    def _init_1(self, StringList in_0 ):
-        assert isinstance(in_0, StringList), 'arg in_0 invalid'
-    
-        self.inst = shared_ptr[_StringList](new _StringList(<_StringList>deref(in_0.inst.get())))
-    def _init_2(self, list in_0 ):
-        assert isinstance(in_0, list) and all(isinstance(li, str) for li in in_0), 'arg in_0 invalid'
-        cdef libcpp_vector[libcpp_string] * v0 = new libcpp_vector[libcpp_string]()
-        cdef libcpp_string item0
-        for item0 in in_0:
-           v0.push_back(item0)
-        self.inst = shared_ptr[_StringList](new _StringList(deref(v0)))
-        del v0
-    def __init__(self, *args):
-        if not args:
-             self._init_0(*args)
-        elif (len(args)==1) and (isinstance(args[0], StringList)):
-             self._init_1(*args)
-        elif (len(args)==1) and (isinstance(args[0], list) and all(isinstance(li, str) for li in args[0])):
-             self._init_2(*args)
-        else:
-               raise Exception('can not handle %s' % (args,))
-    def size(self):
-        cdef int _r = self.inst.get().size()
-        py_result = <int>_r
-        return py_result 
 cdef class Peak2D:
     cdef shared_ptr[_Peak2D] inst
     def __dealloc__(self):
@@ -888,28 +934,16 @@ cdef class DataValue:
         self.inst = shared_ptr[_DataValue](new _DataValue())
     def _init_1(self, list in_0 ):
         assert isinstance(in_0, list) and all(isinstance(li, str) for li in in_0), 'arg in_0 invalid'
-        cdef libcpp_vector[libcpp_string] * v0 = new libcpp_vector[libcpp_string]()
-        cdef libcpp_string item0
-        for item0 in in_0:
-           v0.push_back(item0)
-        self.inst = shared_ptr[_DataValue](new _DataValue(deref(v0)))
-        del v0
+        cdef libcpp_vector[libcpp_string] v0 = in_0
+        self.inst = shared_ptr[_DataValue](new _DataValue(v0))
     def _init_2(self, list in_0 ):
         assert isinstance(in_0, list) and all(isinstance(li, int) for li in in_0), 'arg in_0 invalid'
-        cdef libcpp_vector[int] * v0 = new libcpp_vector[int]()
-        cdef int item0
-        for item0 in in_0:
-           v0.push_back(item0)
-        self.inst = shared_ptr[_DataValue](new _DataValue(deref(v0)))
-        del v0
+        cdef libcpp_vector[int] v0 = in_0
+        self.inst = shared_ptr[_DataValue](new _DataValue(v0))
     def _init_3(self, list in_0 ):
         assert isinstance(in_0, list) and all(isinstance(li, float) for li in in_0), 'arg in_0 invalid'
-        cdef libcpp_vector[float] * v0 = new libcpp_vector[float]()
-        cdef float item0
-        for item0 in in_0:
-           v0.push_back(item0)
-        self.inst = shared_ptr[_DataValue](new _DataValue(deref(v0)))
-        del v0
+        cdef libcpp_vector[float] v0 = in_0
+        self.inst = shared_ptr[_DataValue](new _DataValue(v0))
     def _init_4(self, bytes in_0 ):
         assert isinstance(in_0, bytes), 'arg in_0 invalid'
     
@@ -922,18 +956,21 @@ cdef class DataValue:
         assert isinstance(in_0, float), 'arg in_0 invalid'
     
         self.inst = shared_ptr[_DataValue](new _DataValue((<float>in_0)))
-    def _init_7(self, StringList in_0 ):
-        assert isinstance(in_0, StringList), 'arg in_0 invalid'
-    
-        self.inst = shared_ptr[_DataValue](new _DataValue(<_StringList>deref(in_0.inst.get())))
-    def _init_8(self, IntList in_0 ):
-        assert isinstance(in_0, IntList), 'arg in_0 invalid'
-    
-        self.inst = shared_ptr[_DataValue](new _DataValue(<_IntList>deref(in_0.inst.get())))
-    def _init_9(self, DoubleList in_0 ):
-        assert isinstance(in_0, DoubleList), 'arg in_0 invalid'
-    
-        self.inst = shared_ptr[_DataValue](new _DataValue(<_DoubleList>deref(in_0.inst.get())))
+    def _init_7(self, list in_0 ):
+        assert isinstance(in_0, list) and all(isinstance(li, bytes) for li in in_0), 'arg in_0 invalid'
+        cdef libcpp_vector[libcpp_string] _v0 = in_0
+        cdef _StringList v0 = _StringList(_v0)
+        self.inst = shared_ptr[_DataValue](new _DataValue((v0)))
+    def _init_8(self, list in_0 ):
+        assert isinstance(in_0, list) and all(isinstance(li, int) for li in in_0), 'arg in_0 invalid'
+        cdef libcpp_vector[int] _v0 = in_0
+        cdef _IntList v0 = _IntList(_v0)
+        self.inst = shared_ptr[_DataValue](new _DataValue((v0)))
+    def _init_9(self, list in_0 ):
+        assert isinstance(in_0, list) and all(isinstance(li, float) for li in in_0), 'arg in_0 invalid'
+        cdef libcpp_vector[double] _v0 = in_0
+        cdef _DoubleList v0 = _DoubleList(_v0)
+        self.inst = shared_ptr[_DataValue](new _DataValue((v0)))
     def __init__(self, *args):
         if not args:
              self._init_0(*args)
@@ -949,11 +986,11 @@ cdef class DataValue:
              self._init_5(*args)
         elif (len(args)==1) and (isinstance(args[0], float)):
              self._init_6(*args)
-        elif (len(args)==1) and (isinstance(args[0], StringList)):
+        elif (len(args)==1) and (isinstance(args[0], list) and all(isinstance(li, bytes) for li in args[0])):
              self._init_7(*args)
-        elif (len(args)==1) and (isinstance(args[0], IntList)):
+        elif (len(args)==1) and (isinstance(args[0], list) and all(isinstance(li, int) for li in args[0])):
              self._init_8(*args)
-        elif (len(args)==1) and (isinstance(args[0], DoubleList)):
+        elif (len(args)==1) and (isinstance(args[0], list) and all(isinstance(li, float) for li in args[0])):
              self._init_9(*args)
         else:
                raise Exception('can not handle %s' % (args,))
@@ -970,19 +1007,28 @@ cdef class DataValue:
         py_res = <float>_r
         return py_res
     def toStringList(self):
-        cdef _StringList * _r = new _StringList(<_StringList>(deref(self.inst.get())))
-        cdef StringList py_res = StringList.__new__(StringList)
-        py_res.inst = shared_ptr[_StringList](_r)
+        cdef _StringList _r = <_StringList>(deref(self.inst.get()))
+        py_res = []
+        cdef int i, n
+        n = _r.size()
+        for i in range(n):
+            py_res.append(<libcpp_string>_r.at(i))
         return py_res
     def toDoubleList(self):
-        cdef _DoubleList * _r = new _DoubleList(<_DoubleList>(deref(self.inst.get())))
-        cdef DoubleList py_res = DoubleList.__new__(DoubleList)
-        py_res.inst = shared_ptr[_DoubleList](_r)
+        cdef _DoubleList _r = <_DoubleList>(deref(self.inst.get()))
+        py_res = []
+        cdef int i, n
+        n = _r.size()
+        for i in range(n):
+            py_res.append(<double>_r.at(i))
         return py_res
     def toIntList(self):
-        cdef _IntList * _r = new _IntList(<_IntList>(deref(self.inst.get())))
-        cdef IntList py_res = IntList.__new__(IntList)
-        py_res.inst = shared_ptr[_IntList](_r)
+        cdef _IntList _r = <_IntList>(deref(self.inst.get()))
+        py_res = []
+        cdef int i, n
+        n = _r.size()
+        for i in range(n):
+            py_res.append(<int>_r.at(i))
         return py_res
     def isEmpty(self):
         cdef int _r = self.inst.get().isEmpty()
@@ -1102,12 +1148,9 @@ cdef class RichPeak2D:
         del v0
     def _getKeys_1(self, list keys ):
         assert isinstance(keys, list) and all(isinstance(li, int) for li in keys), 'arg keys invalid'
-        cdef libcpp_vector[unsigned int] * v0 = new libcpp_vector[unsigned int]()
-        cdef unsigned int item0
-        for item0 in keys:
-           v0.push_back(item0)
-        self.inst.get().getKeys(deref(v0))
-        del v0
+        cdef libcpp_vector[unsigned int] v0 = keys
+        self.inst.get().getKeys(v0)
+        keys[:] = v0
     def getKeys(self, *args):
         if (len(args)==1) and (isinstance(args[0], list) and all(isinstance(i, bytes) for i in args[0])):
             return self._getKeys_0(*args)
@@ -1222,34 +1265,42 @@ cdef class Precursor:
         assert isinstance(in_0, float), 'arg in_0 invalid'
     
         self.inst.get().setIntensity((<float>in_0)) 
-cdef class ProgressLogger:
-    cdef shared_ptr[_ProgressLogger] inst
+cdef class PeakPickerHiRes:
+    cdef shared_ptr[_PeakPickerHiRes] inst
     def __dealloc__(self):
          self.inst.reset()
-    def getLogType(self):
-        cdef _LogType _r = self.inst.get().getLogType()
-        py_result = <int>_r
+    def setParameters(self, Param param ):
+        assert isinstance(param, Param), 'arg param invalid'
+    
+        self.inst.get().setParameters(<_Param>deref(param.inst.get()))
+    def getDefaults(self):
+        cdef _Param * _r = new _Param(self.inst.get().getDefaults())
+        cdef Param py_result = Param.__new__(Param)
+        py_result.inst = shared_ptr[_Param](_r)
         return py_result
-    def startProgress(self, int begin , int end , bytes label ):
-        assert isinstance(begin, int), 'arg begin invalid'
-        assert isinstance(end, int), 'arg end invalid'
-        assert isinstance(label, bytes), 'arg label invalid'
-    
-    
-    
-        self.inst.get().startProgress((<ptrdiff_t>begin), (<ptrdiff_t>end), (_String(<char *>label)))
-    def endProgress(self):
-        self.inst.get().endProgress()
     def __init__(self):
-        self.inst = shared_ptr[_ProgressLogger](new _ProgressLogger())
-    def setProgress(self, int value ):
-        assert isinstance(value, int), 'arg value invalid'
+        self.inst = shared_ptr[_PeakPickerHiRes](new _PeakPickerHiRes())
+    def setLogType(self, int type ):
+        assert type in [0, 1, 2], 'arg type invalid'
     
-        self.inst.get().setProgress((<ptrdiff_t>value))
-    def setLogType(self, int in_0 ):
-        assert in_0 in [0, 1, 2], 'arg in_0 invalid'
+        self.inst.get().setLogType((<_LogType>type))
+    def pick(self, MSSpectrum input , MSSpectrum output ):
+        assert isinstance(input, MSSpectrum), 'arg input invalid'
+        assert isinstance(output, MSSpectrum), 'arg output invalid'
     
-        self.inst.get().setLogType((<_LogType>in_0)) 
+    
+        self.inst.get().pick(<_MSSpectrum[_Peak1D] &>deref(input.inst.get()), <_MSSpectrum[_Peak1D] &>deref(output.inst.get()))
+    def pickExperiment(self, MSExperiment input , MSExperiment output ):
+        assert isinstance(input, MSExperiment), 'arg input invalid'
+        assert isinstance(output, MSExperiment), 'arg output invalid'
+    
+    
+        self.inst.get().pickExperiment(<_MSExperiment[_Peak1D,_ChromatogramPeak] &>deref(input.inst.get()), <_MSExperiment[_Peak1D,_ChromatogramPeak] &>deref(output.inst.get()))
+    def getParameters(self):
+        cdef _Param * _r = new _Param(self.inst.get().getParameters())
+        cdef Param py_result = Param.__new__(Param)
+        py_result.inst = shared_ptr[_Param](_r)
+        return py_result 
 cdef class RichPeak1D:
     cdef shared_ptr[_RichPeak1D] inst
     def __dealloc__(self):
@@ -1276,12 +1327,9 @@ cdef class RichPeak1D:
         del v0
     def _getKeys_1(self, list keys ):
         assert isinstance(keys, list) and all(isinstance(li, int) for li in keys), 'arg keys invalid'
-        cdef libcpp_vector[unsigned int] * v0 = new libcpp_vector[unsigned int]()
-        cdef unsigned int item0
-        for item0 in keys:
-           v0.push_back(item0)
-        self.inst.get().getKeys(deref(v0))
-        del v0
+        cdef libcpp_vector[unsigned int] v0 = keys
+        self.inst.get().getKeys(v0)
+        keys[:] = v0
     def getKeys(self, *args):
         if (len(args)==1) and (isinstance(args[0], list) and all(isinstance(i, bytes) for i in args[0])):
             return self._getKeys_0(*args)
@@ -1333,16 +1381,30 @@ cdef class MapAlignmentAlgorithmPoseClustering:
     cdef shared_ptr[_MapAlignmentAlgorithmPoseClustering] inst
     def __dealloc__(self):
          self.inst.reset()
-    def setParameters(self, Param in_0 ):
-        assert isinstance(in_0, Param), 'arg in_0 invalid'
+    def setParameters(self, Param param ):
+        assert isinstance(param, Param), 'arg param invalid'
     
-        self.inst.get().setParameters(<_Param>deref(in_0.inst.get()))
+        self.inst.get().setParameters(<_Param &>deref(param.inst.get()))
     def __init__(self):
         self.inst = shared_ptr[_MapAlignmentAlgorithmPoseClustering](new _MapAlignmentAlgorithmPoseClustering())
+    def setReference(self, int reference_index , bytes reference_file ):
+        assert isinstance(reference_index, int), 'arg reference_index invalid'
+        assert isinstance(reference_file, bytes), 'arg reference_file invalid'
+    
+    
+        self.inst.get().setReference((<size_t>reference_index), (_String(<char *>reference_file)))
+    def setName(self, bytes in_0 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+    
+        self.inst.get().setName((_String(<char *>in_0)))
     def getDefaults(self):
         cdef _Param * _r = new _Param(self.inst.get().getDefaults())
         cdef Param py_result = Param.__new__(Param)
         py_result.inst = shared_ptr[_Param](_r)
+        return py_result
+    def getName(self):
+        cdef _String _r = self.inst.get().getName()
+        py_result = _cast_const_away(<char*>_r.c_str())
         return py_result
     def fitModel(self, bytes model_type , Param p , list in_2 ):
         assert isinstance(model_type, bytes), 'arg model_type invalid'
@@ -1376,6 +1438,28 @@ cdef class MapAlignmentAlgorithmPoseClustering:
         for item1 in in_1:
            v1.push_back(deref(item1.inst.get()))
         self.inst.get().alignFeatureMaps(deref(v0), deref(v1))
+        cdef replace = []
+        cdef libcpp_vector[_TransformationDescription].iterator it = v1.begin()
+        while it != v1.end():
+           item1 = TransformationDescription.__new__(TransformationDescription)
+           item1.inst = shared_ptr[_TransformationDescription](new _TransformationDescription(deref(it)))
+           replace.append(item1)
+           inc(it)
+        in_1[:] = replace
+        del v1
+        del v0
+    def alignPeakMaps(self, list in_0 , list in_1 ):
+        assert isinstance(in_0, list) and all(isinstance(li, MSExperiment) for li in in_0), 'arg in_0 invalid'
+        assert isinstance(in_1, list) and all(isinstance(li, TransformationDescription) for li in in_1), 'arg in_1 invalid'
+        cdef libcpp_vector[_MSExperiment[_Peak1D,_ChromatogramPeak]] * v0 = new libcpp_vector[_MSExperiment[_Peak1D,_ChromatogramPeak]]()
+        cdef MSExperiment item0
+        for item0 in in_0:
+           v0.push_back(deref(item0.inst.get()))
+        cdef libcpp_vector[_TransformationDescription] * v1 = new libcpp_vector[_TransformationDescription]()
+        cdef TransformationDescription item1
+        for item1 in in_1:
+           v1.push_back(deref(item1.inst.get()))
+        self.inst.get().alignPeakMaps(deref(v0), deref(v1))
         cdef replace = []
         cdef libcpp_vector[_TransformationDescription].iterator it = v1.begin()
         while it != v1.end():
@@ -1620,6 +1704,10 @@ cdef class TransformationDescription:
         cdef double _r = self.inst.get().apply((<float>in_0))
         py_result = <float>_r
         return py_result
+    def getDataPoints(self):
+        _r = self.inst.get().getDataPoints()
+        cdef list py_result = _r
+        return py_result
     def _init_0(self):
         self.inst = shared_ptr[_TransformationDescription](new _TransformationDescription())
     def _init_1(self, TransformationDescription in_0 ):
@@ -1729,114 +1817,32 @@ cdef class FeatureMap:
         cdef int _r = self.inst.get().size()
         py_result = <int>_r
         return py_result 
-cdef class PeakPickerHiRes:
-    cdef shared_ptr[_PeakPickerHiRes] inst
+cdef class ProgressLogger:
+    cdef shared_ptr[_ProgressLogger] inst
     def __dealloc__(self):
          self.inst.reset()
-    def setParameters(self, Param param ):
-        assert isinstance(param, Param), 'arg param invalid'
-    
-        self.inst.get().setParameters(<_Param>deref(param.inst.get()))
-    def getDefaults(self):
-        cdef _Param * _r = new _Param(self.inst.get().getDefaults())
-        cdef Param py_result = Param.__new__(Param)
-        py_result.inst = shared_ptr[_Param](_r)
+    def getLogType(self):
+        cdef _LogType _r = self.inst.get().getLogType()
+        py_result = <int>_r
         return py_result
+    def startProgress(self, int begin , int end , bytes label ):
+        assert isinstance(begin, int), 'arg begin invalid'
+        assert isinstance(end, int), 'arg end invalid'
+        assert isinstance(label, bytes), 'arg label invalid'
+    
+    
+    
+        self.inst.get().startProgress((<ptrdiff_t>begin), (<ptrdiff_t>end), (_String(<char *>label)))
+    def endProgress(self):
+        self.inst.get().endProgress()
     def __init__(self):
-        self.inst = shared_ptr[_PeakPickerHiRes](new _PeakPickerHiRes())
-    def setLogType(self, int type ):
-        assert type in [0, 1, 2], 'arg type invalid'
+        self.inst = shared_ptr[_ProgressLogger](new _ProgressLogger())
+    def setProgress(self, int value ):
+        assert isinstance(value, int), 'arg value invalid'
     
-        self.inst.get().setLogType((<_LogType>type))
-    def pick(self, MSSpectrum input , MSSpectrum output ):
-        assert isinstance(input, MSSpectrum), 'arg input invalid'
-        assert isinstance(output, MSSpectrum), 'arg output invalid'
+        self.inst.get().setProgress((<ptrdiff_t>value))
+    def setLogType(self, int in_0 ):
+        assert in_0 in [0, 1, 2], 'arg in_0 invalid'
     
-    
-        self.inst.get().pick(<_MSSpectrum[_Peak1D] &>deref(input.inst.get()), <_MSSpectrum[_Peak1D] &>deref(output.inst.get()))
-    def pickExperiment(self, MSExperiment input , MSExperiment output ):
-        assert isinstance(input, MSExperiment), 'arg input invalid'
-        assert isinstance(output, MSExperiment), 'arg output invalid'
-    
-    
-        self.inst.get().pickExperiment(<_MSExperiment[_Peak1D,_ChromatogramPeak] &>deref(input.inst.get()), <_MSExperiment[_Peak1D,_ChromatogramPeak] &>deref(output.inst.get()))
-    def getParameters(self):
-        cdef _Param * _r = new _Param(self.inst.get().getParameters())
-        cdef Param py_result = Param.__new__(Param)
-        py_result.inst = shared_ptr[_Param](_r)
-        return py_result 
-cdef class IntList:
-    cdef shared_ptr[_IntList] inst
-    def __dealloc__(self):
-         self.inst.reset()
-    def _init_0(self):
-        self.inst = shared_ptr[_IntList](new _IntList())
-    def _init_1(self, IntList in_0 ):
-        assert isinstance(in_0, IntList), 'arg in_0 invalid'
-    
-        self.inst = shared_ptr[_IntList](new _IntList(<_IntList>deref(in_0.inst.get())))
-    def _init_2(self, list in_0 ):
-        assert isinstance(in_0, list) and all(isinstance(li, int) for li in in_0), 'arg in_0 invalid'
-        cdef libcpp_vector[int] * v0 = new libcpp_vector[int]()
-        cdef int item0
-        for item0 in in_0:
-           v0.push_back(item0)
-        self.inst = shared_ptr[_IntList](new _IntList(deref(v0)))
-        del v0
-    def __init__(self, *args):
-        if not args:
-             self._init_0(*args)
-        elif (len(args)==1) and (isinstance(args[0], IntList)):
-             self._init_1(*args)
-        elif (len(args)==1) and (isinstance(args[0], list) and all(isinstance(li, int) for li in args[0])):
-             self._init_2(*args)
-        else:
-               raise Exception('can not handle %s' % (args,))
-    def at(self, int in_0 ):
-        assert isinstance(in_0, int), 'arg in_0 invalid'
-    
-        cdef int _r = self.inst.get().at((<int>in_0))
-        py_result = <int>_r
-        return py_result
-    def size(self):
-        cdef int _r = self.inst.get().size()
-        py_result = <int>_r
-        return py_result 
-cdef class DoubleList:
-    cdef shared_ptr[_DoubleList] inst
-    def __dealloc__(self):
-         self.inst.reset()
-    def _init_0(self):
-        self.inst = shared_ptr[_DoubleList](new _DoubleList())
-    def _init_1(self, DoubleList in_0 ):
-        assert isinstance(in_0, DoubleList), 'arg in_0 invalid'
-    
-        self.inst = shared_ptr[_DoubleList](new _DoubleList(<_DoubleList>deref(in_0.inst.get())))
-    def _init_2(self, list in_0 ):
-        assert isinstance(in_0, list) and all(isinstance(li, float) for li in in_0), 'arg in_0 invalid'
-        cdef libcpp_vector[double] * v0 = new libcpp_vector[double]()
-        cdef double item0
-        for item0 in in_0:
-           v0.push_back(item0)
-        self.inst = shared_ptr[_DoubleList](new _DoubleList(deref(v0)))
-        del v0
-    def __init__(self, *args):
-        if not args:
-             self._init_0(*args)
-        elif (len(args)==1) and (isinstance(args[0], DoubleList)):
-             self._init_1(*args)
-        elif (len(args)==1) and (isinstance(args[0], list) and all(isinstance(li, float) for li in args[0])):
-             self._init_2(*args)
-        else:
-               raise Exception('can not handle %s' % (args,))
-    def at(self, int in_0 ):
-        assert isinstance(in_0, int), 'arg in_0 invalid'
-    
-        cdef double _r = self.inst.get().at((<int>in_0))
-        py_result = <float>_r
-        return py_result
-    def size(self):
-        cdef int _r = self.inst.get().size()
-        py_result = <int>_r
-        return py_result 
+        self.inst.get().setLogType((<_LogType>in_0)) 
 
