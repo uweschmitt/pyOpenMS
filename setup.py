@@ -49,6 +49,8 @@ import os, shutil
 import sys
 import time
 
+IS_DEBUG = sys.argv[-1] == "develop"
+
 # create version information
 
 ctime = os.stat("pyopenms").st_mtime
@@ -132,6 +134,7 @@ include_dirs=[
              ]
 
 
+
 ext = Extension(
         "pyopenms",
         sources = ["pyopenms/pyopenms.cpp"],
@@ -144,31 +147,12 @@ ext = Extension(
         # set BOOST_NO_EXCEPTION in <boost/config/compiler/visualc.hpp>
         # such that  boost::throw_excption() is declared but not implemented.
         # The linker does not like that very much ...
-        extra_compile_args = iswin and [ "/EHs"] or ["-g"]
+        extra_compile_args = iswin and [ "/EHs"] or (IS_DEBUG and ["-g"] or [])
 
     )
 
 
-# share_data paths have to be relative to pyOpenMS not to ".",
-# see the parameters when calling setup() below.
-# so we have to strip a leading "pyOpenMS" in root:
 share_data = []
-"""
-for root, _, files in os.walk(local_share_dir):
-    if ".svn" in root: continue #
-    if ".git" in root: continue #
-    fields = root.split(os.path.sep)
-    #print fields
-    if fields[0]=="pyOpenMS":
-        fields = fields[1:]
-    # omit examples, make package too large and are not needed
-    if len(fields) > 2 and fields[2] == "examples":
-        continue
-    root = os.path.sep.join(fields)
-    for f in files:
-        share_data.append(j(root, f))
-
-"""
 
 if iswin:
     share_data += [MSVCRDLL, "xerces-c_3_0.dll"]
