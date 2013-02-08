@@ -8,10 +8,9 @@ class TestParam(unittest.TestCase):
 
 
     def test_Param(self):
-
         """
         @tests
-         Param.__init__
+        :aram.__init__
          .addTag
          .addTags
          .exists
