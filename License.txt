@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
-                      pyOpenMS -- Python wrapper for OpenMS
+                     pyopenms -- Python wrapper for OpenMS
 -------------------------------------------------------------------------------
 
-Copyright (C) 2011-2012 -- Uwe Schmitt
+Copyright (C) 2011-2013 -- Uwe Schmitt
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 -------------------------------------------------------------------------------
 
-The source code of pyOpenMS is available via 
+The source code of pyOpenMS is available via
                                       http://github.com/uweschmitt/pyOpenMS
 
 -------------------------------------------------------------------------------
@@ -33,15 +33,17 @@ pyOpenMS depends on the following third party libraries which are included:
 
     GSL
         - URL: http://www.gnu.org/software/gsl/
-        
+
     Qt 4
         - URL: http://trolltech.com/downloads/opensource
+
+    If you want to build pyopenms on Microsoft Windows:
 
     Microsoft Visual C Runtime from Visual C++ 2008 Redistributable Package:
 
         - URL: http://www.microsoft.com
 
- 
+
 
 -------------------------------------------------------------------------------
 
@@ -194,7 +196,7 @@ such a program is covered only if its contents constitute a work based
 on the Library (independent of the use of the Library in a tool for
 writing it).  Whether that is true depends on what the Library does
 and what the program that uses the Library does.
-  
+
   1. You may copy and distribute verbatim copies of the Library's
 complete source code as you receive it, in any medium, provided that
 you conspicuously and appropriately publish on each copy an
@@ -504,4 +506,4 @@ SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
-    
+
