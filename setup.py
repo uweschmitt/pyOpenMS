@@ -14,8 +14,8 @@ import glob
 pxd_files = glob.glob("pyopenms/pxds/*.pxd")
 #pxd_files = ["pyopenms/pxds/TransformationDescription.pxd"]
 
-import openms_type_converters
-openms_type_converters.register_all()
+import special_autowrap_conversionproviders
+special_autowrap_conversionproviders.register_all()
 
 spectra_extra_code = autowrap.Code.Code().add(
                              open("pyopenms/spectrum_addons.pyx", "r").read()
@@ -144,7 +144,7 @@ ext = Extension(
         # set BOOST_NO_EXCEPTION in <boost/config/compiler/visualc.hpp>
         # such that  boost::throw_excption() is declared but not implemented.
         # The linker does not like that very much ...
-        extra_compile_args = iswin and [ "/EHs"] or []
+        extra_compile_args = iswin and [ "/EHs"] or ["-g"]
 
     )
 

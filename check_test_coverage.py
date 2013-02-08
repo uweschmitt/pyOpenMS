@@ -1,15 +1,15 @@
 import numpy
 import os
 import glob
-import pyOpenMS
+import pyopenms
 
 toTest = set()
 
-# pyOpenMS in the ignore list as it is represented twice in
-# the pyOpenMS package
-ignore = ["numpy", "np", "re", "os", "types", "sysinfo", "pyOpenMS"]
+# pyopenms in the ignore list as it is represented twice in
+# the pyopenms package
+ignore = ["numpy", "np", "re", "os", "types", "sysinfo", "pyopenms"]
 
-for clz_name, clz in pyOpenMS.__dict__.items():
+for clz_name, clz in pyopenms.__dict__.items():
     if clz_name in ignore or clz_name.startswith("__"):
         continue
 
