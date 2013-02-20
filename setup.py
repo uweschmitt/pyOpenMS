@@ -1,50 +1,27 @@
-import pdb
 #input-encoding: latin-1
 
 import distribute_setup
 distribute_setup.use_setuptools()
 
-# use autowrap to generate cython file for wrapping openms:
 
-import autowrap
-
-print autowrap.__file__
+# use autowrap to generate cython  and cpp file for wrapping openms:
+import autowrap.Main
 import glob
 
-pxd_files = glob.glob("pyopenms/pxds/*.pxd")
-#pxd_files = ["pyopenms/pxds/TransformationDescription.pxd"]
-
-import special_autowrap_conversionproviders
-special_autowrap_conversionproviders.register_all()
-
-spectra_extra_code = autowrap.Code.Code().add(
-                             open("pyopenms/spectrum_addons.pyx", "r").read()
-        )
-param_extra_code = autowrap.Code.Code().add(
-                             open("pyopenms/param_addons.pyx", "r").read()
-        )
-
-extra_methods = dict(MSSpectrum = [spectra_extra_code],
-                     Param = [param_extra_code])
-
-autowrap_include_dirs = autowrap.parse_and_generate_code(pxd_files, ".",
-                                                "pyopenms/pyopenms.pyx",
-                                                False,
-                                                extra_methods)
-
-# call cython to generate cpp source file for extension.
-#
-# (we do not use Extension from cython here, which would take pyopenms.pyx
-# and create pyopenms.cpp and compile automatically, as we do not use the
-# old distutils here (see lines 3, 4 of this file) and we had some trouble
-# to combine cythons Extension() with distribute)
-
-from Cython.Compiler.Main import compile, CompilationOptions
-options = CompilationOptions(include_path=autowrap_include_dirs, cplus=True)
-compile("pyopenms/pyopenms.pyx", options=options)
+pxd_files = glob.glob("pxds/*.pxd")
+addons = glob.glob("addons/*.pyx")
+converters = glob.glob("converters/*.py")
+extra_cimports = ["from libc.stdint cimport *",
+                  "from libc.stddef cimport *",
+                  "from UniqueIdInterface cimport setUniqueId as _setUniqueId",
+                  "cimport numpy as np"]
+autowrap_include_dirs = autowrap.Main.run(pxd_files,
+                                          addons,
+                                          converters,
+                                          "pyopenms/pyopenms.pyx",
+                                          extra_cimports)
 
 from setuptools import setup, Extension
-
 import os, shutil
 import sys
 import time
@@ -147,7 +124,7 @@ ext = Extension(
         # set BOOST_NO_EXCEPTION in <boost/config/compiler/visualc.hpp>
         # such that  boost::throw_excption() is declared but not implemented.
         # The linker does not like that very much ...
-        extra_compile_args = iswin and [ "/EHs"] or (IS_DEBUG and ["-g"] or [])
+        extra_compile_args = iswin and [ "/EHs"] or (IS_DEBUG and ["-g2"] or [])
 
     )
 

@@ -1,18 +1,20 @@
 from  libcpp.string  cimport string as libcpp_string
+from  libcpp.set     cimport set as libcpp_set
 from  libcpp.vector  cimport vector as libcpp_vector
 from  libcpp.pair    cimport pair as libcpp_pair
+from  smart_ptr cimport shared_ptr
 from  libcpp cimport bool
-from  libc.stdint  cimport *
-from  libc.stddef  cimport *
-from smart_ptr cimport shared_ptr
-cimport numpy as np
-import numpy as np
 from cython.operator cimport dereference as deref, preincrement as inc, address as address
-from DPosition cimport DPosition1
+from libc.stdint cimport *
+from libc.stddef cimport *
+from UniqueIdInterface cimport setUniqueId as _setUniqueId
+cimport numpy as np
+from ChromatogramPeak cimport CoordinateType
 from Types cimport DoubleReal
 from Types cimport Int
 from Types cimport Int32
 from Types cimport Int64
+from ChromatogramPeak cimport IntensityType
 from Types cimport Real
 from Types cimport SignedSize
 from Types cimport Size
@@ -21,20 +23,70 @@ from Types cimport UID
 from Types cimport UInt
 from Types cimport UInt32
 from Types cimport UInt64
-from ChecksumType cimport ChecksumType as _ChecksumType
-from DataValue_DataType cimport DataType as _DataType
-from FileTypes cimport FileTypes as _FileTypes
-from ProgressLogger_LogType cimport LogType as _LogType
+from stdint cimport int16_t
+from stdint cimport int32_t
+from stdint cimport int64_t
+from stdint cimport int8_t
+from stdint cimport int_fast16_t
+from stdint cimport int_fast32_t
+from stdint cimport int_fast64_t
+from stdint cimport int_fast8_t
+from stdint cimport int_least16_t
+from stdint cimport int_least32_t
+from stdint cimport int_least64_t
+from stdint cimport int_least8_t
+from stdint cimport intmax_t
+from stdint cimport intptr_t
+from stdint cimport uint16_t
+from stdint cimport uint32_t
+from stdint cimport uint64_t
+from stdint cimport uint8_t
+from stdint cimport uint_fast16_t
+from stdint cimport uint_fast32_t
+from stdint cimport uint_fast64_t
+from stdint cimport uint_fast8_t
+from stdint cimport uint_least16_t
+from stdint cimport uint_least32_t
+from stdint cimport uint_least64_t
+from stdint cimport uint_least8_t
+from stdint cimport uintmax_t
+from stdint cimport uintptr_t
+from SourceFile cimport ChecksumType as _ChecksumType
+from DataValue cimport DataType as _DataType
+from ProteinIdentification cimport DigestionEnzyme as _DigestionEnzyme
+from ProgressLogger cimport LogType as _LogType
+from ProteinIdentification cimport PeakMassType as _PeakMassType
 from IonSource_Polarity cimport Polarity as _Polarity
-from FileHandler cimport getType as _getType
+from DataProcessing cimport ProcessingAction as _ProcessingAction
+from SpectrumSettings cimport SpectrumType as _SpectrumType
+from FileTypes cimport Type as _Type
+from VersionInfo cimport create as _create_VersionInfo
+from TransformationModelLinear cimport getDefaultParameters as _getDefaultParameters_TransformationModelLinear
+from TransformationModelInterpolated cimport getDefaultParameters as _getDefaultParameters_TransformationModelInterpolated
+from TransformationModelBSpline cimport getDefaultParameters as _getDefaultParameters_TransformationModelBSpline
+from FeatureFinderAlgorithmPicked cimport getProductName as _getProductName_FeatureFinderAlgorithmPicked
+from VersionInfo cimport getRevision as _getRevision_VersionInfo
+from VersionInfo cimport getTime as _getTime_VersionInfo
+from FileHandler cimport getType as _getType_FileHandler
+from VersionInfo cimport getVersion as _getVersion_VersionInfo
+from DateTime cimport now as _now_DateTime
+from UniqueIdInterface cimport setUniqueId as _setUniqueId_UniqueIdInterface
+from MapAlignmentAlgorithmPoseClustering cimport transformFeatureMaps as _transformFeatureMaps_MapAlignmentAlgorithmPoseClustering
+from MapAlignmentAlgorithmPoseClustering cimport transformPeakMaps as _transformPeakMaps_MapAlignmentAlgorithmPoseClustering
+from AASequence cimport AASequence as _AASequence
+from AcquisitionInfo cimport AcquisitionInfo as _AcquisitionInfo
 from BaseFeature cimport BaseFeature as _BaseFeature
 from ChromatogramPeak cimport ChromatogramPeak as _ChromatogramPeak
 from ChromatogramTools cimport ChromatogramTools as _ChromatogramTools
 from ConsensusFeature cimport ConsensusFeature as _ConsensusFeature
+from DataProcessing cimport DataProcessing as _DataProcessing
 from DataValue cimport DataValue as _DataValue
+from DateTime cimport DateTime as _DateTime
 from DefaultParamHandler cimport DefaultParamHandler as _DefaultParamHandler
 from DoubleList cimport DoubleList as _DoubleList
 from Feature cimport Feature as _Feature
+from FeatureFinder cimport FeatureFinder as _FeatureFinder
+from FeatureFinderAlgorithmPicked cimport FeatureFinderAlgorithmPicked as _FeatureFinderAlgorithmPicked
 from FeatureMap cimport FeatureMap as _FeatureMap
 from FeatureXMLFile cimport FeatureXMLFile as _FeatureXMLFile
 from FileHandler cimport FileHandler as _FileHandler
@@ -48,30 +100,124 @@ from MzDataFile cimport MzDataFile as _MzDataFile
 from MzMLFile cimport MzMLFile as _MzMLFile
 from MzXMLFile cimport MzXMLFile as _MzXMLFile
 from Param cimport Param as _Param
-from ParamIterator cimport ParamIterator as _ParamIterator
+from Param cimport ParamEntry as _ParamEntry
+from Param cimport ParamIterator as _ParamIterator
 from Peak1D cimport Peak1D as _Peak1D
 from Peak2D cimport Peak2D as _Peak2D
 from PeakPickerHiRes cimport PeakPickerHiRes as _PeakPickerHiRes
+from PeakTypeEstimator cimport PeakTypeEstimator as _PeakTypeEstimator
+from PeptideHit cimport PeptideHit as _PeptideHit
+from PeptideIdentification cimport PeptideIdentification as _PeptideIdentification
 from Precursor cimport Precursor as _Precursor
+from Product cimport Product as _Product
 from ProgressLogger cimport ProgressLogger as _ProgressLogger
 from ProteinHit cimport ProteinHit as _ProteinHit
 from ProteinIdentification cimport ProteinIdentification as _ProteinIdentification
 from RichPeak1D cimport RichPeak1D as _RichPeak1D
 from RichPeak2D cimport RichPeak2D as _RichPeak2D
+from Software cimport Software as _Software
 from SourceFile cimport SourceFile as _SourceFile
+from SpectrumSettings cimport SpectrumSettings as _SpectrumSettings
 from String cimport String as _String
 from StringList cimport StringList as _StringList
 from TransformationDescription cimport TransformationDescription as _TransformationDescription
+from TransformationModel cimport TransformationModel as _TransformationModel
+from TransformationModel cimport TransformationModelBSpline as _TransformationModelBSpline
+from TransformationModel cimport TransformationModelInterpolated as _TransformationModelInterpolated
+from TransformationModel cimport TransformationModelLinear as _TransformationModelLinear
+from TransformationXMLFile cimport TransformationXMLFile as _TransformationXMLFile
 from UniqueIdGenerator cimport UniqueIdGenerator as _UniqueIdGenerator
 from UniqueIdInterface cimport UniqueIdInterface as _UniqueIdInterface
+from VersionInfo cimport VersionDetails as _VersionDetails
+from VersionInfo cimport VersionInfo as _VersionInfo
 cdef extern from "autowrap_tools.hpp":
     char * _cast_const_away(char *)
+cdef extern from "autowrap_tools.hpp":
+    void _iadd(_AASequence *, _AASequence *)
+cdef extern from "autowrap_tools.hpp":
+    void _iadd(_FeatureMap[_Feature] *, _FeatureMap[_Feature] *)
+def __static_VersionDetails_create(bytes in_0 ):
+    assert isinstance(in_0, bytes), 'arg in_0 invalid'
+
+    cdef _VersionDetails * _r = new _VersionDetails(_create_VersionInfo((_String(<char *>in_0))))
+    cdef VersionDetails py_result = VersionDetails.__new__(VersionDetails)
+    py_result.inst = shared_ptr[_VersionDetails](_r)
+    return py_result
+def __static_TransformationModelLinear_getDefaultParameters(Param in_0 ):
+    assert isinstance(in_0, Param), 'arg in_0 invalid'
+
+    _getDefaultParameters_TransformationModelLinear(<_Param &>deref(in_0.inst.get()))
+def __static_TransformationModelInterpolated_getDefaultParameters(Param in_0 ):
+    assert isinstance(in_0, Param), 'arg in_0 invalid'
+
+    _getDefaultParameters_TransformationModelInterpolated(<_Param &>deref(in_0.inst.get()))
+def __static_TransformationModelBSpline_getDefaultParameters(Param in_0 ):
+    assert isinstance(in_0, Param), 'arg in_0 invalid'
+
+    _getDefaultParameters_TransformationModelBSpline(<_Param &>deref(in_0.inst.get()))
+def __static_FeatureFinderAlgorithmPicked_getProductName():
+    cdef _String _r = _getProductName_FeatureFinderAlgorithmPicked()
+    py_result = _cast_const_away(<char*>_r.c_str())
+    return py_result
+def __static_VersionInfo_getRevision():
+    cdef _String _r = _getRevision_VersionInfo()
+    py_result = _cast_const_away(<char*>_r.c_str())
+    return py_result
+def __static_VersionInfo_getTime():
+    cdef _String _r = _getTime_VersionInfo()
+    py_result = _cast_const_away(<char*>_r.c_str())
+    return py_result
 def __static_FileHandler_getType(bytes filename ):
     assert isinstance(filename, bytes), 'arg filename invalid'
 
-    cdef int _r = _getType((_String(<char *>filename)))
+    cdef int _r = _getType_FileHandler((_String(<char *>filename)))
     py_result = <int>_r
-    return py_result 
+    return py_result
+def __static_VersionInfo_getVersion():
+    cdef _String _r = _getVersion_VersionInfo()
+    py_result = _cast_const_away(<char*>_r.c_str())
+    return py_result
+def __static_DateTime_now():
+    cdef _DateTime * _r = new _DateTime(_now_DateTime())
+    cdef DateTime py_result = DateTime.__new__(DateTime)
+    py_result.inst = shared_ptr[_DateTime](_r)
+    return py_result
+def __static_MapAlignmentAlgorithmPoseClustering_transformFeatureMaps(list in_0 , list in_1 ):
+    assert isinstance(in_0, list) and all(isinstance(li, FeatureMap) for li in in_0), 'arg in_0 invalid'
+    assert isinstance(in_1, list) and all(isinstance(li, TransformationDescription) for li in in_1), 'arg in_1 invalid'
+    cdef libcpp_vector[_FeatureMap[_Feature]] * v0 = new libcpp_vector[_FeatureMap[_Feature]]()
+    cdef FeatureMap item0
+    for item0 in in_0:
+       v0.push_back(deref(item0.inst.get()))
+    cdef libcpp_vector[_TransformationDescription] * v1 = new libcpp_vector[_TransformationDescription]()
+    cdef TransformationDescription item1
+    for item1 in in_1:
+       v1.push_back(deref(item1.inst.get()))
+    _transformFeatureMaps_MapAlignmentAlgorithmPoseClustering(deref(v0), deref(v1))
+    cdef replace = []
+    cdef libcpp_vector[_TransformationDescription].iterator it = v1.begin()
+    while it != v1.end():
+       item1 = TransformationDescription.__new__(TransformationDescription)
+       item1.inst = shared_ptr[_TransformationDescription](new _TransformationDescription(deref(it)))
+       replace.append(item1)
+       inc(it)
+    in_1[:] = replace
+    del v1
+    del v0
+def __static_MapAlignmentAlgorithmPoseClustering_transformPeakMaps(list in_0 , list in_1 ):
+    assert isinstance(in_0, list) and all(isinstance(li, MSExperiment) for li in in_0), 'arg in_0 invalid'
+    assert isinstance(in_1, list) and all(isinstance(li, TransformationDescription) for li in in_1), 'arg in_1 invalid'
+    cdef libcpp_vector[_MSExperiment[_Peak1D,_ChromatogramPeak]] * v0 = new libcpp_vector[_MSExperiment[_Peak1D,_ChromatogramPeak]]()
+    cdef MSExperiment item0
+    for item0 in in_0:
+       v0.push_back(deref(item0.inst.get()))
+    cdef libcpp_vector[_TransformationDescription] * v1 = new libcpp_vector[_TransformationDescription]()
+    cdef TransformationDescription item1
+    for item1 in in_1:
+       v1.push_back(deref(item1.inst.get()))
+    _transformPeakMaps_MapAlignmentAlgorithmPoseClustering(deref(v0), deref(v1))
+    del v1
+    del v0 
 cdef class Polarity:
     POLNULL = 0
     POSITIVE = 1
@@ -83,12 +229,25 @@ cdef class MSExperiment:
          self.inst.reset()
     def __init__(self):
         self.inst = shared_ptr[_MSExperiment[_Peak1D,_ChromatogramPeak]](new _MSExperiment[_Peak1D,_ChromatogramPeak]())
-    def setMetaValue(self, bytes key , DataValue value ):
-        assert isinstance(key, bytes), 'arg key invalid'
-        assert isinstance(value, DataValue), 'arg value invalid'
+    def _setMetaValue_0(self, int in_0 , DataValue in_1 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
+        assert isinstance(in_1, DataValue), 'arg in_1 invalid'
     
     
-        self.inst.get().setMetaValue((_String(<char *>key)), <_DataValue>deref(value.inst.get()))
+        self.inst.get().setMetaValue((<int>in_0), <_DataValue>deref(in_1.inst.get()))
+    def _setMetaValue_1(self, bytes in_0 , DataValue in_1 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+        assert isinstance(in_1, DataValue), 'arg in_1 invalid'
+    
+    
+        self.inst.get().setMetaValue((_String(<char *>in_0)), <_DataValue>deref(in_1.inst.get()))
+    def setMetaValue(self, *args):
+        if (len(args)==2) and (isinstance(args[0], int)) and (isinstance(args[1], DataValue)):
+            return self._setMetaValue_0(*args)
+        elif (len(args)==2) and (isinstance(args[0], bytes)) and (isinstance(args[1], DataValue)):
+            return self._setMetaValue_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
     def sortSpectra(self, int in_0 ):
         assert isinstance(in_0, int), 'arg in_0 invalid'
     
@@ -105,13 +264,27 @@ cdef class MSExperiment:
         cdef _String _r = self.inst.get().getLoadedFilePath()
         py_result = _cast_const_away(<char*>_r.c_str())
         return py_result
-    def getMetaValue(self, bytes key ):
+    def _getMetaValue_0(self, bytes key ):
         assert isinstance(key, bytes), 'arg key invalid'
     
         cdef _DataValue * _r = new _DataValue(self.inst.get().getMetaValue((_String(<char *>key))))
         cdef DataValue py_result = DataValue.__new__(DataValue)
         py_result.inst = shared_ptr[_DataValue](_r)
         return py_result
+    def _getMetaValue_1(self, int key ):
+        assert isinstance(key, int), 'arg key invalid'
+    
+        cdef _DataValue * _r = new _DataValue(self.inst.get().getMetaValue((<int>key)))
+        cdef DataValue py_result = DataValue.__new__(DataValue)
+        py_result.inst = shared_ptr[_DataValue](_r)
+        return py_result
+    def getMetaValue(self, *args):
+        if (len(args)==1) and (isinstance(args[0], bytes)):
+            return self._getMetaValue_0(*args)
+        elif (len(args)==1) and (isinstance(args[0], int)):
+            return self._getMetaValue_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
     def setLoadedFilePath(self, bytes path ):
         assert isinstance(path, bytes), 'arg path invalid'
     
@@ -157,12 +330,44 @@ cdef class ProteinHit:
         cdef _String _r = self.inst.get().getSequence()
         py_result = _cast_const_away(<char*>_r.c_str())
         return py_result
-    def isMetaEmpty(self):
-        cdef bool _r = self.inst.get().isMetaEmpty()
-        py_result = <bool>_r
-        return py_result
-    def __init__(self):
+    def _init_0(self):
         self.inst = shared_ptr[_ProteinHit](new _ProteinHit())
+    def _init_1(self, float score , int rank , bytes accession , bytes sequence ):
+        assert isinstance(score, float), 'arg score invalid'
+        assert isinstance(rank, int), 'arg rank invalid'
+        assert isinstance(accession, bytes), 'arg accession invalid'
+        assert isinstance(sequence, bytes), 'arg sequence invalid'
+    
+    
+    
+    
+        self.inst = shared_ptr[_ProteinHit](new _ProteinHit((<float>score), (<int>rank), (_String(<char *>accession)), (_String(<char *>sequence))))
+    def __init__(self, *args):
+        if not args:
+             self._init_0(*args)
+        elif (len(args)==4) and (isinstance(args[0], float)) and (isinstance(args[1], int)) and (isinstance(args[2], bytes)) and (isinstance(args[3], bytes)):
+             self._init_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
+    def setSequence(self, bytes in_0 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+    
+        self.inst.get().setSequence((_String(<char *>in_0)))
+    def _removeMetaValue_0(self, bytes in_0 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+    
+        self.inst.get().removeMetaValue((_String(<char *>in_0)))
+    def _removeMetaValue_1(self, int in_0 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
+    
+        self.inst.get().removeMetaValue((<int>in_0))
+    def removeMetaValue(self, *args):
+        if (len(args)==1) and (isinstance(args[0], bytes)):
+            return self._removeMetaValue_0(*args)
+        elif (len(args)==1) and (isinstance(args[0], int)):
+            return self._removeMetaValue_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
     def getCoverage(self):
         cdef double _r = self.inst.get().getCoverage()
         py_result = <float>_r
@@ -219,6 +424,24 @@ cdef class ProteinHit:
             return self._getMetaValue_1(*args)
         else:
                raise Exception('can not handle %s' % (args,))
+    def clearMetaInfo(self):
+        self.inst.get().clearMetaInfo()
+    def getRank(self):
+        cdef unsigned int _r = self.inst.get().getRank()
+        py_result = <int>_r
+        return py_result
+    def getAccession(self):
+        cdef _String _r = self.inst.get().getAccession()
+        py_result = _cast_const_away(<char*>_r.c_str())
+        return py_result
+    def setCoverage(self, float in_0 ):
+        assert isinstance(in_0, float), 'arg in_0 invalid'
+    
+        self.inst.get().setCoverage((<float>in_0))
+    def isMetaEmpty(self):
+        cdef bool _r = self.inst.get().isMetaEmpty()
+        py_result = <bool>_r
+        return py_result
     def _getKeys_0(self, list keys ):
         assert isinstance(keys, list) and all(isinstance(i, bytes) for i in keys), 'arg keys invalid'
         cdef libcpp_vector[_String] * v0 = new libcpp_vector[_String]()
@@ -245,35 +468,6 @@ cdef class ProteinHit:
             return self._getKeys_1(*args)
         else:
                raise Exception('can not handle %s' % (args,))
-    def getRank(self):
-        cdef unsigned int _r = self.inst.get().getRank()
-        py_result = <int>_r
-        return py_result
-    def getAccession(self):
-        cdef _String _r = self.inst.get().getAccession()
-        py_result = _cast_const_away(<char*>_r.c_str())
-        return py_result
-    def setCoverage(self, float in_0 ):
-        assert isinstance(in_0, float), 'arg in_0 invalid'
-    
-        self.inst.get().setCoverage((<float>in_0))
-    def _removeMetaValue_0(self, bytes in_0 ):
-        assert isinstance(in_0, bytes), 'arg in_0 invalid'
-    
-        self.inst.get().removeMetaValue((_String(<char *>in_0)))
-    def _removeMetaValue_1(self, int in_0 ):
-        assert isinstance(in_0, int), 'arg in_0 invalid'
-    
-        self.inst.get().removeMetaValue((<int>in_0))
-    def removeMetaValue(self, *args):
-        if (len(args)==1) and (isinstance(args[0], bytes)):
-            return self._removeMetaValue_0(*args)
-        elif (len(args)==1) and (isinstance(args[0], int)):
-            return self._removeMetaValue_1(*args)
-        else:
-               raise Exception('can not handle %s' % (args,))
-    def clearMetaInfo(self):
-        self.inst.get().clearMetaInfo()
     def setScore(self, float in_0 ):
         assert isinstance(in_0, float), 'arg in_0 invalid'
     
@@ -307,12 +501,28 @@ cdef class ConsensusFeature:
     
     
     
-        self.inst = shared_ptr[_ConsensusFeature](new _ConsensusFeature((<uint64_t>in_0), <_Peak2D>deref(in_1.inst.get()), (<uint64_t>in_2)))
+        self.inst = shared_ptr[_ConsensusFeature](new _ConsensusFeature((<int>in_0), <_Peak2D>deref(in_1.inst.get()), (<int>in_2)))
+    def _init_2(self, int in_0 , BaseFeature in_1 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
+        assert isinstance(in_1, BaseFeature), 'arg in_1 invalid'
+    
+    
+        self.inst = shared_ptr[_ConsensusFeature](new _ConsensusFeature((<int>in_0), <_BaseFeature>deref(in_1.inst.get())))
+    def _init_3(self, int in_0 , ConsensusFeature in_1 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
+        assert isinstance(in_1, ConsensusFeature), 'arg in_1 invalid'
+    
+    
+        self.inst = shared_ptr[_ConsensusFeature](new _ConsensusFeature((<int>in_0), <_ConsensusFeature>deref(in_1.inst.get())))
     def __init__(self, *args):
         if not args:
              self._init_0(*args)
         elif (len(args)==3) and (isinstance(args[0], int)) and (isinstance(args[1], Peak2D)) and (isinstance(args[2], int)):
              self._init_1(*args)
+        elif (len(args)==2) and (isinstance(args[0], int)) and (isinstance(args[1], BaseFeature)):
+             self._init_2(*args)
+        elif (len(args)==2) and (isinstance(args[0], int)) and (isinstance(args[1], ConsensusFeature)):
+             self._init_3(*args)
         else:
                raise Exception('can not handle %s' % (args,))
     def _metaValueExists_0(self, bytes in_0 ):
@@ -364,6 +574,12 @@ cdef class ConsensusFeature:
         cdef size_t _r = self.inst.get().hasValidUniqueId()
         py_result = <size_t>_r
         return py_result
+    def computeDechargeConsensus(self, FeatureMap in_0 , int in_1 ):
+        assert isinstance(in_0, FeatureMap), 'arg in_0 invalid'
+        assert isinstance(in_1, int), 'arg in_1 invalid'
+    
+    
+        self.inst.get().computeDechargeConsensus(<_FeatureMap[_Feature]>deref(in_0.inst.get()), (<bool>in_1))
     def _getMetaValue_0(self, int in_0 ):
         assert isinstance(in_0, int), 'arg in_0 invalid'
     
@@ -403,10 +619,25 @@ cdef class ConsensusFeature:
         cdef size_t _r = self.inst.get().clearUniqueId()
         py_result = <size_t>_r
         return py_result
-    def setUniqueId(self):
-        cdef size_t _r = self.inst.get().setUniqueId()
-        py_result = <size_t>_r
-        return py_result
+    def _setMetaValue_0(self, int in_0 , DataValue in_1 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
+        assert isinstance(in_1, DataValue), 'arg in_1 invalid'
+    
+    
+        self.inst.get().setMetaValue((<int>in_0), <_DataValue>deref(in_1.inst.get()))
+    def _setMetaValue_1(self, bytes in_0 , DataValue in_1 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+        assert isinstance(in_1, DataValue), 'arg in_1 invalid'
+    
+    
+        self.inst.get().setMetaValue((_String(<char *>in_0)), <_DataValue>deref(in_1.inst.get()))
+    def setMetaValue(self, *args):
+        if (len(args)==2) and (isinstance(args[0], int)) and (isinstance(args[1], DataValue)):
+            return self._setMetaValue_0(*args)
+        elif (len(args)==2) and (isinstance(args[0], bytes)) and (isinstance(args[1], DataValue)):
+            return self._setMetaValue_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
     def hasInvalidUniqueId(self):
         cdef size_t _r = self.inst.get().hasInvalidUniqueId()
         py_result = <size_t>_r
@@ -418,18 +649,26 @@ cdef class ConsensusFeature:
     
     
     
-        self.inst.get().insert((<uint64_t>in_0), <_Peak2D>deref(in_1.inst.get()), (<uint64_t>in_2))
+        self.inst.get().insert((<int>in_0), <_Peak2D>deref(in_1.inst.get()), (<int>in_2))
     def _insert_1(self, int in_0 , BaseFeature in_1 ):
         assert isinstance(in_0, int), 'arg in_0 invalid'
         assert isinstance(in_1, BaseFeature), 'arg in_1 invalid'
     
     
-        self.inst.get().insert((<uint64_t>in_0), <_BaseFeature>deref(in_1.inst.get()))
+        self.inst.get().insert((<int>in_0), <_BaseFeature>deref(in_1.inst.get()))
+    def _insert_2(self, int in_0 , ConsensusFeature in_1 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
+        assert isinstance(in_1, ConsensusFeature), 'arg in_1 invalid'
+    
+    
+        self.inst.get().insert((<int>in_0), <_ConsensusFeature>deref(in_1.inst.get()))
     def insert(self, *args):
         if (len(args)==3) and (isinstance(args[0], int)) and (isinstance(args[1], Peak2D)) and (isinstance(args[2], int)):
             return self._insert_0(*args)
         elif (len(args)==2) and (isinstance(args[0], int)) and (isinstance(args[1], BaseFeature)):
             return self._insert_1(*args)
+        elif (len(args)==2) and (isinstance(args[0], int)) and (isinstance(args[1], ConsensusFeature)):
+            return self._insert_2(*args)
         else:
                raise Exception('can not handle %s' % (args,))
     def getQuality(self):
@@ -493,6 +732,25 @@ cdef class ProteinIdentification:
            v0.push_back(deref(item0.inst.get()))
         self.inst.get().setHits(deref(v0))
         del v0
+    def _setMetaValue_0(self, int in_0 , DataValue in_1 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
+        assert isinstance(in_1, DataValue), 'arg in_1 invalid'
+    
+    
+        self.inst.get().setMetaValue((<int>in_0), <_DataValue>deref(in_1.inst.get()))
+    def _setMetaValue_1(self, bytes in_0 , DataValue in_1 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+        assert isinstance(in_1, DataValue), 'arg in_1 invalid'
+    
+    
+        self.inst.get().setMetaValue((_String(<char *>in_0)), <_DataValue>deref(in_1.inst.get()))
+    def setMetaValue(self, *args):
+        if (len(args)==2) and (isinstance(args[0], int)) and (isinstance(args[1], DataValue)):
+            return self._setMetaValue_0(*args)
+        elif (len(args)==2) and (isinstance(args[0], bytes)) and (isinstance(args[1], DataValue)):
+            return self._setMetaValue_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
     def getHits(self):
         _r = self.inst.get().getHits()
         py_result = []
@@ -504,8 +762,19 @@ cdef class ProteinIdentification:
            py_result.append(item_py_result)
            inc(it__r)
         return py_result
-    def __init__(self):
+    def _init_0(self):
         self.inst = shared_ptr[_ProteinIdentification](new _ProteinIdentification())
+    def _init_1(self, ProteinIdentification in_0 ):
+        assert isinstance(in_0, ProteinIdentification), 'arg in_0 invalid'
+    
+        self.inst = shared_ptr[_ProteinIdentification](new _ProteinIdentification(<_ProteinIdentification>deref(in_0.inst.get())))
+    def __init__(self, *args):
+        if not args:
+             self._init_0(*args)
+        elif (len(args)==1) and (isinstance(args[0], ProteinIdentification)):
+             self._init_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
     def insertHit(self, ProteinHit in_0 ):
         assert isinstance(in_0, ProteinHit), 'arg in_0 invalid'
     
@@ -604,7 +873,31 @@ cdef class ProteinIdentification:
         if op==2:
             return deref(self_casted.inst.get()) == deref(other_casted.inst.get())
         if op==3:
-            return deref(self_casted.inst.get()) != deref(other_casted.inst.get()) 
+            return deref(self_casted.inst.get()) != deref(other_casted.inst.get())
+    DigestionEnzyme = __DigestionEnzyme
+    PeakMassType = __PeakMassType 
+cdef class __PeakMassType:
+    MONOISOTOPIC = 0
+    AVERAGE = 1
+    SIZE_OF_PEAKMASSTYPE = 2 
+cdef class TransformationXMLFile:
+    cdef shared_ptr[_TransformationXMLFile] inst
+    def __dealloc__(self):
+         self.inst.reset()
+    def load(self, bytes in_0 , TransformationDescription in_1 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+        assert isinstance(in_1, TransformationDescription), 'arg in_1 invalid'
+    
+    
+        self.inst.get().load((_String(<char *>in_0)), <_TransformationDescription &>deref(in_1.inst.get()))
+    def __init__(self):
+        self.inst = shared_ptr[_TransformationXMLFile](new _TransformationXMLFile())
+    def store(self, bytes in_0 , TransformationDescription in_1 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+        assert isinstance(in_1, TransformationDescription), 'arg in_1 invalid'
+    
+    
+        self.inst.get().store((_String(<char *>in_0)), <_TransformationDescription>deref(in_1.inst.get())) 
 cdef class SourceFile:
     cdef shared_ptr[_SourceFile] inst
     def __dealloc__(self):
@@ -767,13 +1060,28 @@ cdef class Feature:
         cdef size_t _r = self.inst.get().clearUniqueId()
         py_result = <size_t>_r
         return py_result
+    def _setMetaValue_0(self, int in_0 , DataValue in_1 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
+        assert isinstance(in_1, DataValue), 'arg in_1 invalid'
+    
+    
+        self.inst.get().setMetaValue((<int>in_0), <_DataValue>deref(in_1.inst.get()))
+    def _setMetaValue_1(self, bytes in_0 , DataValue in_1 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+        assert isinstance(in_1, DataValue), 'arg in_1 invalid'
+    
+    
+        self.inst.get().setMetaValue((_String(<char *>in_0)), <_DataValue>deref(in_1.inst.get()))
+    def setMetaValue(self, *args):
+        if (len(args)==2) and (isinstance(args[0], int)) and (isinstance(args[1], DataValue)):
+            return self._setMetaValue_0(*args)
+        elif (len(args)==2) and (isinstance(args[0], bytes)) and (isinstance(args[1], DataValue)):
+            return self._setMetaValue_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
     def getIntensity(self):
         cdef double _r = self.inst.get().getIntensity()
         py_result = <float>_r
-        return py_result
-    def setUniqueId(self):
-        cdef size_t _r = self.inst.get().setUniqueId()
-        py_result = <size_t>_r
         return py_result
     def hasInvalidUniqueId(self):
         cdef size_t _r = self.inst.get().hasInvalidUniqueId()
@@ -859,6 +1167,156 @@ cdef class Param:
     cdef shared_ptr[_Param] inst
     def __dealloc__(self):
          self.inst.reset()
+    def load(self, bytes filename ):
+        assert isinstance(filename, bytes), 'arg filename invalid'
+    
+        self.inst.get().load((_String(<char *>filename)))
+    def exists(self, bytes key ):
+        assert isinstance(key, bytes), 'arg key invalid'
+    
+        cdef int _r = self.inst.get().exists((_String(<char *>key)))
+        py_result = <int>_r
+        return py_result
+    def getDescription(self, bytes key ):
+        assert isinstance(key, bytes), 'arg key invalid'
+    
+        cdef libcpp_string _r = self.inst.get().getDescription((_String(<char *>key)))
+        py_result = <libcpp_string>_r
+        return py_result
+    def _init_0(self):
+        self.inst = shared_ptr[_Param](new _Param())
+    def _init_1(self, Param in_0 ):
+        assert isinstance(in_0, Param), 'arg in_0 invalid'
+    
+        self.inst = shared_ptr[_Param](new _Param(<_Param>deref(in_0.inst.get())))
+    def __init__(self, *args):
+        if not args:
+             self._init_0(*args)
+        elif (len(args)==1) and (isinstance(args[0], Param)):
+             self._init_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
+    def setMaxInt(self, bytes key , int max ):
+        assert isinstance(key, bytes), 'arg key invalid'
+        assert isinstance(max, int), 'arg max invalid'
+    
+    
+        self.inst.get().setMaxInt((_String(<char *>key)), (<int>max))
+    def setMinInt(self, bytes key , int min ):
+        assert isinstance(key, bytes), 'arg key invalid'
+        assert isinstance(min, int), 'arg min invalid'
+    
+    
+        self.inst.get().setMinInt((_String(<char *>key)), (<int>min))
+    def size(self):
+        cdef int _r = self.inst.get().size()
+        py_result = <int>_r
+        return py_result
+    def setMinFloat(self, bytes key , float min ):
+        assert isinstance(key, bytes), 'arg key invalid'
+        assert isinstance(min, float), 'arg min invalid'
+    
+    
+        self.inst.get().setMinFloat((_String(<char *>key)), (<float>min))
+    def setValidStrings(self, bytes key , list strings ):
+        assert isinstance(key, bytes), 'arg key invalid'
+        assert isinstance(strings, list) and all(isinstance(i, bytes) for i in strings), 'arg strings invalid'
+    
+        cdef libcpp_vector[_String] * v1 = new libcpp_vector[_String]()
+        cdef bytes item1
+        for item1 in strings:
+           v1.push_back(_String(<char *>item1))
+        self.inst.get().setValidStrings((_String(<char *>key)), deref(v1))
+        del v1
+    def getEntry(self, bytes in_0 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+    
+        cdef _ParamEntry * _r = new _ParamEntry(self.inst.get().getEntry((_String(<char *>in_0))))
+        cdef ParamEntry py_result = ParamEntry.__new__(ParamEntry)
+        py_result.inst = shared_ptr[_ParamEntry](_r)
+        return py_result
+    def getSectionDescription(self, bytes key ):
+        assert isinstance(key, bytes), 'arg key invalid'
+    
+        cdef libcpp_string _r = self.inst.get().getSectionDescription((_String(<char *>key)))
+        py_result = <libcpp_string>_r
+        return py_result
+    def hasTag(self, bytes key , bytes tag ):
+        assert isinstance(key, bytes), 'arg key invalid'
+        assert isinstance(tag, bytes), 'arg tag invalid'
+    
+    
+        cdef int _r = self.inst.get().hasTag((_String(<char *>key)), (_String(<char *>tag)))
+        py_result = <int>_r
+        return py_result
+    def store(self, bytes filename ):
+        assert isinstance(filename, bytes), 'arg filename invalid'
+    
+        self.inst.get().store((_String(<char *>filename)))
+    def _setValue_0(self, bytes key , DataValue val , bytes desc , list tags ):
+        assert isinstance(key, bytes), 'arg key invalid'
+        assert isinstance(val, DataValue), 'arg val invalid'
+        assert isinstance(desc, bytes), 'arg desc invalid'
+        assert isinstance(tags, list) and all(isinstance(li, bytes) for li in tags), 'arg tags invalid'
+    
+    
+    
+        cdef libcpp_vector[libcpp_string] _v3 = tags
+        cdef _StringList v3 = _StringList(_v3)
+        self.inst.get().setValue((_String(<char *>key)), <_DataValue>deref(val.inst.get()), (_String(<char *>desc)), (v3))
+    def _setValue_1(self, bytes key , DataValue val , bytes desc ):
+        assert isinstance(key, bytes), 'arg key invalid'
+        assert isinstance(val, DataValue), 'arg val invalid'
+        assert isinstance(desc, bytes), 'arg desc invalid'
+    
+    
+    
+        self.inst.get().setValue((_String(<char *>key)), <_DataValue>deref(val.inst.get()), (_String(<char *>desc)))
+    def setValue(self, *args):
+        if (len(args)==4) and (isinstance(args[0], bytes)) and (isinstance(args[1], DataValue)) and (isinstance(args[2], bytes)) and (isinstance(args[3], list) and all(isinstance(li, bytes) for li in args[3])):
+            return self._setValue_0(*args)
+        elif (len(args)==3) and (isinstance(args[0], bytes)) and (isinstance(args[1], DataValue)) and (isinstance(args[2], bytes)):
+            return self._setValue_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
+    def addTags(self, bytes key , list tags ):
+        assert isinstance(key, bytes), 'arg key invalid'
+        assert isinstance(tags, list) and all(isinstance(li, bytes) for li in tags), 'arg tags invalid'
+    
+        cdef libcpp_vector[libcpp_string] _v1 = tags
+        cdef _StringList v1 = _StringList(_v1)
+        self.inst.get().addTags((_String(<char *>key)), (v1))
+    def update(self, Param p_old , int report_new_params , int only_update_old ):
+        assert isinstance(p_old, Param), 'arg p_old invalid'
+        assert isinstance(report_new_params, int), 'arg report_new_params invalid'
+        assert isinstance(only_update_old, int), 'arg only_update_old invalid'
+    
+    
+    
+        self.inst.get().update(<_Param>deref(p_old.inst.get()), (<bool>report_new_params), (<bool>only_update_old))
+    def _copy_0(self, bytes prefix , int in_1 ):
+        assert isinstance(prefix, bytes), 'arg prefix invalid'
+        assert isinstance(in_1, int), 'arg in_1 invalid'
+    
+    
+        cdef _Param * _r = new _Param(self.inst.get().copy((_String(<char *>prefix)), (<bool>in_1)))
+        cdef Param py_result = Param.__new__(Param)
+        py_result.inst = shared_ptr[_Param](_r)
+        return py_result
+    def _copy_1(self, bytes prefix ):
+        assert isinstance(prefix, bytes), 'arg prefix invalid'
+    
+        cdef _Param * _r = new _Param(self.inst.get().copy((_String(<char *>prefix))))
+        cdef Param py_result = Param.__new__(Param)
+        py_result.inst = shared_ptr[_Param](_r)
+        return py_result
+    def copy(self, *args):
+        if (len(args)==2) and (isinstance(args[0], bytes)) and (isinstance(args[1], int)):
+            return self._copy_0(*args)
+        elif (len(args)==1) and (isinstance(args[0], bytes)):
+            return self._copy_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
     def getTags(self, bytes key ):
         assert isinstance(key, bytes), 'arg key invalid'
     
@@ -875,81 +1333,12 @@ cdef class Param:
     
     
         self.inst.get().insert((_String(<char *>prefix)), <_Param>deref(param.inst.get()))
-    def setValue(self, bytes key , DataValue val , bytes desc , list tags ):
-        assert isinstance(key, bytes), 'arg key invalid'
-        assert isinstance(val, DataValue), 'arg val invalid'
-        assert isinstance(desc, bytes), 'arg desc invalid'
-        assert isinstance(tags, list) and all(isinstance(li, bytes) for li in tags), 'arg tags invalid'
-    
-    
-    
-        cdef libcpp_vector[libcpp_string] _v3 = tags
-        cdef _StringList v3 = _StringList(_v3)
-        self.inst.get().setValue((_String(<char *>key)), <_DataValue>deref(val.inst.get()), (_String(<char *>desc)), (v3))
-    def load(self, bytes filename ):
-        assert isinstance(filename, bytes), 'arg filename invalid'
-    
-        self.inst.get().load((_String(<char *>filename)))
-    def addTags(self, bytes key , list tags ):
-        assert isinstance(key, bytes), 'arg key invalid'
-        assert isinstance(tags, list) and all(isinstance(li, bytes) for li in tags), 'arg tags invalid'
-    
-        cdef libcpp_vector[libcpp_string] _v1 = tags
-        cdef _StringList v1 = _StringList(_v1)
-        self.inst.get().addTags((_String(<char *>key)), (v1))
-    def exists(self, bytes key ):
-        assert isinstance(key, bytes), 'arg key invalid'
-    
-        cdef int _r = self.inst.get().exists((_String(<char *>key)))
-        py_result = <int>_r
-        return py_result
-    def setValidStrings(self, bytes key , list strings ):
-        assert isinstance(key, bytes), 'arg key invalid'
-        assert isinstance(strings, list) and all(isinstance(i, bytes) for i in strings), 'arg strings invalid'
-    
-        cdef libcpp_vector[_String] * v1 = new libcpp_vector[_String]()
-        cdef bytes item1
-        for item1 in strings:
-           v1.push_back(_String(<char *>item1))
-        self.inst.get().setValidStrings((_String(<char *>key)), deref(v1))
-        del v1
-    def setMaxInt(self, bytes key , int max ):
-        assert isinstance(key, bytes), 'arg key invalid'
-        assert isinstance(max, int), 'arg max invalid'
-    
-    
-        self.inst.get().setMaxInt((_String(<char *>key)), (<int>max))
     def setMaxFloat(self, bytes key , float max ):
         assert isinstance(key, bytes), 'arg key invalid'
         assert isinstance(max, float), 'arg max invalid'
     
     
         self.inst.get().setMaxFloat((_String(<char *>key)), (<float>max))
-    def getDescription(self, bytes key ):
-        assert isinstance(key, bytes), 'arg key invalid'
-    
-        cdef libcpp_string _r = self.inst.get().getDescription((_String(<char *>key)))
-        py_result = <libcpp_string>_r
-        return py_result
-    def setMinFloat(self, bytes key , float min ):
-        assert isinstance(key, bytes), 'arg key invalid'
-        assert isinstance(min, float), 'arg min invalid'
-    
-    
-        self.inst.get().setMinFloat((_String(<char *>key)), (<float>min))
-    def _init_0(self):
-        self.inst = shared_ptr[_Param](new _Param())
-    def _init_1(self, Param in_0 ):
-        assert isinstance(in_0, Param), 'arg in_0 invalid'
-    
-        self.inst = shared_ptr[_Param](new _Param(<_Param>deref(in_0.inst.get())))
-    def __init__(self, *args):
-        if not args:
-             self._init_0(*args)
-        elif (len(args)==1) and (isinstance(args[0], Param)):
-             self._init_1(*args)
-        else:
-               raise Exception('can not handle %s' % (args,))
     def getValue(self, bytes key ):
         assert isinstance(key, bytes), 'arg key invalid'
     
@@ -957,26 +1346,10 @@ cdef class Param:
         cdef DataValue py_result = DataValue.__new__(DataValue)
         py_result.inst = shared_ptr[_DataValue](_r)
         return py_result
-    def getSectionDescription(self, bytes key ):
-        assert isinstance(key, bytes), 'arg key invalid'
-    
-        cdef libcpp_string _r = self.inst.get().getSectionDescription((_String(<char *>key)))
-        py_result = <libcpp_string>_r
-        return py_result
     def clearTags(self, bytes key ):
         assert isinstance(key, bytes), 'arg key invalid'
     
         self.inst.get().clearTags((_String(<char *>key)))
-    def setMinInt(self, bytes key , int min ):
-        assert isinstance(key, bytes), 'arg key invalid'
-        assert isinstance(min, int), 'arg min invalid'
-    
-    
-        self.inst.get().setMinInt((_String(<char *>key)), (<int>min))
-    def store(self, bytes filename ):
-        assert isinstance(filename, bytes), 'arg filename invalid'
-    
-        self.inst.get().store((_String(<char *>filename)))
     def setSectionDescription(self, bytes key , bytes desc ):
         assert isinstance(key, bytes), 'arg key invalid'
         assert isinstance(desc, bytes), 'arg desc invalid'
@@ -989,46 +1362,9 @@ cdef class Param:
     
     
         self.inst.get().addTag((_String(<char *>key)), (_String(<char *>tag)))
-    def hasTag(self, bytes key , bytes tag ):
-        assert isinstance(key, bytes), 'arg key invalid'
-        assert isinstance(tag, bytes), 'arg tag invalid'
-    
-    
-        cdef int _r = self.inst.get().hasTag((_String(<char *>key)), (_String(<char *>tag)))
-        py_result = <int>_r
-        return py_result
-    def size(self):
-        cdef int _r = self.inst.get().size()
-        py_result = <int>_r
-        return py_result
     # the following empty line is important
 
-    def asBunch(Param self):
-
-
-        class Bunch(dict):
-            __getattr__ = dict.__getitem__
-            def __setattr__(self, k, v):
-                self[k] = v
-
-            def __missing__(self, k):
-                self[k] = Bunch()
-                return self[k]
-
-            def __str__(self):
-                return "\n".join(self._to_str_list())
-
-            def _to_str_list(self):
-                rv = []
-                # two similar for loops to get output in nice order:
-                for k, v in self.items():
-                    if not isinstance(v, Bunch):
-                        rv.append("%s=%s" % (k,v))
-                for k, v in self.items():
-                    if isinstance(v, Bunch):
-                        for postfix in v._to_str_list():
-                            rv.append("%s.%s" % (k, postfix))
-                return rv
+    def asDict(Param self):
 
 
         cdef list keys = list()
@@ -1038,17 +1374,10 @@ cdef class Param:
             keys.append(param_it.getName().c_str())
             inc(param_it)
 
-        result = Bunch()
+        result = dict()
 
         for k in keys:
-            fields = k.split(":")
-            d = result
-            for f in fields[:-1]:
-                if not f in d:
-                    d[f]=Bunch()
-                d = d[f]
             value = self.getValue(k)
-
             dt = value.valueType()
             if dt == DataType.STRING_VALUE:
                 value = value.toString()
@@ -1062,30 +1391,32 @@ cdef class Param:
                 value = value.toStringList()
             elif dt == DataType.INT_LIST:
                 value = value.toIntList()
+            result[k] = value
 
-            d[fields[-1]] = value
-
-        return Bunch(result)
+        return result
 
     def updateFrom(self, dd):
         assert isinstance(dd, dict)
 
-        def to_items(dd):
-            rv = []
-            # two similar for loops to get output in nice order:
-            for k, v in dd.items():
-                if not isinstance(v, dict):
-                    rv.append((k,v))
-            for k, v in dd.items():
-                if isinstance(v, dict):
-                    for postfix, v in to_items(v):
-                        rv.append(("%s:%s" % (k, postfix), v))
-            return rv
-
-        for key, v in to_items(dd):
+        for key, v in dd.items():
             tags = self.getTags(key)
             desc = self.getDescription(key)
             self.setValue(key, DataValue(v), desc, tags) 
+cdef class DateTime:
+    cdef shared_ptr[_DateTime] inst
+    def __dealloc__(self):
+         self.inst.reset()
+    def getTime(self):
+        cdef _String _r = self.inst.get().getTime()
+        py_result = _cast_const_away(<char*>_r.c_str())
+        return py_result
+    def getDate(self):
+        cdef _String _r = self.inst.get().getDate()
+        py_result = _cast_const_away(<char*>_r.c_str())
+        return py_result
+    def __init__(self):
+        self.inst = shared_ptr[_DateTime](new _DateTime())
+    now = __static_DateTime_now 
 cdef class MzDataFile:
     cdef shared_ptr[_MzDataFile] inst
     def __dealloc__(self):
@@ -1096,8 +1427,30 @@ cdef class MzDataFile:
     
     
         self.inst.get().load((_String(<char *>in_0)), <_MSExperiment[_Peak1D,_ChromatogramPeak] &>deref(in_1.inst.get()))
+    def startProgress(self, int begin , int end , bytes label ):
+        assert isinstance(begin, int), 'arg begin invalid'
+        assert isinstance(end, int), 'arg end invalid'
+        assert isinstance(label, bytes), 'arg label invalid'
+    
+    
+    
+        self.inst.get().startProgress((<ptrdiff_t>begin), (<ptrdiff_t>end), (_String(<char *>label)))
+    def getLogType(self):
+        cdef _LogType _r = self.inst.get().getLogType()
+        py_result = <int>_r
+        return py_result
+    def endProgress(self):
+        self.inst.get().endProgress()
     def __init__(self):
         self.inst = shared_ptr[_MzDataFile](new _MzDataFile())
+    def setProgress(self, int value ):
+        assert isinstance(value, int), 'arg value invalid'
+    
+        self.inst.get().setProgress((<ptrdiff_t>value))
+    def setLogType(self, int in_0 ):
+        assert in_0 in [0, 1, 2], 'arg in_0 invalid'
+    
+        self.inst.get().setLogType((<_LogType>in_0))
     def store(self, bytes in_0 , MSExperiment in_1 ):
         assert isinstance(in_0, bytes), 'arg in_0 invalid'
         assert isinstance(in_1, MSExperiment), 'arg in_1 invalid'
@@ -1112,6 +1465,25 @@ cdef class BaseFeature:
         cdef int _r = self.inst.get().getCharge()
         py_result = <int>_r
         return py_result
+    def _setMetaValue_0(self, int in_0 , DataValue in_1 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
+        assert isinstance(in_1, DataValue), 'arg in_1 invalid'
+    
+    
+        self.inst.get().setMetaValue((<int>in_0), <_DataValue>deref(in_1.inst.get()))
+    def _setMetaValue_1(self, bytes in_0 , DataValue in_1 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+        assert isinstance(in_1, DataValue), 'arg in_1 invalid'
+    
+    
+        self.inst.get().setMetaValue((_String(<char *>in_0)), <_DataValue>deref(in_1.inst.get()))
+    def setMetaValue(self, *args):
+        if (len(args)==2) and (isinstance(args[0], int)) and (isinstance(args[1], DataValue)):
+            return self._setMetaValue_0(*args)
+        elif (len(args)==2) and (isinstance(args[0], bytes)) and (isinstance(args[1], DataValue)):
+            return self._setMetaValue_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
     def clearUniqueId(self):
         cdef size_t _r = self.inst.get().clearUniqueId()
         py_result = <size_t>_r
@@ -1212,10 +1584,6 @@ cdef class BaseFeature:
         return py_result
     def __init__(self):
         self.inst = shared_ptr[_BaseFeature](new _BaseFeature())
-    def setUniqueId(self):
-        cdef size_t _r = self.inst.get().setUniqueId()
-        py_result = <size_t>_r
-        return py_result
     def _removeMetaValue_0(self, bytes in_0 ):
         assert isinstance(in_0, bytes), 'arg in_0 invalid'
     
@@ -1239,6 +1607,258 @@ cdef class BaseFeature:
         assert isinstance(q, int), 'arg q invalid'
     
         self.inst.get().setCharge((<int>q)) 
+cdef class AASequence:
+    cdef shared_ptr[_AASequence] inst
+    def __dealloc__(self):
+         self.inst.reset()
+    def getCTerminalModification(self):
+        cdef _String _r = self.inst.get().getCTerminalModification()
+        py_result = _cast_const_away(<char*>_r.c_str())
+        return py_result
+    def __iadd__(AASequence self, AASequence other not None):
+        cdef _AASequence * this = self.inst.get()
+        cdef _AASequence * that = other.inst.get()
+        _iadd(this, that)
+        return self
+    def toUnmodifiedString(self):
+        cdef _String _r = self.inst.get().toUnmodifiedString()
+        py_result = _cast_const_away(<char*>_r.c_str())
+        return py_result
+    def setStringSequence(self, bytes modification ):
+        assert isinstance(modification, bytes), 'arg modification invalid'
+    
+        self.inst.get().setStringSequence((_String(<char *>modification)))
+    def __add__(AASequence self, AASequence other not None):
+        cdef _AASequence  * this = self.inst.get()
+        cdef _AASequence * that = other.inst.get()
+        cdef _AASequence added = deref(this) + deref(that)
+        cdef AASequence result = AASequence.__new__(AASequence)
+        result.inst = shared_ptr[_AASequence](new _AASequence(added))
+        return result
+    def toString(self):
+        cdef _String _r = self.inst.get().toString()
+        py_result = _cast_const_away(<char*>_r.c_str())
+        return py_result
+    def setNTerminalModification(self, bytes modification ):
+        assert isinstance(modification, bytes), 'arg modification invalid'
+    
+        self.inst.get().setNTerminalModification((_String(<char *>modification)))
+    def _init_0(self):
+        self.inst = shared_ptr[_AASequence](new _AASequence())
+    def _init_1(self, bytes in_0 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+    
+        self.inst = shared_ptr[_AASequence](new _AASequence((<char *>in_0)))
+    def __init__(self, *args):
+        if not args:
+             self._init_0(*args)
+        elif (len(args)==1) and (isinstance(args[0], bytes)):
+             self._init_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
+    def getNTerminalModification(self):
+        cdef _String _r = self.inst.get().getNTerminalModification()
+        py_result = _cast_const_away(<char*>_r.c_str())
+        return py_result
+    def setModification(self, int index , bytes modification ):
+        assert isinstance(index, int), 'arg index invalid'
+        assert isinstance(modification, bytes), 'arg modification invalid'
+    
+    
+        self.inst.get().setModification((<size_t>index), (_String(<char *>modification)))
+    def setCTerminalModification(self, bytes modification ):
+        assert isinstance(modification, bytes), 'arg modification invalid'
+    
+        self.inst.get().setCTerminalModification((_String(<char *>modification))) 
+cdef class ChecksumType:
+    UNKNOWN_CHECKSUM = 0
+    SHA1 = 1
+    MD5 = 2
+    SIZE_OF_CHECKSUMTYPE = 3 
+cdef class Type:
+    UNKNOWN = 0
+    DTA = 1
+    DTA2D = 2
+    MZDATA = 3
+    MZXML = 4
+    FEATUREXML = 5
+    IDXML = 6
+    CONSENSUSXML = 7
+    MGF = 8
+    INI = 9
+    TOPPAS = 10
+    TRANSFORMATIONXML = 11
+    MZML = 12
+    MS2 = 13
+    PEPXML = 14
+    PROTXML = 15
+    MZIDENTML = 16
+    GELML = 17
+    TRAML = 18
+    MSP = 19
+    OMSSAXML = 20
+    MASCOTXML = 21
+    PNG = 22
+    XMASS = 23
+    TSV = 24
+    PEPLIST = 25
+    HARDKLOER = 26
+    KROENIK = 27
+    FASTA = 28
+    EDTA = 29
+    SIZE_OF_TYPE = 30 
+cdef class ParamEntry:
+    cdef shared_ptr[_ParamEntry] inst
+    def __dealloc__(self):
+         self.inst.reset()
+    property name:
+        def __set__(self, bytes name):
+        
+            self.inst.get().name = (_String(<char *>name))
+        
+        def __get__(self):
+            cdef _String _r = self.inst.get().name
+            py_result = _cast_const_away(<char*>_r.c_str())
+            return py_result
+    property description:
+        def __set__(self, bytes description):
+        
+            self.inst.get().description = (_String(<char *>description))
+        
+        def __get__(self):
+            cdef _String _r = self.inst.get().description
+            py_result = _cast_const_away(<char*>_r.c_str())
+            return py_result
+    property value:
+        def __set__(self, DataValue value):
+        
+            self.inst.get().value = <_DataValue>deref(value.inst.get())
+        
+        def __get__(self):
+            cdef _DataValue * _r = new _DataValue(self.inst.get().value)
+            cdef DataValue py_result = DataValue.__new__(DataValue)
+            py_result.inst = shared_ptr[_DataValue](_r)
+            return py_result
+    property tags:
+        def __set__(self, set tags):
+            cdef libcpp_set[_String] * v0 = new libcpp_set[_String]()
+            cdef bytes item0
+            for item0 in tags:
+               v0.insert(_String(<char *>item0))
+            self.inst.get().tags = deref(v0)
+            del v0
+        def __get__(self):
+            _r = self.inst.get().tags
+            py_result = set()
+            cdef libcpp_set[_String].iterator it__r = _r.begin()
+            while it__r != _r.end():
+               py_result.add(<char*>deref(it__r).c_str())
+               inc(it__r)
+            return py_result
+    property valid_strings:
+        def __set__(self, list valid_strings):
+            cdef libcpp_vector[_String] * v0 = new libcpp_vector[_String]()
+            cdef bytes item0
+            for item0 in valid_strings:
+               v0.push_back(_String(<char *>item0))
+            self.inst.get().valid_strings = deref(v0)
+            del v0
+        def __get__(self):
+            _r = self.inst.get().valid_strings
+            py_result = []
+            cdef libcpp_vector[_String].iterator it__r = _r.begin()
+            while it__r != _r.end():
+               py_result.append(<char*>deref(it__r).c_str())
+               inc(it__r)
+            return py_result
+    property max_float:
+        def __set__(self, float max_float):
+        
+            self.inst.get().max_float = (<float>max_float)
+        
+        def __get__(self):
+            cdef double _r = self.inst.get().max_float
+            py_result = <float>_r
+            return py_result
+    property min_float:
+        def __set__(self, float min_float):
+        
+            self.inst.get().min_float = (<float>min_float)
+        
+        def __get__(self):
+            cdef double _r = self.inst.get().min_float
+            py_result = <float>_r
+            return py_result
+    property max_int:
+        def __set__(self, int max_int):
+        
+            self.inst.get().max_int = (<int>max_int)
+        
+        def __get__(self):
+            cdef int _r = self.inst.get().max_int
+            py_result = <int>_r
+            return py_result
+    property min_int:
+        def __set__(self, int min_int):
+        
+            self.inst.get().min_int = (<int>min_int)
+        
+        def __get__(self):
+            cdef int _r = self.inst.get().min_int
+            py_result = <int>_r
+            return py_result
+    def isValid(self, bytes in_0 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+    
+        cdef bool _r = self.inst.get().isValid((_String(<char *>in_0)))
+        py_result = <bool>_r
+        return py_result
+    def _init_0(self):
+        self.inst = shared_ptr[_ParamEntry](new _ParamEntry())
+    def _init_1(self, ParamEntry in_0 ):
+        assert isinstance(in_0, ParamEntry), 'arg in_0 invalid'
+    
+        self.inst = shared_ptr[_ParamEntry](new _ParamEntry(<_ParamEntry>deref(in_0.inst.get())))
+    def _init_2(self, bytes n , DataValue v , bytes d , list t ):
+        assert isinstance(n, bytes), 'arg n invalid'
+        assert isinstance(v, DataValue), 'arg v invalid'
+        assert isinstance(d, bytes), 'arg d invalid'
+        assert isinstance(t, list) and all(isinstance(li, bytes) for li in t), 'arg t invalid'
+    
+    
+    
+        cdef libcpp_vector[libcpp_string] _v3 = t
+        cdef _StringList v3 = _StringList(_v3)
+        self.inst = shared_ptr[_ParamEntry](new _ParamEntry((_String(<char *>n)), <_DataValue>deref(v.inst.get()), (_String(<char *>d)), (v3)))
+    def _init_3(self, bytes n , DataValue v , bytes d ):
+        assert isinstance(n, bytes), 'arg n invalid'
+        assert isinstance(v, DataValue), 'arg v invalid'
+        assert isinstance(d, bytes), 'arg d invalid'
+    
+    
+    
+        self.inst = shared_ptr[_ParamEntry](new _ParamEntry((_String(<char *>n)), <_DataValue>deref(v.inst.get()), (_String(<char *>d))))
+    def __init__(self, *args):
+        if not args:
+             self._init_0(*args)
+        elif (len(args)==1) and (isinstance(args[0], ParamEntry)):
+             self._init_1(*args)
+        elif (len(args)==4) and (isinstance(args[0], bytes)) and (isinstance(args[1], DataValue)) and (isinstance(args[2], bytes)) and (isinstance(args[3], list) and all(isinstance(li, bytes) for li in args[3])):
+             self._init_2(*args)
+        elif (len(args)==3) and (isinstance(args[0], bytes)) and (isinstance(args[1], DataValue)) and (isinstance(args[2], bytes)):
+             self._init_3(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
+    def __richcmp__(self, other, op):
+        if op not in (2,):
+           op_str = {0: '<', 1: '<=', 2: '==', 3: '!=', 4: '>', 5: '>='}[op]
+           raise Exception("comparions operator %s not implemented" % op_str)
+        if not isinstance(other, ParamEntry):
+            return False
+        cdef ParamEntry other_casted = other
+        cdef ParamEntry self_casted = self
+        if op==2:
+            return deref(self_casted.inst.get()) == deref(other_casted.inst.get()) 
 cdef class Peak2D:
     cdef shared_ptr[_Peak2D] inst
     def __dealloc__(self):
@@ -1283,23 +1903,168 @@ cdef class Peak2D:
         cdef Peak2D self_casted = self
         if op==2:
             return deref(self_casted.inst.get()) == deref(other_casted.inst.get()) 
-cdef class ChecksumType:
-    UNKNOWN_CHECKSUM = 0
-    SHA1 = 1
-    MD5 = 2
-    SIZE_OF_CHECKSUMTYPE = 3 
+cdef class Product:
+    cdef shared_ptr[_Product] inst
+    def __dealloc__(self):
+         self.inst.reset()
+    def getIsolationWindowUpperOffset(self):
+        cdef double _r = self.inst.get().getIsolationWindowUpperOffset()
+        py_result = <float>_r
+        return py_result
+    def _init_0(self):
+        self.inst = shared_ptr[_Product](new _Product())
+    def _init_1(self, Product in_0 ):
+        assert isinstance(in_0, Product), 'arg in_0 invalid'
+    
+        self.inst = shared_ptr[_Product](new _Product(<_Product>deref(in_0.inst.get())))
+    def __init__(self, *args):
+        if not args:
+             self._init_0(*args)
+        elif (len(args)==1) and (isinstance(args[0], Product)):
+             self._init_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
+    def getIsolationWindowLowerOffset(self):
+        cdef double _r = self.inst.get().getIsolationWindowLowerOffset()
+        py_result = <float>_r
+        return py_result
+    def setIsolationWindowUpperOffset(self, float bound ):
+        assert isinstance(bound, float), 'arg bound invalid'
+    
+        self.inst.get().setIsolationWindowUpperOffset((<float>bound))
+    def setMZ(self, float in_0 ):
+        assert isinstance(in_0, float), 'arg in_0 invalid'
+    
+        self.inst.get().setMZ((<float>in_0))
+    def getMZ(self):
+        cdef double _r = self.inst.get().getMZ()
+        py_result = <float>_r
+        return py_result
+    def setIsolationWindowLowerOffset(self, float bound ):
+        assert isinstance(bound, float), 'arg bound invalid'
+    
+        self.inst.get().setIsolationWindowLowerOffset((<float>bound))
+    def __richcmp__(self, other, op):
+        if op not in (2, 3):
+           op_str = {0: '<', 1: '<=', 2: '==', 3: '!=', 4: '>', 5: '>='}[op]
+           raise Exception("comparions operator %s not implemented" % op_str)
+        if not isinstance(other, Product):
+            return False
+        cdef Product other_casted = other
+        cdef Product self_casted = self
+        if op==2:
+            return deref(self_casted.inst.get()) == deref(other_casted.inst.get())
+        if op==3:
+            return deref(self_casted.inst.get()) != deref(other_casted.inst.get()) 
+cdef class ChromatogramPeak:
+    cdef shared_ptr[_ChromatogramPeak] inst
+    def __dealloc__(self):
+         self.inst.reset()
+    def getIntensity(self):
+        cdef double _r = self.inst.get().getIntensity()
+        py_result = <float>_r
+        return py_result
+    def __init__(self):
+        self.inst = shared_ptr[_ChromatogramPeak](new _ChromatogramPeak())
+    def setRT(self, float in_0 ):
+        assert isinstance(in_0, float), 'arg in_0 invalid'
+    
+        self.inst.get().setRT((<float>in_0))
+    def getRT(self):
+        cdef double _r = self.inst.get().getRT()
+        py_result = <float>_r
+        return py_result
+    def setIntensity(self, float in_0 ):
+        assert isinstance(in_0, float), 'arg in_0 invalid'
+    
+        self.inst.get().setIntensity((<float>in_0))
+    def __richcmp__(self, other, op):
+        if op not in (2, 3):
+           op_str = {0: '<', 1: '<=', 2: '==', 3: '!=', 4: '>', 5: '>='}[op]
+           raise Exception("comparions operator %s not implemented" % op_str)
+        if not isinstance(other, ChromatogramPeak):
+            return False
+        cdef ChromatogramPeak other_casted = other
+        cdef ChromatogramPeak self_casted = self
+        if op==2:
+            return deref(self_casted.inst.get()) == deref(other_casted.inst.get())
+        if op==3:
+            return deref(self_casted.inst.get()) != deref(other_casted.inst.get()) 
+cdef class AcquisitionInfo:
+    cdef shared_ptr[_AcquisitionInfo] inst
+    def __dealloc__(self):
+         self.inst.reset()
+    def getMethodOfCombination(self):
+        cdef _String _r = self.inst.get().getMethodOfCombination()
+        py_result = _cast_const_away(<char*>_r.c_str())
+        return py_result
+    def _init_0(self):
+        self.inst = shared_ptr[_AcquisitionInfo](new _AcquisitionInfo())
+    def _init_1(self, AcquisitionInfo in_0 ):
+        assert isinstance(in_0, AcquisitionInfo), 'arg in_0 invalid'
+    
+        self.inst = shared_ptr[_AcquisitionInfo](new _AcquisitionInfo(<_AcquisitionInfo>deref(in_0.inst.get())))
+    def __init__(self, *args):
+        if not args:
+             self._init_0(*args)
+        elif (len(args)==1) and (isinstance(args[0], AcquisitionInfo)):
+             self._init_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
+    def setMethodOfCombination(self, bytes method ):
+        assert isinstance(method, bytes), 'arg method invalid'
+    
+        self.inst.get().setMethodOfCombination((_String(<char *>method)))
+    def __richcmp__(self, other, op):
+        if op not in (2, 3):
+           op_str = {0: '<', 1: '<=', 2: '==', 3: '!=', 4: '>', 5: '>='}[op]
+           raise Exception("comparions operator %s not implemented" % op_str)
+        if not isinstance(other, AcquisitionInfo):
+            return False
+        cdef AcquisitionInfo other_casted = other
+        cdef AcquisitionInfo self_casted = self
+        if op==2:
+            return deref(self_casted.inst.get()) == deref(other_casted.inst.get())
+        if op==3:
+            return deref(self_casted.inst.get()) != deref(other_casted.inst.get()) 
+cdef class LogType:
+    CMD = 0
+    GUI = 1
+    NONE = 2 
 cdef class MzMLFile:
     cdef shared_ptr[_MzMLFile] inst
     def __dealloc__(self):
          self.inst.reset()
-    def __init__(self):
-        self.inst = shared_ptr[_MzMLFile](new _MzMLFile())
     def load(self, bytes in_0 , MSExperiment in_1 ):
         assert isinstance(in_0, bytes), 'arg in_0 invalid'
         assert isinstance(in_1, MSExperiment), 'arg in_1 invalid'
     
     
         self.inst.get().load((_String(<char *>in_0)), <_MSExperiment[_Peak1D,_ChromatogramPeak] &>deref(in_1.inst.get()))
+    def startProgress(self, int begin , int end , bytes label ):
+        assert isinstance(begin, int), 'arg begin invalid'
+        assert isinstance(end, int), 'arg end invalid'
+        assert isinstance(label, bytes), 'arg label invalid'
+    
+    
+    
+        self.inst.get().startProgress((<ptrdiff_t>begin), (<ptrdiff_t>end), (_String(<char *>label)))
+    def getLogType(self):
+        cdef _LogType _r = self.inst.get().getLogType()
+        py_result = <int>_r
+        return py_result
+    def __init__(self):
+        self.inst = shared_ptr[_MzMLFile](new _MzMLFile())
+    def endProgress(self):
+        self.inst.get().endProgress()
+    def setProgress(self, int value ):
+        assert isinstance(value, int), 'arg value invalid'
+    
+        self.inst.get().setProgress((<ptrdiff_t>value))
+    def setLogType(self, int in_0 ):
+        assert in_0 in [0, 1, 2], 'arg in_0 invalid'
+    
+        self.inst.get().setLogType((<_LogType>in_0))
     def store(self, bytes in_0 , MSExperiment in_1 ):
         assert isinstance(in_0, bytes), 'arg in_0 invalid'
         assert isinstance(in_1, MSExperiment), 'arg in_1 invalid'
@@ -1335,6 +2100,12 @@ cdef class FileHandler:
     
     
         self.inst.get().storeExperiment((<libcpp_string>in_0), <_MSExperiment[_Peak1D,_ChromatogramPeak]>deref(in_1.inst.get()))
+    def loadFeatures(self, str in_0 , FeatureMap in_1 ):
+        assert isinstance(in_0, str), 'arg in_0 invalid'
+        assert isinstance(in_1, FeatureMap), 'arg in_1 invalid'
+    
+    
+        self.inst.get().loadFeatures((<libcpp_string>in_0), <_FeatureMap[_Feature] &>deref(in_1.inst.get()))
     getType = __static_FileHandler_getType 
 cdef class DataValue:
     cdef shared_ptr[_DataValue] inst
@@ -1464,10 +2235,52 @@ cdef class ChromatogramTools:
         self.inst.get().convertSpectraToChromatograms(<_MSExperiment[_Peak1D,_ChromatogramPeak] &>deref(epx.inst.get()), (<int>remove_spectra))
     def __init__(self):
         self.inst = shared_ptr[_ChromatogramTools](new _ChromatogramTools()) 
-cdef class LogType:
-    CMD = 0
-    GUI = 1
-    NONE = 2 
+cdef class FeatureFinderAlgorithmPicked:
+    cdef shared_ptr[_FeatureFinderAlgorithmPicked[_Peak1D,_Feature]] inst
+    def __dealloc__(self):
+         self.inst.reset()
+    def setParameters(self, Param param ):
+        assert isinstance(param, Param), 'arg param invalid'
+    
+        self.inst.get().setParameters(<_Param &>deref(param.inst.get()))
+    def setName(self, bytes in_0 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+    
+        self.inst.get().setName((_String(<char *>in_0)))
+    def getDefaults(self):
+        cdef _Param * _r = new _Param(self.inst.get().getDefaults())
+        cdef Param py_result = Param.__new__(Param)
+        py_result.inst = shared_ptr[_Param](_r)
+        return py_result
+    def getName(self):
+        cdef _String _r = self.inst.get().getName()
+        py_result = _cast_const_away(<char*>_r.c_str())
+        return py_result
+    def __init__(self):
+        self.inst = shared_ptr[_FeatureFinderAlgorithmPicked[_Peak1D,_Feature]](new _FeatureFinderAlgorithmPicked[_Peak1D,_Feature]())
+    def getParameters(self):
+        cdef _Param * _r = new _Param(self.inst.get().getParameters())
+        cdef Param py_result = Param.__new__(Param)
+        py_result.inst = shared_ptr[_Param](_r)
+        return py_result
+    getProductName = __static_FeatureFinderAlgorithmPicked_getProductName 
+cdef class __DigestionEnzyme:
+    TRYPSIN = 0
+    PEPSIN_A = 1
+    PROTEASE_K = 2
+    CHYMOTRYPSIN = 3
+    NO_ENZYME = 4
+    UNKNOWN_ENZYME = 5
+    SIZE_OF_DIGESTIONENZYME = 6 
+cdef class PeakTypeEstimator:
+    cdef shared_ptr[_PeakTypeEstimator] inst
+    def __dealloc__(self):
+         self.inst.reset()
+    def __init__(self):
+        self.inst = shared_ptr[_PeakTypeEstimator](new _PeakTypeEstimator())
+    
+    def estimateType(self, MSSpectrum spec):
+        return self.inst.get().estimateType(spec.inst.get().begin(), spec.inst.get().end()) 
 cdef class RichPeak2D:
     cdef shared_ptr[_RichPeak2D] inst
     def __dealloc__(self):
@@ -1476,6 +2289,25 @@ cdef class RichPeak2D:
         cdef size_t _r = self.inst.get().getUniqueId()
         py_result = <size_t>_r
         return py_result
+    def _setMetaValue_0(self, int in_0 , DataValue in_1 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
+        assert isinstance(in_1, DataValue), 'arg in_1 invalid'
+    
+    
+        self.inst.get().setMetaValue((<int>in_0), <_DataValue>deref(in_1.inst.get()))
+    def _setMetaValue_1(self, bytes in_0 , DataValue in_1 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+        assert isinstance(in_1, DataValue), 'arg in_1 invalid'
+    
+    
+        self.inst.get().setMetaValue((_String(<char *>in_0)), <_DataValue>deref(in_1.inst.get()))
+    def setMetaValue(self, *args):
+        if (len(args)==2) and (isinstance(args[0], int)) and (isinstance(args[1], DataValue)):
+            return self._setMetaValue_0(*args)
+        elif (len(args)==2) and (isinstance(args[0], bytes)) and (isinstance(args[1], DataValue)):
+            return self._setMetaValue_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
     def getIntensity(self):
         cdef float _r = self.inst.get().getIntensity()
         py_result = <float>_r
@@ -1562,10 +2394,6 @@ cdef class RichPeak2D:
         cdef size_t _r = self.inst.get().ensureUniqueId()
         py_result = <size_t>_r
         return py_result
-    def setUniqueId(self):
-        cdef size_t _r = self.inst.get().setUniqueId()
-        py_result = <size_t>_r
-        return py_result
     def _removeMetaValue_0(self, bytes in_0 ):
         assert isinstance(in_0, bytes), 'arg in_0 invalid'
     
@@ -1615,38 +2443,342 @@ cdef class RichPeak2D:
             return deref(self_casted.inst.get()) == deref(other_casted.inst.get())
         if op==3:
             return deref(self_casted.inst.get()) != deref(other_casted.inst.get()) 
-cdef class FileTypes:
-    UNKNOWN = 0
-    DTA = 1
-    DTA2D = 2
-    MZDATA = 3
-    MZXML = 4
-    FEATUREXML = 5
-    IDXML = 6
-    CONSENSUSXML = 7
-    MGF = 8
-    INI = 9
-    TOPPAS = 10
-    TRANSFORMATIONXML = 11
-    MZML = 12
-    MS2 = 13
-    PEPXML = 14
-    PROTXML = 15
-    MZIDENTML = 16
-    GELML = 17
-    TRAML = 18
-    MSP = 19
-    OMSSAXML = 20
-    MASCOTXML = 21
-    PNG = 22
-    XMASS = 23
-    TSV = 24
-    PEPLIST = 25
-    HARDKLOER = 26
-    KROENIK = 27
-    FASTA = 28
-    EDTA = 29
-    SIZE_OF_TYPE = 30 
+cdef class PeptideIdentification:
+    cdef shared_ptr[_PeptideIdentification] inst
+    def __dealloc__(self):
+         self.inst.reset()
+    def sort(self):
+        self.inst.get().sort()
+    def _metaValueExists_0(self, bytes in_0 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+    
+        cdef bool _r = self.inst.get().metaValueExists((_String(<char *>in_0)))
+        py_result = <bool>_r
+        return py_result
+    def _metaValueExists_1(self, int in_0 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
+    
+        cdef bool _r = self.inst.get().metaValueExists((<int>in_0))
+        py_result = <bool>_r
+        return py_result
+    def metaValueExists(self, *args):
+        if (len(args)==1) and (isinstance(args[0], bytes)):
+            return self._metaValueExists_0(*args)
+        elif (len(args)==1) and (isinstance(args[0], int)):
+            return self._metaValueExists_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
+    def _getKeys_0(self, list keys ):
+        assert isinstance(keys, list) and all(isinstance(i, bytes) for i in keys), 'arg keys invalid'
+        cdef libcpp_vector[_String] * v0 = new libcpp_vector[_String]()
+        cdef bytes item0
+        for item0 in keys:
+           v0.push_back(_String(<char *>item0))
+        self.inst.get().getKeys(deref(v0))
+        cdef replace = []
+        cdef libcpp_vector[_String].iterator it = v0.begin()
+        while it != v0.end():
+           replace.append(<char*>deref(it).c_str())
+           inc(it)
+        keys[:] = replace
+        del v0
+    def _getKeys_1(self, list keys ):
+        assert isinstance(keys, list) and all(isinstance(li, int) for li in keys), 'arg keys invalid'
+        cdef libcpp_vector[unsigned int] v0 = keys
+        self.inst.get().getKeys(v0)
+        keys[:] = v0
+    def getKeys(self, *args):
+        if (len(args)==1) and (isinstance(args[0], list) and all(isinstance(i, bytes) for i in args[0])):
+            return self._getKeys_0(*args)
+        elif (len(args)==1) and (isinstance(args[0], list) and all(isinstance(li, int) for li in args[0])):
+            return self._getKeys_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
+    def setHigherScoreBetter(self, int in_0 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
+    
+        self.inst.get().setHigherScoreBetter((<bool>in_0))
+    def getIdentifier(self):
+        cdef _String _r = self.inst.get().getIdentifier()
+        py_result = _cast_const_away(<char*>_r.c_str())
+        return py_result
+    def assignRanks(self):
+        self.inst.get().assignRanks()
+    def insertHit(self, PeptideHit in_0 ):
+        assert isinstance(in_0, PeptideHit), 'arg in_0 invalid'
+    
+        self.inst.get().insertHit(<_PeptideHit>deref(in_0.inst.get()))
+    def setScoreType(self, bytes in_0 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+    
+        self.inst.get().setScoreType((_String(<char *>in_0)))
+    def empty(self):
+        cdef bool _r = self.inst.get().empty()
+        py_result = <bool>_r
+        return py_result
+    def _init_0(self):
+        self.inst = shared_ptr[_PeptideIdentification](new _PeptideIdentification())
+    def _init_1(self, PeptideIdentification in_0 ):
+        assert isinstance(in_0, PeptideIdentification), 'arg in_0 invalid'
+    
+        self.inst = shared_ptr[_PeptideIdentification](new _PeptideIdentification(<_PeptideIdentification>deref(in_0.inst.get())))
+    def __init__(self, *args):
+        if not args:
+             self._init_0(*args)
+        elif (len(args)==1) and (isinstance(args[0], PeptideIdentification)):
+             self._init_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
+    def setHits(self, list in_0 ):
+        assert isinstance(in_0, list) and all(isinstance(li, PeptideHit) for li in in_0), 'arg in_0 invalid'
+        cdef libcpp_vector[_PeptideHit] * v0 = new libcpp_vector[_PeptideHit]()
+        cdef PeptideHit item0
+        for item0 in in_0:
+           v0.push_back(deref(item0.inst.get()))
+        self.inst.get().setHits(deref(v0))
+        del v0
+    def _setMetaValue_0(self, int in_0 , DataValue in_1 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
+        assert isinstance(in_1, DataValue), 'arg in_1 invalid'
+    
+    
+        self.inst.get().setMetaValue((<int>in_0), <_DataValue>deref(in_1.inst.get()))
+    def _setMetaValue_1(self, bytes in_0 , DataValue in_1 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+        assert isinstance(in_1, DataValue), 'arg in_1 invalid'
+    
+    
+        self.inst.get().setMetaValue((_String(<char *>in_0)), <_DataValue>deref(in_1.inst.get()))
+    def setMetaValue(self, *args):
+        if (len(args)==2) and (isinstance(args[0], int)) and (isinstance(args[1], DataValue)):
+            return self._setMetaValue_0(*args)
+        elif (len(args)==2) and (isinstance(args[0], bytes)) and (isinstance(args[1], DataValue)):
+            return self._setMetaValue_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
+    def isHigherScoreBetter(self):
+        cdef bool _r = self.inst.get().isHigherScoreBetter()
+        py_result = <bool>_r
+        return py_result
+    def isMetaEmpty(self):
+        cdef bool _r = self.inst.get().isMetaEmpty()
+        py_result = <bool>_r
+        return py_result
+    def setIdentifier(self, bytes in_0 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+    
+        self.inst.get().setIdentifier((_String(<char *>in_0)))
+    def _getReferencingHits_0(self, bytes in_0 , list in_1 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+        assert isinstance(in_1, list) and all(isinstance(li, PeptideHit) for li in in_1), 'arg in_1 invalid'
+    
+        cdef libcpp_vector[_PeptideHit] * v1 = new libcpp_vector[_PeptideHit]()
+        cdef PeptideHit item1
+        for item1 in in_1:
+           v1.push_back(deref(item1.inst.get()))
+        self.inst.get().getReferencingHits((_String(<char *>in_0)), deref(v1))
+        cdef replace = []
+        cdef libcpp_vector[_PeptideHit].iterator it = v1.begin()
+        while it != v1.end():
+           item1 = PeptideHit.__new__(PeptideHit)
+           item1.inst = shared_ptr[_PeptideHit](new _PeptideHit(deref(it)))
+           replace.append(item1)
+           inc(it)
+        in_1[:] = replace
+        del v1
+    def _getReferencingHits_1(self, list in_0 , list in_1 ):
+        assert isinstance(in_0, list) and all(isinstance(i, bytes) for i in in_0), 'arg in_0 invalid'
+        assert isinstance(in_1, list) and all(isinstance(li, PeptideHit) for li in in_1), 'arg in_1 invalid'
+        cdef libcpp_vector[_String] * v0 = new libcpp_vector[_String]()
+        cdef bytes item0
+        for item0 in in_0:
+           v0.push_back(_String(<char *>item0))
+        cdef libcpp_vector[_PeptideHit] * v1 = new libcpp_vector[_PeptideHit]()
+        cdef PeptideHit item1
+        for item1 in in_1:
+           v1.push_back(deref(item1.inst.get()))
+        self.inst.get().getReferencingHits(deref(v0), deref(v1))
+        cdef replace = []
+        cdef libcpp_vector[_PeptideHit].iterator it = v1.begin()
+        while it != v1.end():
+           item1 = PeptideHit.__new__(PeptideHit)
+           item1.inst = shared_ptr[_PeptideHit](new _PeptideHit(deref(it)))
+           replace.append(item1)
+           inc(it)
+        in_1[:] = replace
+        del v1
+        del v0
+    def _getReferencingHits_2(self, list in_0 , list in_1 ):
+        assert isinstance(in_0, list) and all(isinstance(li, ProteinHit) for li in in_0), 'arg in_0 invalid'
+        assert isinstance(in_1, list) and all(isinstance(li, PeptideHit) for li in in_1), 'arg in_1 invalid'
+        cdef libcpp_vector[_ProteinHit] * v0 = new libcpp_vector[_ProteinHit]()
+        cdef ProteinHit item0
+        for item0 in in_0:
+           v0.push_back(deref(item0.inst.get()))
+        cdef libcpp_vector[_PeptideHit] * v1 = new libcpp_vector[_PeptideHit]()
+        cdef PeptideHit item1
+        for item1 in in_1:
+           v1.push_back(deref(item1.inst.get()))
+        self.inst.get().getReferencingHits(deref(v0), deref(v1))
+        cdef replace = []
+        cdef libcpp_vector[_PeptideHit].iterator it = v1.begin()
+        while it != v1.end():
+           item1 = PeptideHit.__new__(PeptideHit)
+           item1.inst = shared_ptr[_PeptideHit](new _PeptideHit(deref(it)))
+           replace.append(item1)
+           inc(it)
+        in_1[:] = replace
+        del v1
+        del v0
+    def getReferencingHits(self, *args):
+        if (len(args)==2) and (isinstance(args[0], bytes)) and (isinstance(args[1], list) and all(isinstance(li, PeptideHit) for li in args[1])):
+            return self._getReferencingHits_0(*args)
+        elif (len(args)==2) and (isinstance(args[0], list) and all(isinstance(i, bytes) for i in args[0])) and (isinstance(args[1], list) and all(isinstance(li, PeptideHit) for li in args[1])):
+            return self._getReferencingHits_1(*args)
+        elif (len(args)==2) and (isinstance(args[0], list) and all(isinstance(li, ProteinHit) for li in args[0])) and (isinstance(args[1], list) and all(isinstance(li, PeptideHit) for li in args[1])):
+            return self._getReferencingHits_2(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
+    def getHits(self):
+        _r = self.inst.get().getHits()
+        py_result = []
+        cdef libcpp_vector[_PeptideHit].iterator it__r = _r.begin()
+        cdef PeptideHit item_py_result
+        while it__r != _r.end():
+           item_py_result = PeptideHit.__new__(PeptideHit)
+           item_py_result.inst = shared_ptr[_PeptideHit](new _PeptideHit(deref(it__r)))
+           py_result.append(item_py_result)
+           inc(it__r)
+        return py_result
+    def _getNonReferencingHits_0(self, bytes in_0 , list in_1 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+        assert isinstance(in_1, list) and all(isinstance(li, PeptideHit) for li in in_1), 'arg in_1 invalid'
+    
+        cdef libcpp_vector[_PeptideHit] * v1 = new libcpp_vector[_PeptideHit]()
+        cdef PeptideHit item1
+        for item1 in in_1:
+           v1.push_back(deref(item1.inst.get()))
+        self.inst.get().getNonReferencingHits((_String(<char *>in_0)), deref(v1))
+        cdef replace = []
+        cdef libcpp_vector[_PeptideHit].iterator it = v1.begin()
+        while it != v1.end():
+           item1 = PeptideHit.__new__(PeptideHit)
+           item1.inst = shared_ptr[_PeptideHit](new _PeptideHit(deref(it)))
+           replace.append(item1)
+           inc(it)
+        in_1[:] = replace
+        del v1
+    def _getNonReferencingHits_1(self, list in_0 , list in_1 ):
+        assert isinstance(in_0, list) and all(isinstance(i, bytes) for i in in_0), 'arg in_0 invalid'
+        assert isinstance(in_1, list) and all(isinstance(li, PeptideHit) for li in in_1), 'arg in_1 invalid'
+        cdef libcpp_vector[_String] * v0 = new libcpp_vector[_String]()
+        cdef bytes item0
+        for item0 in in_0:
+           v0.push_back(_String(<char *>item0))
+        cdef libcpp_vector[_PeptideHit] * v1 = new libcpp_vector[_PeptideHit]()
+        cdef PeptideHit item1
+        for item1 in in_1:
+           v1.push_back(deref(item1.inst.get()))
+        self.inst.get().getNonReferencingHits(deref(v0), deref(v1))
+        cdef replace = []
+        cdef libcpp_vector[_PeptideHit].iterator it = v1.begin()
+        while it != v1.end():
+           item1 = PeptideHit.__new__(PeptideHit)
+           item1.inst = shared_ptr[_PeptideHit](new _PeptideHit(deref(it)))
+           replace.append(item1)
+           inc(it)
+        in_1[:] = replace
+        del v1
+        del v0
+    def _getNonReferencingHits_2(self, list in_0 , list in_1 ):
+        assert isinstance(in_0, list) and all(isinstance(li, ProteinHit) for li in in_0), 'arg in_0 invalid'
+        assert isinstance(in_1, list) and all(isinstance(li, PeptideHit) for li in in_1), 'arg in_1 invalid'
+        cdef libcpp_vector[_ProteinHit] * v0 = new libcpp_vector[_ProteinHit]()
+        cdef ProteinHit item0
+        for item0 in in_0:
+           v0.push_back(deref(item0.inst.get()))
+        cdef libcpp_vector[_PeptideHit] * v1 = new libcpp_vector[_PeptideHit]()
+        cdef PeptideHit item1
+        for item1 in in_1:
+           v1.push_back(deref(item1.inst.get()))
+        self.inst.get().getNonReferencingHits(deref(v0), deref(v1))
+        cdef replace = []
+        cdef libcpp_vector[_PeptideHit].iterator it = v1.begin()
+        while it != v1.end():
+           item1 = PeptideHit.__new__(PeptideHit)
+           item1.inst = shared_ptr[_PeptideHit](new _PeptideHit(deref(it)))
+           replace.append(item1)
+           inc(it)
+        in_1[:] = replace
+        del v1
+        del v0
+    def getNonReferencingHits(self, *args):
+        if (len(args)==2) and (isinstance(args[0], bytes)) and (isinstance(args[1], list) and all(isinstance(li, PeptideHit) for li in args[1])):
+            return self._getNonReferencingHits_0(*args)
+        elif (len(args)==2) and (isinstance(args[0], list) and all(isinstance(i, bytes) for i in args[0])) and (isinstance(args[1], list) and all(isinstance(li, PeptideHit) for li in args[1])):
+            return self._getNonReferencingHits_1(*args)
+        elif (len(args)==2) and (isinstance(args[0], list) and all(isinstance(li, ProteinHit) for li in args[0])) and (isinstance(args[1], list) and all(isinstance(li, PeptideHit) for li in args[1])):
+            return self._getNonReferencingHits_2(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
+    def _removeMetaValue_0(self, bytes in_0 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+    
+        self.inst.get().removeMetaValue((_String(<char *>in_0)))
+    def _removeMetaValue_1(self, int in_0 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
+    
+        self.inst.get().removeMetaValue((<int>in_0))
+    def removeMetaValue(self, *args):
+        if (len(args)==1) and (isinstance(args[0], bytes)):
+            return self._removeMetaValue_0(*args)
+        elif (len(args)==1) and (isinstance(args[0], int)):
+            return self._removeMetaValue_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
+    def _getMetaValue_0(self, int in_0 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
+    
+        cdef _DataValue * _r = new _DataValue(self.inst.get().getMetaValue((<int>in_0)))
+        cdef DataValue py_result = DataValue.__new__(DataValue)
+        py_result.inst = shared_ptr[_DataValue](_r)
+        return py_result
+    def _getMetaValue_1(self, bytes in_0 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+    
+        cdef _DataValue * _r = new _DataValue(self.inst.get().getMetaValue((_String(<char *>in_0))))
+        cdef DataValue py_result = DataValue.__new__(DataValue)
+        py_result.inst = shared_ptr[_DataValue](_r)
+        return py_result
+    def getMetaValue(self, *args):
+        if (len(args)==1) and (isinstance(args[0], int)):
+            return self._getMetaValue_0(*args)
+        elif (len(args)==1) and (isinstance(args[0], bytes)):
+            return self._getMetaValue_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
+    def getSignificanceThreshold(self):
+        cdef double _r = self.inst.get().getSignificanceThreshold()
+        py_result = <float>_r
+        return py_result
+    def clearMetaInfo(self):
+        self.inst.get().clearMetaInfo()
+    def getScoreType(self):
+        cdef _String _r = self.inst.get().getScoreType()
+        py_result = _cast_const_away(<char*>_r.c_str())
+        return py_result
+    def __richcmp__(self, other, op):
+        if op not in (2, 3):
+           op_str = {0: '<', 1: '<=', 2: '==', 3: '!=', 4: '>', 5: '>='}[op]
+           raise Exception("comparions operator %s not implemented" % op_str)
+        if not isinstance(other, PeptideIdentification):
+            return False
+        cdef PeptideIdentification other_casted = other
+        cdef PeptideIdentification self_casted = self
+        if op==2:
+            return deref(self_casted.inst.get()) == deref(other_casted.inst.get())
+        if op==3:
+            return deref(self_casted.inst.get()) != deref(other_casted.inst.get()) 
 cdef class FeatureXMLFile:
     cdef shared_ptr[_FeatureXMLFile] inst
     def __dealloc__(self):
@@ -1665,6 +2797,186 @@ cdef class FeatureXMLFile:
     
     
         self.inst.get().store((_String(<char *>in_0)), <_FeatureMap[_Feature] &>deref(in_1.inst.get())) 
+cdef class ProcessingAction:
+    DATA_PROCESSING = 0
+    CHARGE_DECONVOLUTION = 1
+    DEISOTOPING = 2
+    SMOOTHING = 3
+    CHARGE_CALCULATION = 4
+    PRECURSOR_RECALCULATION = 5
+    BASELINE_REDUCTION = 6
+    PEAK_PICKING = 7
+    ALIGNMENT = 8
+    CALIBRATION = 9
+    NORMALIZATION = 10
+    FILTERING = 11
+    QUANTITATION = 12
+    FEATURE_GROUPING = 13
+    IDENTIFICATION_MAPPING = 14
+    FORMAT_CONVERSION = 15
+    CONVERSION_MZDATA = 16
+    CONVERSION_MZML = 17
+    CONVERSION_MZXML = 18
+    CONVERSION_DTA = 19
+    SIZE_OF_PROCESSINGACTION = 20 
+cdef class DataProcessing:
+    cdef shared_ptr[_DataProcessing] inst
+    def __dealloc__(self):
+         self.inst.reset()
+    def getCompletionTime(self):
+        cdef _DateTime * _r = new _DateTime(self.inst.get().getCompletionTime())
+        cdef DateTime py_result = DateTime.__new__(DateTime)
+        py_result.inst = shared_ptr[_DateTime](_r)
+        return py_result
+    def getProcessingActions(self):
+        _r = self.inst.get().getProcessingActions()
+        py_result = set()
+        cdef libcpp_set[_ProcessingAction].iterator it__r = _r.begin()
+        while it__r != _r.end():
+           py_result.add(<int>deref(it__r))
+           inc(it__r)
+        return py_result
+    def __init__(self):
+        self.inst = shared_ptr[_DataProcessing](new _DataProcessing())
+    def getSoftware(self):
+        cdef _Software * _r = new _Software(self.inst.get().getSoftware())
+        cdef Software py_result = Software.__new__(Software)
+        py_result.inst = shared_ptr[_Software](_r)
+        return py_result
+    def _metaValueExists_0(self, bytes in_0 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+    
+        cdef bool _r = self.inst.get().metaValueExists((_String(<char *>in_0)))
+        py_result = <bool>_r
+        return py_result
+    def _metaValueExists_1(self, int in_0 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
+    
+        cdef bool _r = self.inst.get().metaValueExists((<int>in_0))
+        py_result = <bool>_r
+        return py_result
+    def metaValueExists(self, *args):
+        if (len(args)==1) and (isinstance(args[0], bytes)):
+            return self._metaValueExists_0(*args)
+        elif (len(args)==1) and (isinstance(args[0], int)):
+            return self._metaValueExists_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
+    def setCompletionTime(self, DateTime t ):
+        assert isinstance(t, DateTime), 'arg t invalid'
+    
+        self.inst.get().setCompletionTime(<_DateTime>deref(t.inst.get()))
+    def _setMetaValue_0(self, int in_0 , DataValue in_1 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
+        assert isinstance(in_1, DataValue), 'arg in_1 invalid'
+    
+    
+        self.inst.get().setMetaValue((<int>in_0), <_DataValue>deref(in_1.inst.get()))
+    def _setMetaValue_1(self, bytes in_0 , DataValue in_1 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+        assert isinstance(in_1, DataValue), 'arg in_1 invalid'
+    
+    
+        self.inst.get().setMetaValue((_String(<char *>in_0)), <_DataValue>deref(in_1.inst.get()))
+    def setMetaValue(self, *args):
+        if (len(args)==2) and (isinstance(args[0], int)) and (isinstance(args[1], DataValue)):
+            return self._setMetaValue_0(*args)
+        elif (len(args)==2) and (isinstance(args[0], bytes)) and (isinstance(args[1], DataValue)):
+            return self._setMetaValue_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
+    def _getMetaValue_0(self, int in_0 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
+    
+        cdef _DataValue * _r = new _DataValue(self.inst.get().getMetaValue((<int>in_0)))
+        cdef DataValue py_result = DataValue.__new__(DataValue)
+        py_result.inst = shared_ptr[_DataValue](_r)
+        return py_result
+    def _getMetaValue_1(self, bytes in_0 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+    
+        cdef _DataValue * _r = new _DataValue(self.inst.get().getMetaValue((_String(<char *>in_0))))
+        cdef DataValue py_result = DataValue.__new__(DataValue)
+        py_result.inst = shared_ptr[_DataValue](_r)
+        return py_result
+    def getMetaValue(self, *args):
+        if (len(args)==1) and (isinstance(args[0], int)):
+            return self._getMetaValue_0(*args)
+        elif (len(args)==1) and (isinstance(args[0], bytes)):
+            return self._getMetaValue_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
+    def _getKeys_0(self, list keys ):
+        assert isinstance(keys, list) and all(isinstance(i, bytes) for i in keys), 'arg keys invalid'
+        cdef libcpp_vector[_String] * v0 = new libcpp_vector[_String]()
+        cdef bytes item0
+        for item0 in keys:
+           v0.push_back(_String(<char *>item0))
+        self.inst.get().getKeys(deref(v0))
+        cdef replace = []
+        cdef libcpp_vector[_String].iterator it = v0.begin()
+        while it != v0.end():
+           replace.append(<char*>deref(it).c_str())
+           inc(it)
+        keys[:] = replace
+        del v0
+    def _getKeys_1(self, list keys ):
+        assert isinstance(keys, list) and all(isinstance(li, int) for li in keys), 'arg keys invalid'
+        cdef libcpp_vector[unsigned int] v0 = keys
+        self.inst.get().getKeys(v0)
+        keys[:] = v0
+    def getKeys(self, *args):
+        if (len(args)==1) and (isinstance(args[0], list) and all(isinstance(i, bytes) for i in args[0])):
+            return self._getKeys_0(*args)
+        elif (len(args)==1) and (isinstance(args[0], list) and all(isinstance(li, int) for li in args[0])):
+            return self._getKeys_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
+    def isMetaEmpty(self):
+        cdef bool _r = self.inst.get().isMetaEmpty()
+        py_result = <bool>_r
+        return py_result
+    def setProcessingActions(self, set in_0 ):
+        assert isinstance(in_0, set) and all(li in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20] for li in in_0), 'arg in_0 invalid'
+        cdef libcpp_set[_ProcessingAction] * v0 = new libcpp_set[_ProcessingAction]()
+        cdef int item0
+        for item0 in in_0:
+           v0.insert(<_ProcessingAction> item0)
+        self.inst.get().setProcessingActions(deref(v0))
+        del v0
+    def _removeMetaValue_0(self, bytes in_0 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+    
+        self.inst.get().removeMetaValue((_String(<char *>in_0)))
+    def _removeMetaValue_1(self, int in_0 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
+    
+        self.inst.get().removeMetaValue((<int>in_0))
+    def removeMetaValue(self, *args):
+        if (len(args)==1) and (isinstance(args[0], bytes)):
+            return self._removeMetaValue_0(*args)
+        elif (len(args)==1) and (isinstance(args[0], int)):
+            return self._removeMetaValue_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
+    def clearMetaInfo(self):
+        self.inst.get().clearMetaInfo()
+    def setSoftware(self, Software s ):
+        assert isinstance(s, Software), 'arg s invalid'
+    
+        self.inst.get().setSoftware(<_Software>deref(s.inst.get()))
+    def __richcmp__(self, other, op):
+        if op not in (2, 3):
+           op_str = {0: '<', 1: '<=', 2: '==', 3: '!=', 4: '>', 5: '>='}[op]
+           raise Exception("comparions operator %s not implemented" % op_str)
+        if not isinstance(other, DataProcessing):
+            return False
+        cdef DataProcessing other_casted = other
+        cdef DataProcessing self_casted = self
+        if op==2:
+            return deref(self_casted.inst.get()) == deref(other_casted.inst.get())
+        if op==3:
+            return deref(self_casted.inst.get()) != deref(other_casted.inst.get()) 
 cdef class Precursor:
     cdef shared_ptr[_Precursor] inst
     def __dealloc__(self):
@@ -1698,42 +3010,34 @@ cdef class Precursor:
         assert isinstance(in_0, float), 'arg in_0 invalid'
     
         self.inst.get().setIntensity((<float>in_0)) 
-cdef class PeakPickerHiRes:
-    cdef shared_ptr[_PeakPickerHiRes] inst
+cdef class ProgressLogger:
+    cdef shared_ptr[_ProgressLogger] inst
     def __dealloc__(self):
          self.inst.reset()
-    def setParameters(self, Param param ):
-        assert isinstance(param, Param), 'arg param invalid'
-    
-        self.inst.get().setParameters(<_Param>deref(param.inst.get()))
-    def getDefaults(self):
-        cdef _Param * _r = new _Param(self.inst.get().getDefaults())
-        cdef Param py_result = Param.__new__(Param)
-        py_result.inst = shared_ptr[_Param](_r)
+    def getLogType(self):
+        cdef _LogType _r = self.inst.get().getLogType()
+        py_result = <int>_r
         return py_result
+    def startProgress(self, int begin , int end , bytes label ):
+        assert isinstance(begin, int), 'arg begin invalid'
+        assert isinstance(end, int), 'arg end invalid'
+        assert isinstance(label, bytes), 'arg label invalid'
+    
+    
+    
+        self.inst.get().startProgress((<ptrdiff_t>begin), (<ptrdiff_t>end), (_String(<char *>label)))
+    def endProgress(self):
+        self.inst.get().endProgress()
     def __init__(self):
-        self.inst = shared_ptr[_PeakPickerHiRes](new _PeakPickerHiRes())
-    def setLogType(self, int type ):
-        assert type in [0, 1, 2], 'arg type invalid'
+        self.inst = shared_ptr[_ProgressLogger](new _ProgressLogger())
+    def setProgress(self, int value ):
+        assert isinstance(value, int), 'arg value invalid'
     
-        self.inst.get().setLogType((<_LogType>type))
-    def pick(self, MSSpectrum input , MSSpectrum output ):
-        assert isinstance(input, MSSpectrum), 'arg input invalid'
-        assert isinstance(output, MSSpectrum), 'arg output invalid'
+        self.inst.get().setProgress((<ptrdiff_t>value))
+    def setLogType(self, int in_0 ):
+        assert in_0 in [0, 1, 2], 'arg in_0 invalid'
     
-    
-        self.inst.get().pick(<_MSSpectrum[_Peak1D] &>deref(input.inst.get()), <_MSSpectrum[_Peak1D] &>deref(output.inst.get()))
-    def pickExperiment(self, MSExperiment input , MSExperiment output ):
-        assert isinstance(input, MSExperiment), 'arg input invalid'
-        assert isinstance(output, MSExperiment), 'arg output invalid'
-    
-    
-        self.inst.get().pickExperiment(<_MSExperiment[_Peak1D,_ChromatogramPeak] &>deref(input.inst.get()), <_MSExperiment[_Peak1D,_ChromatogramPeak] &>deref(output.inst.get()))
-    def getParameters(self):
-        cdef _Param * _r = new _Param(self.inst.get().getParameters())
-        cdef Param py_result = Param.__new__(Param)
-        py_result.inst = shared_ptr[_Param](_r)
-        return py_result 
+        self.inst.get().setLogType((<_LogType>in_0)) 
 cdef class RichPeak1D:
     cdef shared_ptr[_RichPeak1D] inst
     def __dealloc__(self):
@@ -1767,6 +3071,25 @@ cdef class RichPeak1D:
         assert isinstance(in_0, float), 'arg in_0 invalid'
     
         self.inst.get().setIntensity((<float>in_0))
+    def _setMetaValue_0(self, int in_0 , DataValue in_1 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
+        assert isinstance(in_1, DataValue), 'arg in_1 invalid'
+    
+    
+        self.inst.get().setMetaValue((<int>in_0), <_DataValue>deref(in_1.inst.get()))
+    def _setMetaValue_1(self, bytes in_0 , DataValue in_1 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+        assert isinstance(in_1, DataValue), 'arg in_1 invalid'
+    
+    
+        self.inst.get().setMetaValue((_String(<char *>in_0)), <_DataValue>deref(in_1.inst.get()))
+    def setMetaValue(self, *args):
+        if (len(args)==2) and (isinstance(args[0], int)) and (isinstance(args[1], DataValue)):
+            return self._setMetaValue_0(*args)
+        elif (len(args)==2) and (isinstance(args[0], bytes)) and (isinstance(args[1], DataValue)):
+            return self._setMetaValue_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
     def _getMetaValue_0(self, int in_0 ):
         assert isinstance(in_0, int), 'arg in_0 invalid'
     
@@ -1859,14 +3182,464 @@ cdef class MzXMLFile:
     
     
         self.inst.get().load((_String(<char *>in_0)), <_MSExperiment[_Peak1D,_ChromatogramPeak] &>deref(in_1.inst.get()))
+    def getLogType(self):
+        cdef _LogType _r = self.inst.get().getLogType()
+        py_result = <int>_r
+        return py_result
+    def endProgress(self):
+        self.inst.get().endProgress()
+    def __init__(self):
+        self.inst = shared_ptr[_MzXMLFile](new _MzXMLFile())
+    def setProgress(self, int value ):
+        assert isinstance(value, int), 'arg value invalid'
+    
+        self.inst.get().setProgress((<ptrdiff_t>value))
+    def setLogType(self, int in_0 ):
+        assert in_0 in [0, 1, 2], 'arg in_0 invalid'
+    
+        self.inst.get().setLogType((<_LogType>in_0))
     def store(self, bytes in_0 , MSExperiment in_1 ):
         assert isinstance(in_0, bytes), 'arg in_0 invalid'
         assert isinstance(in_1, MSExperiment), 'arg in_1 invalid'
     
     
         self.inst.get().store((_String(<char *>in_0)), <_MSExperiment[_Peak1D,_ChromatogramPeak] &>deref(in_1.inst.get()))
+    def startProgress(self, int begin , int end , bytes label ):
+        assert isinstance(begin, int), 'arg begin invalid'
+        assert isinstance(end, int), 'arg end invalid'
+        assert isinstance(label, bytes), 'arg label invalid'
+    
+    
+    
+        self.inst.get().startProgress((<ptrdiff_t>begin), (<ptrdiff_t>end), (_String(<char *>label))) 
+cdef class VersionDetails:
+    cdef shared_ptr[_VersionDetails] inst
+    def __dealloc__(self):
+         self.inst.reset()
+    property version_major:
+        def __set__(self, int version_major):
+        
+            self.inst.get().version_major = (<int>version_major)
+        
+        def __get__(self):
+            cdef int _r = self.inst.get().version_major
+            py_result = <int>_r
+            return py_result
+    property version_minor:
+        def __set__(self, int version_minor):
+        
+            self.inst.get().version_minor = (<int>version_minor)
+        
+        def __get__(self):
+            cdef int _r = self.inst.get().version_minor
+            py_result = <int>_r
+            return py_result
+    property version_patch:
+        def __set__(self, int version_patch):
+        
+            self.inst.get().version_patch = (<int>version_patch)
+        
+        def __get__(self):
+            cdef int _r = self.inst.get().version_patch
+            py_result = <int>_r
+            return py_result
     def __init__(self):
-        self.inst = shared_ptr[_MzXMLFile](new _MzXMLFile()) 
+        self.inst = shared_ptr[_VersionDetails](new _VersionDetails())
+    def __richcmp__(self, other, op):
+        if op not in (2, 0, 4):
+           op_str = {0: '<', 1: '<=', 2: '==', 3: '!=', 4: '>', 5: '>='}[op]
+           raise Exception("comparions operator %s not implemented" % op_str)
+        if not isinstance(other, VersionDetails):
+            return False
+        cdef VersionDetails other_casted = other
+        cdef VersionDetails self_casted = self
+        if op==2:
+            return deref(self_casted.inst.get()) == deref(other_casted.inst.get())
+        if op==0:
+            return deref(self_casted.inst.get()) < deref(other_casted.inst.get())
+        if op==4:
+            return deref(self_casted.inst.get()) > deref(other_casted.inst.get())
+    create = __static_VersionDetails_create 
+cdef class __SpectrumType:
+    UNKNOWN = 0
+    PEAKS = 1
+    RAWDATA = 2
+    SIZE_OF_SPECTRUMTYPE = 3 
+cdef class SpectrumSettings:
+    cdef shared_ptr[_SpectrumSettings] inst
+    def __dealloc__(self):
+         self.inst.reset()
+    def __init__(self):
+        self.inst = shared_ptr[_SpectrumSettings](new _SpectrumSettings())
+    def setSourceFile(self, SourceFile in_0 ):
+        assert isinstance(in_0, SourceFile), 'arg in_0 invalid'
+    
+        self.inst.get().setSourceFile(<_SourceFile>deref(in_0.inst.get()))
+    def getInstrumentSettings(self):
+        cdef _InstrumentSettings * _r = new _InstrumentSettings(self.inst.get().getInstrumentSettings())
+        cdef InstrumentSettings py_result = InstrumentSettings.__new__(InstrumentSettings)
+        py_result.inst = shared_ptr[_InstrumentSettings](_r)
+        return py_result
+    def setType(self, int in_0 ):
+        assert in_0 in [0, 1, 2, 3], 'arg in_0 invalid'
+    
+        self.inst.get().setType((<_SpectrumType>in_0))
+    def getNativeID(self):
+        cdef _String _r = self.inst.get().getNativeID()
+        py_result = _cast_const_away(<char*>_r.c_str())
+        return py_result
+    def getSourceFile(self):
+        cdef _SourceFile * _r = new _SourceFile(self.inst.get().getSourceFile())
+        cdef SourceFile py_result = SourceFile.__new__(SourceFile)
+        py_result.inst = shared_ptr[_SourceFile](_r)
+        return py_result
+    def setAcquisitionInfo(self, AcquisitionInfo in_0 ):
+        assert isinstance(in_0, AcquisitionInfo), 'arg in_0 invalid'
+    
+        self.inst.get().setAcquisitionInfo(<_AcquisitionInfo>deref(in_0.inst.get()))
+    def getAcquisitionInfo(self):
+        cdef _AcquisitionInfo * _r = new _AcquisitionInfo(self.inst.get().getAcquisitionInfo())
+        cdef AcquisitionInfo py_result = AcquisitionInfo.__new__(AcquisitionInfo)
+        py_result.inst = shared_ptr[_AcquisitionInfo](_r)
+        return py_result
+    def getType(self):
+        cdef int _r = self.inst.get().getType()
+        py_result = <int>_r
+        return py_result
+    def getDataProcessing(self):
+        _r = self.inst.get().getDataProcessing()
+        py_result = []
+        cdef libcpp_vector[_DataProcessing].iterator it__r = _r.begin()
+        cdef DataProcessing item_py_result
+        while it__r != _r.end():
+           item_py_result = DataProcessing.__new__(DataProcessing)
+           item_py_result.inst = shared_ptr[_DataProcessing](new _DataProcessing(deref(it__r)))
+           py_result.append(item_py_result)
+           inc(it__r)
+        return py_result
+    def setPeptideIdentifications(self, list in_0 ):
+        assert isinstance(in_0, list) and all(isinstance(li, PeptideIdentification) for li in in_0), 'arg in_0 invalid'
+        cdef libcpp_vector[_PeptideIdentification] * v0 = new libcpp_vector[_PeptideIdentification]()
+        cdef PeptideIdentification item0
+        for item0 in in_0:
+           v0.push_back(deref(item0.inst.get()))
+        self.inst.get().setPeptideIdentifications(deref(v0))
+        del v0
+    def setProducts(self, list in_0 ):
+        assert isinstance(in_0, list) and all(isinstance(li, Product) for li in in_0), 'arg in_0 invalid'
+        cdef libcpp_vector[_Product] * v0 = new libcpp_vector[_Product]()
+        cdef Product item0
+        for item0 in in_0:
+           v0.push_back(deref(item0.inst.get()))
+        self.inst.get().setProducts(deref(v0))
+        del v0
+    def setDataProcessing(self, list in_0 ):
+        assert isinstance(in_0, list) and all(isinstance(li, DataProcessing) for li in in_0), 'arg in_0 invalid'
+        cdef libcpp_vector[_DataProcessing] * v0 = new libcpp_vector[_DataProcessing]()
+        cdef DataProcessing item0
+        for item0 in in_0:
+           v0.push_back(deref(item0.inst.get()))
+        self.inst.get().setDataProcessing(deref(v0))
+        del v0
+    def getComment(self):
+        cdef _String _r = self.inst.get().getComment()
+        py_result = _cast_const_away(<char*>_r.c_str())
+        return py_result
+    def setInstrumentSettings(self, InstrumentSettings in_0 ):
+        assert isinstance(in_0, InstrumentSettings), 'arg in_0 invalid'
+    
+        self.inst.get().setInstrumentSettings(<_InstrumentSettings>deref(in_0.inst.get()))
+    def unify(self, SpectrumSettings in_0 ):
+        assert isinstance(in_0, SpectrumSettings), 'arg in_0 invalid'
+    
+        self.inst.get().unify(<_SpectrumSettings>deref(in_0.inst.get()))
+    def getPeptideIdentifications(self):
+        _r = self.inst.get().getPeptideIdentifications()
+        py_result = []
+        cdef libcpp_vector[_PeptideIdentification].iterator it__r = _r.begin()
+        cdef PeptideIdentification item_py_result
+        while it__r != _r.end():
+           item_py_result = PeptideIdentification.__new__(PeptideIdentification)
+           item_py_result.inst = shared_ptr[_PeptideIdentification](new _PeptideIdentification(deref(it__r)))
+           py_result.append(item_py_result)
+           inc(it__r)
+        return py_result
+    def setComment(self, bytes in_0 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+    
+        self.inst.get().setComment((_String(<char *>in_0)))
+    def getPrecursors(self):
+        _r = self.inst.get().getPrecursors()
+        py_result = []
+        cdef libcpp_vector[_Precursor].iterator it__r = _r.begin()
+        cdef Precursor item_py_result
+        while it__r != _r.end():
+           item_py_result = Precursor.__new__(Precursor)
+           item_py_result.inst = shared_ptr[_Precursor](new _Precursor(deref(it__r)))
+           py_result.append(item_py_result)
+           inc(it__r)
+        return py_result
+    def setNativeID(self, bytes in_0 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+    
+        self.inst.get().setNativeID((_String(<char *>in_0)))
+    def getProducts(self):
+        _r = self.inst.get().getProducts()
+        py_result = []
+        cdef libcpp_vector[_Product].iterator it__r = _r.begin()
+        cdef Product item_py_result
+        while it__r != _r.end():
+           item_py_result = Product.__new__(Product)
+           item_py_result.inst = shared_ptr[_Product](new _Product(deref(it__r)))
+           py_result.append(item_py_result)
+           inc(it__r)
+        return py_result
+    def setPrecursors(self, list in_0 ):
+        assert isinstance(in_0, list) and all(isinstance(li, Precursor) for li in in_0), 'arg in_0 invalid'
+        cdef libcpp_vector[_Precursor] * v0 = new libcpp_vector[_Precursor]()
+        cdef Precursor item0
+        for item0 in in_0:
+           v0.push_back(deref(item0.inst.get()))
+        self.inst.get().setPrecursors(deref(v0))
+        del v0
+    SpectrumType = __SpectrumType 
+cdef class TransformationModelLinear:
+    cdef shared_ptr[_TransformationModelLinear] inst
+    def __dealloc__(self):
+         self.inst.reset()
+    def getParameters(self, Param in_0 ):
+        assert isinstance(in_0, Param), 'arg in_0 invalid'
+    
+        self.inst.get().getParameters(<_Param &>deref(in_0.inst.get()))
+    getDefaultParameters = __static_TransformationModelLinear_getDefaultParameters 
+cdef class Software:
+    cdef shared_ptr[_Software] inst
+    def __dealloc__(self):
+         self.inst.reset()
+    def setVersion(self, bytes in_0 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+    
+        self.inst.get().setVersion((_String(<char *>in_0)))
+    def getName(self):
+        cdef _String _r = self.inst.get().getName()
+        py_result = _cast_const_away(<char*>_r.c_str())
+        return py_result
+    def getVersion(self):
+        cdef _String _r = self.inst.get().getVersion()
+        py_result = _cast_const_away(<char*>_r.c_str())
+        return py_result
+    def setName(self, bytes in_0 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+    
+        self.inst.get().setName((_String(<char *>in_0)))
+    def __init__(self):
+        self.inst = shared_ptr[_Software](new _Software()) 
+cdef class PeptideHit:
+    cdef shared_ptr[_PeptideHit] inst
+    def __dealloc__(self):
+         self.inst.reset()
+    def getSequence(self):
+        cdef _AASequence * _r = new _AASequence(self.inst.get().getSequence())
+        cdef AASequence py_result = AASequence.__new__(AASequence)
+        py_result.inst = shared_ptr[_AASequence](_r)
+        return py_result
+    def getProteinAccessions(self):
+        _r = self.inst.get().getProteinAccessions()
+        py_result = []
+        cdef libcpp_vector[_String].iterator it__r = _r.begin()
+        while it__r != _r.end():
+           py_result.append(<char*>deref(it__r).c_str())
+           inc(it__r)
+        return py_result
+    def _metaValueExists_0(self, bytes in_0 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+    
+        cdef bool _r = self.inst.get().metaValueExists((_String(<char *>in_0)))
+        py_result = <bool>_r
+        return py_result
+    def _metaValueExists_1(self, int in_0 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
+    
+        cdef bool _r = self.inst.get().metaValueExists((<int>in_0))
+        py_result = <bool>_r
+        return py_result
+    def metaValueExists(self, *args):
+        if (len(args)==1) and (isinstance(args[0], bytes)):
+            return self._metaValueExists_0(*args)
+        elif (len(args)==1) and (isinstance(args[0], int)):
+            return self._metaValueExists_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
+    def getScore(self):
+        cdef float _r = self.inst.get().getScore()
+        py_result = <float>_r
+        return py_result
+    def _setMetaValue_0(self, int in_0 , DataValue in_1 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
+        assert isinstance(in_1, DataValue), 'arg in_1 invalid'
+    
+    
+        self.inst.get().setMetaValue((<int>in_0), <_DataValue>deref(in_1.inst.get()))
+    def _setMetaValue_1(self, bytes in_0 , DataValue in_1 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+        assert isinstance(in_1, DataValue), 'arg in_1 invalid'
+    
+    
+        self.inst.get().setMetaValue((_String(<char *>in_0)), <_DataValue>deref(in_1.inst.get()))
+    def setMetaValue(self, *args):
+        if (len(args)==2) and (isinstance(args[0], int)) and (isinstance(args[1], DataValue)):
+            return self._setMetaValue_0(*args)
+        elif (len(args)==2) and (isinstance(args[0], bytes)) and (isinstance(args[1], DataValue)):
+            return self._setMetaValue_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
+    def _getKeys_0(self, list keys ):
+        assert isinstance(keys, list) and all(isinstance(i, bytes) for i in keys), 'arg keys invalid'
+        cdef libcpp_vector[_String] * v0 = new libcpp_vector[_String]()
+        cdef bytes item0
+        for item0 in keys:
+           v0.push_back(_String(<char *>item0))
+        self.inst.get().getKeys(deref(v0))
+        cdef replace = []
+        cdef libcpp_vector[_String].iterator it = v0.begin()
+        while it != v0.end():
+           replace.append(<char*>deref(it).c_str())
+           inc(it)
+        keys[:] = replace
+        del v0
+    def _getKeys_1(self, list keys ):
+        assert isinstance(keys, list) and all(isinstance(li, int) for li in keys), 'arg keys invalid'
+        cdef libcpp_vector[unsigned int] v0 = keys
+        self.inst.get().getKeys(v0)
+        keys[:] = v0
+    def getKeys(self, *args):
+        if (len(args)==1) and (isinstance(args[0], list) and all(isinstance(i, bytes) for i in args[0])):
+            return self._getKeys_0(*args)
+        elif (len(args)==1) and (isinstance(args[0], list) and all(isinstance(li, int) for li in args[0])):
+            return self._getKeys_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
+    def setCharge(self, int in_0 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
+    
+        self.inst.get().setCharge((<int>in_0))
+    def setAAAfter(self, bytes in_0 ):
+        assert isinstance(in_0, bytes) and len(in_0) == 1, 'arg in_0 invalid'
+    
+        self.inst.get().setAAAfter((<char>((in_0)[0])))
+    def setAABefore(self, bytes in_0 ):
+        assert isinstance(in_0, bytes) and len(in_0) == 1, 'arg in_0 invalid'
+    
+        self.inst.get().setAABefore((<char>((in_0)[0])))
+    def getRank(self):
+        cdef unsigned int _r = self.inst.get().getRank()
+        py_result = <int>_r
+        return py_result
+    def setScore(self, float in_0 ):
+        assert isinstance(in_0, float), 'arg in_0 invalid'
+    
+        self.inst.get().setScore((<float>in_0))
+    def getAAAfter(self):
+        cdef char  _r = self.inst.get().getAAAfter()
+        py_result = <char>(_r)
+        return py_result
+    def getAABefore(self):
+        cdef char  _r = self.inst.get().getAABefore()
+        py_result = <char>(_r)
+        return py_result
+    def isMetaEmpty(self):
+        cdef bool _r = self.inst.get().isMetaEmpty()
+        py_result = <bool>_r
+        return py_result
+    def setProteinAccessions(self, list in_0 ):
+        assert isinstance(in_0, list) and all(isinstance(i, bytes) for i in in_0), 'arg in_0 invalid'
+        cdef libcpp_vector[_String] * v0 = new libcpp_vector[_String]()
+        cdef bytes item0
+        for item0 in in_0:
+           v0.push_back(_String(<char *>item0))
+        self.inst.get().setProteinAccessions(deref(v0))
+        del v0
+    def _init_0(self):
+        self.inst = shared_ptr[_PeptideHit](new _PeptideHit())
+    def _init_1(self, float score , int rank , int charge , AASequence sequence ):
+        assert isinstance(score, float), 'arg score invalid'
+        assert isinstance(rank, int), 'arg rank invalid'
+        assert isinstance(charge, int), 'arg charge invalid'
+        assert isinstance(sequence, AASequence), 'arg sequence invalid'
+    
+    
+    
+    
+        self.inst = shared_ptr[_PeptideHit](new _PeptideHit((<float>score), (<int>rank), (<int>charge), <_AASequence>deref(sequence.inst.get())))
+    def __init__(self, *args):
+        if not args:
+             self._init_0(*args)
+        elif (len(args)==4) and (isinstance(args[0], float)) and (isinstance(args[1], int)) and (isinstance(args[2], int)) and (isinstance(args[3], AASequence)):
+             self._init_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
+    def setSequence(self, AASequence in_0 ):
+        assert isinstance(in_0, AASequence), 'arg in_0 invalid'
+    
+        self.inst.get().setSequence(<_AASequence>deref(in_0.inst.get()))
+    def _removeMetaValue_0(self, bytes in_0 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+    
+        self.inst.get().removeMetaValue((_String(<char *>in_0)))
+    def _removeMetaValue_1(self, int in_0 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
+    
+        self.inst.get().removeMetaValue((<int>in_0))
+    def removeMetaValue(self, *args):
+        if (len(args)==1) and (isinstance(args[0], bytes)):
+            return self._removeMetaValue_0(*args)
+        elif (len(args)==1) and (isinstance(args[0], int)):
+            return self._removeMetaValue_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
+    def setRank(self, int in_0 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
+    
+        self.inst.get().setRank((<int>in_0))
+    def _getMetaValue_0(self, int in_0 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
+    
+        cdef _DataValue * _r = new _DataValue(self.inst.get().getMetaValue((<int>in_0)))
+        cdef DataValue py_result = DataValue.__new__(DataValue)
+        py_result.inst = shared_ptr[_DataValue](_r)
+        return py_result
+    def _getMetaValue_1(self, bytes in_0 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+    
+        cdef _DataValue * _r = new _DataValue(self.inst.get().getMetaValue((_String(<char *>in_0))))
+        cdef DataValue py_result = DataValue.__new__(DataValue)
+        py_result.inst = shared_ptr[_DataValue](_r)
+        return py_result
+    def getMetaValue(self, *args):
+        if (len(args)==1) and (isinstance(args[0], int)):
+            return self._getMetaValue_0(*args)
+        elif (len(args)==1) and (isinstance(args[0], bytes)):
+            return self._getMetaValue_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
+    def addProteinAccession(self, bytes in_0 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+    
+        self.inst.get().addProteinAccession((_String(<char *>in_0)))
+    def clearMetaInfo(self):
+        self.inst.get().clearMetaInfo()
+    def __richcmp__(self, other, op):
+        if op not in (2, 3):
+           op_str = {0: '<', 1: '<=', 2: '==', 3: '!=', 4: '>', 5: '>='}[op]
+           raise Exception("comparions operator %s not implemented" % op_str)
+        if not isinstance(other, PeptideHit):
+            return False
+        cdef PeptideHit other_casted = other
+        cdef PeptideHit self_casted = self
+        if op==2:
+            return deref(self_casted.inst.get()) == deref(other_casted.inst.get())
+        if op==3:
+            return deref(self_casted.inst.get()) != deref(other_casted.inst.get()) 
 cdef class MapAlignmentAlgorithmPoseClustering:
     cdef shared_ptr[_MapAlignmentAlgorithmPoseClustering] inst
     def __dealloc__(self):
@@ -1877,12 +3650,12 @@ cdef class MapAlignmentAlgorithmPoseClustering:
         self.inst.get().setParameters(<_Param &>deref(param.inst.get()))
     def __init__(self):
         self.inst = shared_ptr[_MapAlignmentAlgorithmPoseClustering](new _MapAlignmentAlgorithmPoseClustering())
-    def setReference(self, int reference_index , bytes reference_file ):
-        assert isinstance(reference_index, int), 'arg reference_index invalid'
-        assert isinstance(reference_file, bytes), 'arg reference_file invalid'
+    def setReference(self, int in_0 , bytes in_1 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
+        assert isinstance(in_1, bytes), 'arg in_1 invalid'
     
     
-        self.inst.get().setReference((<size_t>reference_index), (_String(<char *>reference_file)))
+        self.inst.get().setReference((<int>in_0), (_String(<char *>in_1)))
     def setName(self, bytes in_0 ):
         assert isinstance(in_0, bytes), 'arg in_0 invalid'
     
@@ -1960,19 +3733,193 @@ cdef class MapAlignmentAlgorithmPoseClustering:
         in_1[:] = replace
         del v1
         del v0
-    def setLogType(self, int type ):
-        assert type in [0, 1, 2], 'arg type invalid'
-    
-        self.inst.get().setLogType((<_LogType>type))
     def getParameters(self):
         cdef _Param * _r = new _Param(self.inst.get().getParameters())
         cdef Param py_result = Param.__new__(Param)
         py_result.inst = shared_ptr[_Param](_r)
-        return py_result 
+        return py_result
+    transformFeatureMaps = __static_MapAlignmentAlgorithmPoseClustering_transformFeatureMaps
+    transformPeakMaps = __static_MapAlignmentAlgorithmPoseClustering_transformPeakMaps 
 cdef class MSSpectrum:
     cdef shared_ptr[_MSSpectrum[_Peak1D]] inst
     def __dealloc__(self):
          self.inst.reset()
+    def _metaValueExists_0(self, bytes in_0 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+    
+        cdef bool _r = self.inst.get().metaValueExists((_String(<char *>in_0)))
+        py_result = <bool>_r
+        return py_result
+    def _metaValueExists_1(self, int in_0 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
+    
+        cdef bool _r = self.inst.get().metaValueExists((<int>in_0))
+        py_result = <bool>_r
+        return py_result
+    def metaValueExists(self, *args):
+        if (len(args)==1) and (isinstance(args[0], bytes)):
+            return self._metaValueExists_0(*args)
+        elif (len(args)==1) and (isinstance(args[0], int)):
+            return self._metaValueExists_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
+    def getRT(self):
+        cdef double _r = self.inst.get().getRT()
+        py_result = <float>_r
+        return py_result
+    def setSourceFile(self, SourceFile in_0 ):
+        assert isinstance(in_0, SourceFile), 'arg in_0 invalid'
+    
+        self.inst.get().setSourceFile(<_SourceFile>deref(in_0.inst.get()))
+    def _getKeys_0(self, list keys ):
+        assert isinstance(keys, list) and all(isinstance(i, bytes) for i in keys), 'arg keys invalid'
+        cdef libcpp_vector[_String] * v0 = new libcpp_vector[_String]()
+        cdef bytes item0
+        for item0 in keys:
+           v0.push_back(_String(<char *>item0))
+        self.inst.get().getKeys(deref(v0))
+        cdef replace = []
+        cdef libcpp_vector[_String].iterator it = v0.begin()
+        while it != v0.end():
+           replace.append(<char*>deref(it).c_str())
+           inc(it)
+        keys[:] = replace
+        del v0
+    def _getKeys_1(self, list keys ):
+        assert isinstance(keys, list) and all(isinstance(li, int) for li in keys), 'arg keys invalid'
+        cdef libcpp_vector[unsigned int] v0 = keys
+        self.inst.get().getKeys(v0)
+        keys[:] = v0
+    def getKeys(self, *args):
+        if (len(args)==1) and (isinstance(args[0], list) and all(isinstance(i, bytes) for i in args[0])):
+            return self._getKeys_0(*args)
+        elif (len(args)==1) and (isinstance(args[0], list) and all(isinstance(li, int) for li in args[0])):
+            return self._getKeys_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
+    def setComment(self, bytes in_0 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+    
+        self.inst.get().setComment((_String(<char *>in_0)))
+    def updateRanges(self):
+        self.inst.get().updateRanges()
+    def push_back(self, Peak1D in_0 ):
+        assert isinstance(in_0, Peak1D), 'arg in_0 invalid'
+    
+        self.inst.get().push_back(<_Peak1D>deref(in_0.inst.get()))
+    def getMSLevel(self):
+        cdef unsigned int _r = self.inst.get().getMSLevel()
+        py_result = <int>_r
+        return py_result
+    def setMSLevel(self, int in_0 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
+    
+        self.inst.get().setMSLevel((<int>in_0))
+    def findNearest(self, float in_0 ):
+        assert isinstance(in_0, float), 'arg in_0 invalid'
+    
+        cdef int _r = self.inst.get().findNearest((<float>in_0))
+        py_result = <int>_r
+        return py_result
+    def size(self):
+        cdef int _r = self.inst.get().size()
+        py_result = <int>_r
+        return py_result
+    def setRT(self, float in_0 ):
+        assert isinstance(in_0, float), 'arg in_0 invalid'
+    
+        self.inst.get().setRT((<float>in_0))
+    def getName(self):
+        cdef libcpp_string _r = self.inst.get().getName()
+        py_result = <libcpp_string>_r
+        return py_result
+    def getNativeID(self):
+        cdef _String _r = self.inst.get().getNativeID()
+        py_result = _cast_const_away(<char*>_r.c_str())
+        return py_result
+    def getSourceFile(self):
+        cdef _SourceFile * _r = new _SourceFile(self.inst.get().getSourceFile())
+        cdef SourceFile py_result = SourceFile.__new__(SourceFile)
+        py_result.inst = shared_ptr[_SourceFile](_r)
+        return py_result
+    def setAcquisitionInfo(self, AcquisitionInfo in_0 ):
+        assert isinstance(in_0, AcquisitionInfo), 'arg in_0 invalid'
+    
+        self.inst.get().setAcquisitionInfo(<_AcquisitionInfo>deref(in_0.inst.get()))
+    def getAcquisitionInfo(self):
+        cdef _AcquisitionInfo * _r = new _AcquisitionInfo(self.inst.get().getAcquisitionInfo())
+        cdef AcquisitionInfo py_result = AcquisitionInfo.__new__(AcquisitionInfo)
+        py_result.inst = shared_ptr[_AcquisitionInfo](_r)
+        return py_result
+    def _setMetaValue_0(self, int in_0 , DataValue in_1 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
+        assert isinstance(in_1, DataValue), 'arg in_1 invalid'
+    
+    
+        self.inst.get().setMetaValue((<int>in_0), <_DataValue>deref(in_1.inst.get()))
+    def _setMetaValue_1(self, bytes in_0 , DataValue in_1 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+        assert isinstance(in_1, DataValue), 'arg in_1 invalid'
+    
+    
+        self.inst.get().setMetaValue((_String(<char *>in_0)), <_DataValue>deref(in_1.inst.get()))
+    def setMetaValue(self, *args):
+        if (len(args)==2) and (isinstance(args[0], int)) and (isinstance(args[1], DataValue)):
+            return self._setMetaValue_0(*args)
+        elif (len(args)==2) and (isinstance(args[0], bytes)) and (isinstance(args[1], DataValue)):
+            return self._setMetaValue_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
+    def setName(self, str in_0 ):
+        assert isinstance(in_0, str), 'arg in_0 invalid'
+    
+        self.inst.get().setName((<libcpp_string>in_0))
+    def getType(self):
+        cdef int _r = self.inst.get().getType()
+        py_result = <int>_r
+        return py_result
+    def getDataProcessing(self):
+        _r = self.inst.get().getDataProcessing()
+        py_result = []
+        cdef libcpp_vector[_DataProcessing].iterator it__r = _r.begin()
+        cdef DataProcessing item_py_result
+        while it__r != _r.end():
+           item_py_result = DataProcessing.__new__(DataProcessing)
+           item_py_result.inst = shared_ptr[_DataProcessing](new _DataProcessing(deref(it__r)))
+           py_result.append(item_py_result)
+           inc(it__r)
+        return py_result
+    def setPeptideIdentifications(self, list in_0 ):
+        assert isinstance(in_0, list) and all(isinstance(li, PeptideIdentification) for li in in_0), 'arg in_0 invalid'
+        cdef libcpp_vector[_PeptideIdentification] * v0 = new libcpp_vector[_PeptideIdentification]()
+        cdef PeptideIdentification item0
+        for item0 in in_0:
+           v0.push_back(deref(item0.inst.get()))
+        self.inst.get().setPeptideIdentifications(deref(v0))
+        del v0
+    def __getitem__(self, int in_0 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
+    
+        cdef _Peak1D * _r = new _Peak1D(deref(self.inst.get())[(<int>in_0)])
+        cdef Peak1D py_result = Peak1D.__new__(Peak1D)
+        py_result.inst = shared_ptr[_Peak1D](_r)
+        return py_result
+    def isMetaEmpty(self):
+        cdef bool _r = self.inst.get().isMetaEmpty()
+        py_result = <bool>_r
+        return py_result
+    def setDataProcessing(self, list in_0 ):
+        assert isinstance(in_0, list) and all(isinstance(li, DataProcessing) for li in in_0), 'arg in_0 invalid'
+        cdef libcpp_vector[_DataProcessing] * v0 = new libcpp_vector[_DataProcessing]()
+        cdef DataProcessing item0
+        for item0 in in_0:
+           v0.push_back(deref(item0.inst.get()))
+        self.inst.get().setDataProcessing(deref(v0))
+        del v0
+    def getComment(self):
+        cdef _String _r = self.inst.get().getComment()
+        py_result = _cast_const_away(<char*>_r.c_str())
+        return py_result
     def setInstrumentSettings(self, InstrumentSettings in_0 ):
         assert isinstance(in_0, InstrumentSettings), 'arg in_0 invalid'
     
@@ -1990,69 +3937,70 @@ cdef class MSSpectrum:
              self._init_1(*args)
         else:
                raise Exception('can not handle %s' % (args,))
-    def getSourceFile(self):
-        cdef _SourceFile * _r = new _SourceFile(self.inst.get().getSourceFile())
-        cdef SourceFile py_result = SourceFile.__new__(SourceFile)
-        py_result.inst = shared_ptr[_SourceFile](_r)
+    def unify(self, SpectrumSettings in_0 ):
+        assert isinstance(in_0, SpectrumSettings), 'arg in_0 invalid'
+    
+        self.inst.get().unify(<_SpectrumSettings>deref(in_0.inst.get()))
+    def setType(self, int in_0 ):
+        assert in_0 in [0, 1, 2, 3], 'arg in_0 invalid'
+    
+        self.inst.get().setType((<_SpectrumType>in_0))
+    def getPeptideIdentifications(self):
+        _r = self.inst.get().getPeptideIdentifications()
+        py_result = []
+        cdef libcpp_vector[_PeptideIdentification].iterator it__r = _r.begin()
+        cdef PeptideIdentification item_py_result
+        while it__r != _r.end():
+           item_py_result = PeptideIdentification.__new__(PeptideIdentification)
+           item_py_result.inst = shared_ptr[_PeptideIdentification](new _PeptideIdentification(deref(it__r)))
+           py_result.append(item_py_result)
+           inc(it__r)
         return py_result
-    def setName(self, str in_0 ):
-        assert isinstance(in_0, str), 'arg in_0 invalid'
+    def _removeMetaValue_0(self, bytes in_0 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
     
-        self.inst.get().setName((<libcpp_string>in_0))
-    def setRT(self, float in_0 ):
-        assert isinstance(in_0, float), 'arg in_0 invalid'
+        self.inst.get().removeMetaValue((_String(<char *>in_0)))
+    def _removeMetaValue_1(self, int in_0 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
     
-        self.inst.get().setRT((<float>in_0))
-    def setNativeID(self, str in_0 ):
-        assert isinstance(in_0, str), 'arg in_0 invalid'
+        self.inst.get().removeMetaValue((<int>in_0))
+    def removeMetaValue(self, *args):
+        if (len(args)==1) and (isinstance(args[0], bytes)):
+            return self._removeMetaValue_0(*args)
+        elif (len(args)==1) and (isinstance(args[0], int)):
+            return self._removeMetaValue_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
+    def clear(self, int in_0 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
     
-        self.inst.get().setNativeID((<libcpp_string>in_0))
-    def getName(self):
-        cdef libcpp_string _r = self.inst.get().getName()
-        py_result = <libcpp_string>_r
-        return py_result
-    def getRT(self):
-        cdef double _r = self.inst.get().getRT()
-        py_result = <float>_r
-        return py_result
-    def setSourceFile(self, SourceFile in_0 ):
-        assert isinstance(in_0, SourceFile), 'arg in_0 invalid'
-    
-        self.inst.get().setSourceFile(<_SourceFile>deref(in_0.inst.get()))
+        self.inst.get().clear((<int>in_0))
     def getInstrumentSettings(self):
         cdef _InstrumentSettings * _r = new _InstrumentSettings(self.inst.get().getInstrumentSettings())
         cdef InstrumentSettings py_result = InstrumentSettings.__new__(InstrumentSettings)
         py_result.inst = shared_ptr[_InstrumentSettings](_r)
         return py_result
-    def setPrecursors(self, list in_0 ):
-        assert isinstance(in_0, list) and all(isinstance(li, Precursor) for li in in_0), 'arg in_0 invalid'
-        cdef libcpp_vector[_Precursor] * v0 = new libcpp_vector[_Precursor]()
-        cdef Precursor item0
-        for item0 in in_0:
-           v0.push_back(deref(item0.inst.get()))
-        self.inst.get().setPrecursors(deref(v0))
-        del v0
-    def updateRanges(self):
-        self.inst.get().updateRanges()
-    def push_back(self, Peak1D in_0 ):
-        assert isinstance(in_0, Peak1D), 'arg in_0 invalid'
-    
-        self.inst.get().push_back(<_Peak1D>deref(in_0.inst.get()))
-    def getNativeID(self):
-        cdef libcpp_string _r = self.inst.get().getNativeID()
-        py_result = <libcpp_string>_r
-        return py_result
-    def __getitem__(self, int in_0 ):
+    def _getMetaValue_0(self, int in_0 ):
         assert isinstance(in_0, int), 'arg in_0 invalid'
     
-        cdef _Peak1D * _r = new _Peak1D(deref(self.inst.get())[(<int>in_0)])
-        cdef Peak1D py_result = Peak1D.__new__(Peak1D)
-        py_result.inst = shared_ptr[_Peak1D](_r)
+        cdef _DataValue * _r = new _DataValue(self.inst.get().getMetaValue((<int>in_0)))
+        cdef DataValue py_result = DataValue.__new__(DataValue)
+        py_result.inst = shared_ptr[_DataValue](_r)
         return py_result
-    def getMSLevel(self):
-        cdef unsigned int _r = self.inst.get().getMSLevel()
-        py_result = <int>_r
+    def _getMetaValue_1(self, bytes in_0 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+    
+        cdef _DataValue * _r = new _DataValue(self.inst.get().getMetaValue((_String(<char *>in_0))))
+        cdef DataValue py_result = DataValue.__new__(DataValue)
+        py_result.inst = shared_ptr[_DataValue](_r)
         return py_result
+    def getMetaValue(self, *args):
+        if (len(args)==1) and (isinstance(args[0], int)):
+            return self._getMetaValue_0(*args)
+        elif (len(args)==1) and (isinstance(args[0], bytes)):
+            return self._getMetaValue_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
     def getPrecursors(self):
         _r = self.inst.get().getPrecursors()
         py_result = []
@@ -2064,24 +4012,51 @@ cdef class MSSpectrum:
            py_result.append(item_py_result)
            inc(it__r)
         return py_result
-    def setMSLevel(self, int in_0 ):
-        assert isinstance(in_0, int), 'arg in_0 invalid'
+    def setNativeID(self, bytes in_0 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
     
-        self.inst.get().setMSLevel((<int>in_0))
-    def clear(self, int in_0 ):
-        assert isinstance(in_0, int), 'arg in_0 invalid'
-    
-        self.inst.get().clear((<int>in_0))
-    def findNearest(self, float in_0 ):
-        assert isinstance(in_0, float), 'arg in_0 invalid'
-    
-        cdef int _r = self.inst.get().findNearest((<float>in_0))
-        py_result = <int>_r
+        self.inst.get().setNativeID((_String(<char *>in_0)))
+    def clearMetaInfo(self):
+        self.inst.get().clearMetaInfo()
+    def getProducts(self):
+        _r = self.inst.get().getProducts()
+        py_result = []
+        cdef libcpp_vector[_Product].iterator it__r = _r.begin()
+        cdef Product item_py_result
+        while it__r != _r.end():
+           item_py_result = Product.__new__(Product)
+           item_py_result.inst = shared_ptr[_Product](new _Product(deref(it__r)))
+           py_result.append(item_py_result)
+           inc(it__r)
         return py_result
-    def size(self):
-        cdef int _r = self.inst.get().size()
-        py_result = <int>_r
-        return py_result
+    def setPrecursors(self, list in_0 ):
+        assert isinstance(in_0, list) and all(isinstance(li, Precursor) for li in in_0), 'arg in_0 invalid'
+        cdef libcpp_vector[_Precursor] * v0 = new libcpp_vector[_Precursor]()
+        cdef Precursor item0
+        for item0 in in_0:
+           v0.push_back(deref(item0.inst.get()))
+        self.inst.get().setPrecursors(deref(v0))
+        del v0
+    def setProducts(self, list in_0 ):
+        assert isinstance(in_0, list) and all(isinstance(li, Product) for li in in_0), 'arg in_0 invalid'
+        cdef libcpp_vector[_Product] * v0 = new libcpp_vector[_Product]()
+        cdef Product item0
+        for item0 in in_0:
+           v0.push_back(deref(item0.inst.get()))
+        self.inst.get().setProducts(deref(v0))
+        del v0
+    def __richcmp__(self, other, op):
+        if op not in (2, 3):
+           op_str = {0: '<', 1: '<=', 2: '==', 3: '!=', 4: '>', 5: '>='}[op]
+           raise Exception("comparions operator %s not implemented" % op_str)
+        if not isinstance(other, MSSpectrum):
+            return False
+        cdef MSSpectrum other_casted = other
+        cdef MSSpectrum self_casted = self
+        if op==2:
+            return deref(self_casted.inst.get()) == deref(other_casted.inst.get())
+        if op==3:
+            return deref(self_casted.inst.get()) != deref(other_casted.inst.get())
     # the following empty line is important
 
     def get_peaks(self):
@@ -2221,6 +4196,25 @@ cdef class InstrumentSettings:
         cdef bool _r = self.inst.get().isMetaEmpty()
         py_result = <bool>_r
         return py_result
+    def _setMetaValue_0(self, int in_0 , DataValue in_1 ):
+        assert isinstance(in_0, int), 'arg in_0 invalid'
+        assert isinstance(in_1, DataValue), 'arg in_1 invalid'
+    
+    
+        self.inst.get().setMetaValue((<int>in_0), <_DataValue>deref(in_1.inst.get()))
+    def _setMetaValue_1(self, bytes in_0 , DataValue in_1 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+        assert isinstance(in_1, DataValue), 'arg in_1 invalid'
+    
+    
+        self.inst.get().setMetaValue((_String(<char *>in_0)), <_DataValue>deref(in_1.inst.get()))
+    def setMetaValue(self, *args):
+        if (len(args)==2) and (isinstance(args[0], int)) and (isinstance(args[1], DataValue)):
+            return self._setMetaValue_0(*args)
+        elif (len(args)==2) and (isinstance(args[0], bytes)) and (isinstance(args[1], DataValue)):
+            return self._setMetaValue_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
     def setPolarity(self, int in_0 ):
         assert in_0 in [0, 1, 2, 3], 'arg in_0 invalid'
     
@@ -2349,57 +4343,37 @@ cdef class FeatureMap:
     cdef shared_ptr[_FeatureMap[_Feature]] inst
     def __dealloc__(self):
          self.inst.reset()
-    def getUniqueId(self):
-        cdef size_t _r = self.inst.get().getUniqueId()
-        py_result = <size_t>_r
-        return py_result
-    def swap(self, FeatureMap in_0 ):
-        assert isinstance(in_0, FeatureMap), 'arg in_0 invalid'
-    
-        self.inst.get().swap(<_FeatureMap[_Feature] &>deref(in_0.inst.get()))
-    def sortByPosition(self):
-        self.inst.get().sortByPosition()
-    def setUniqueId(self):
-        cdef size_t _r = self.inst.get().setUniqueId()
-        py_result = <size_t>_r
-        return py_result
-    def ensureUniqueId(self):
-        cdef size_t _r = self.inst.get().ensureUniqueId()
-        py_result = <size_t>_r
-        return py_result
-    def _clear_0(self):
-        self.inst.get().clear()
-    def _clear_1(self, int clear_meta_data ):
-        assert isinstance(clear_meta_data, int), 'arg clear_meta_data invalid'
-    
-        self.inst.get().clear((<bool>clear_meta_data))
-    def clear(self, *args):
-        if not args:
-            return self._clear_0(*args)
-        elif (len(args)==1) and (isinstance(args[0], int)):
-            return self._clear_1(*args)
-        else:
-               raise Exception('can not handle %s' % (args,))
-    def sortByOverallQuality(self):
-        self.inst.get().sortByOverallQuality()
+    def setUnassignedPeptideIdentifications(self, list in_0 ):
+        assert isinstance(in_0, list) and all(isinstance(li, PeptideIdentification) for li in in_0), 'arg in_0 invalid'
+        cdef libcpp_vector[_PeptideIdentification] * v0 = new libcpp_vector[_PeptideIdentification]()
+        cdef PeptideIdentification item0
+        for item0 in in_0:
+           v0.push_back(deref(item0.inst.get()))
+        self.inst.get().setUnassignedPeptideIdentifications(deref(v0))
+        del v0
     def sortByMZ(self):
         self.inst.get().sortByMZ()
-    def hasInvalidUniqueId(self):
-        cdef size_t _r = self.inst.get().hasInvalidUniqueId()
-        py_result = <size_t>_r
-        return py_result
     def hasValidUniqueId(self):
         cdef size_t _r = self.inst.get().hasValidUniqueId()
         py_result = <size_t>_r
         return py_result
     def updateRanges(self):
         self.inst.get().updateRanges()
-    def __init__(self):
-        self.inst = shared_ptr[_FeatureMap[_Feature]](new _FeatureMap[_Feature]())
-    def push_back(self, Feature spec ):
-        assert isinstance(spec, Feature), 'arg spec invalid'
-    
-        self.inst.get().push_back(<_Feature>deref(spec.inst.get()))
+    def __add__(FeatureMap self, FeatureMap other not None):
+        cdef _FeatureMap[_Feature]  * this = self.inst.get()
+        cdef _FeatureMap[_Feature] * that = other.inst.get()
+        cdef _FeatureMap[_Feature] added = deref(this) + deref(that)
+        cdef FeatureMap result = FeatureMap.__new__(FeatureMap)
+        result.inst = shared_ptr[_FeatureMap[_Feature]](new _FeatureMap[_Feature](added))
+        return result
+    def setProteinIdentifications(self, list in_0 ):
+        assert isinstance(in_0, list) and all(isinstance(li, ProteinIdentification) for li in in_0), 'arg in_0 invalid'
+        cdef libcpp_vector[_ProteinIdentification] * v0 = new libcpp_vector[_ProteinIdentification]()
+        cdef ProteinIdentification item0
+        for item0 in in_0:
+           v0.push_back(deref(item0.inst.get()))
+        self.inst.get().setProteinIdentifications(deref(v0))
+        del v0
     def _sortByIntensity_0(self):
         self.inst.get().sortByIntensity()
     def _sortByIntensity_1(self, int reverse ):
@@ -2413,6 +4387,57 @@ cdef class FeatureMap:
             return self._sortByIntensity_1(*args)
         else:
                raise Exception('can not handle %s' % (args,))
+    def size(self):
+        cdef int _r = self.inst.get().size()
+        py_result = <int>_r
+        return py_result
+    def getUniqueId(self):
+        cdef size_t _r = self.inst.get().getUniqueId()
+        py_result = <size_t>_r
+        return py_result
+    def sortByPosition(self):
+        self.inst.get().sortByPosition()
+    def __iadd__(FeatureMap self, FeatureMap other not None):
+        cdef _FeatureMap[_Feature] * this = self.inst.get()
+        cdef _FeatureMap[_Feature] * that = other.inst.get()
+        _iadd(this, that)
+        return self
+    def sortByOverallQuality(self):
+        self.inst.get().sortByOverallQuality()
+    def hasInvalidUniqueId(self):
+        cdef size_t _r = self.inst.get().hasInvalidUniqueId()
+        py_result = <size_t>_r
+        return py_result
+    def swap(self, FeatureMap in_0 ):
+        assert isinstance(in_0, FeatureMap), 'arg in_0 invalid'
+    
+        self.inst.get().swap(<_FeatureMap[_Feature] &>deref(in_0.inst.get()))
+    def clearUniqueId(self):
+        cdef size_t _r = self.inst.get().clearUniqueId()
+        py_result = <size_t>_r
+        return py_result
+    def getUnassignedPeptideIdentifications(self):
+        _r = self.inst.get().getUnassignedPeptideIdentifications()
+        py_result = []
+        cdef libcpp_vector[_PeptideIdentification].iterator it__r = _r.begin()
+        cdef PeptideIdentification item_py_result
+        while it__r != _r.end():
+           item_py_result = PeptideIdentification.__new__(PeptideIdentification)
+           item_py_result.inst = shared_ptr[_PeptideIdentification](new _PeptideIdentification(deref(it__r)))
+           py_result.append(item_py_result)
+           inc(it__r)
+        return py_result
+    def getDataProcessing(self):
+        _r = self.inst.get().getDataProcessing()
+        py_result = []
+        cdef libcpp_vector[_DataProcessing].iterator it__r = _r.begin()
+        cdef DataProcessing item_py_result
+        while it__r != _r.end():
+           item_py_result = DataProcessing.__new__(DataProcessing)
+           item_py_result.inst = shared_ptr[_DataProcessing](new _DataProcessing(deref(it__r)))
+           py_result.append(item_py_result)
+           inc(it__r)
+        return py_result
     def __getitem__(self, int in_0 ):
         assert isinstance(in_0, int), 'arg in_0 invalid'
     
@@ -2420,18 +4445,127 @@ cdef class FeatureMap:
         cdef Feature py_result = Feature.__new__(Feature)
         py_result.inst = shared_ptr[_Feature](_r)
         return py_result
-    def clearUniqueId(self):
-        cdef size_t _r = self.inst.get().clearUniqueId()
-        py_result = <size_t>_r
-        return py_result
+    def setDataProcessing(self, list in_0 ):
+        assert isinstance(in_0, list) and all(isinstance(li, DataProcessing) for li in in_0), 'arg in_0 invalid'
+        cdef libcpp_vector[_DataProcessing] * v0 = new libcpp_vector[_DataProcessing]()
+        cdef DataProcessing item0
+        for item0 in in_0:
+           v0.push_back(deref(item0.inst.get()))
+        self.inst.get().setDataProcessing(deref(v0))
+        del v0
     def sortByRT(self):
         self.inst.get().sortByRT()
-    def size(self):
-        cdef int _r = self.inst.get().size()
+    def _clear_0(self):
+        self.inst.get().clear()
+    def _clear_1(self, int clear_meta_data ):
+        assert isinstance(clear_meta_data, int), 'arg clear_meta_data invalid'
+    
+        self.inst.get().clear((<bool>clear_meta_data))
+    def clear(self, *args):
+        if not args:
+            return self._clear_0(*args)
+        elif (len(args)==1) and (isinstance(args[0], int)):
+            return self._clear_1(*args)
+        else:
+               raise Exception('can not handle %s' % (args,))
+    def ensureUniqueId(self):
+        cdef size_t _r = self.inst.get().ensureUniqueId()
+        py_result = <size_t>_r
+        return py_result
+    def __init__(self):
+        self.inst = shared_ptr[_FeatureMap[_Feature]](new _FeatureMap[_Feature]())
+    def push_back(self, Feature spec ):
+        assert isinstance(spec, Feature), 'arg spec invalid'
+    
+        self.inst.get().push_back(<_Feature>deref(spec.inst.get()))
+    def getProteinIdentifications(self):
+        _r = self.inst.get().getProteinIdentifications()
+        py_result = []
+        cdef libcpp_vector[_ProteinIdentification].iterator it__r = _r.begin()
+        cdef ProteinIdentification item_py_result
+        while it__r != _r.end():
+           item_py_result = ProteinIdentification.__new__(ProteinIdentification)
+           item_py_result.inst = shared_ptr[_ProteinIdentification](new _ProteinIdentification(deref(it__r)))
+           py_result.append(item_py_result)
+           inc(it__r)
+        return py_result
+    # the following empty line is important
+
+    def setUniqueIds(self):
+        self.inst.get().applyMemberFunction(address(_setUniqueId)) 
+cdef class TransformationModelInterpolated:
+    cdef shared_ptr[_TransformationModelInterpolated] inst
+    def __dealloc__(self):
+         self.inst.reset()
+    def getParameters(self, Param in_0 ):
+        assert isinstance(in_0, Param), 'arg in_0 invalid'
+    
+        self.inst.get().getParameters(<_Param &>deref(in_0.inst.get()))
+    getDefaultParameters = __static_TransformationModelInterpolated_getDefaultParameters 
+cdef class PeakPickerHiRes:
+    cdef shared_ptr[_PeakPickerHiRes] inst
+    def __dealloc__(self):
+         self.inst.reset()
+    def getLogType(self):
+        cdef _LogType _r = self.inst.get().getLogType()
         py_result = <int>_r
-        return py_result 
-cdef class ProgressLogger:
-    cdef shared_ptr[_ProgressLogger] inst
+        return py_result
+    def setParameters(self, Param param ):
+        assert isinstance(param, Param), 'arg param invalid'
+    
+        self.inst.get().setParameters(<_Param &>deref(param.inst.get()))
+    def endProgress(self):
+        self.inst.get().endProgress()
+    def setName(self, bytes in_0 ):
+        assert isinstance(in_0, bytes), 'arg in_0 invalid'
+    
+        self.inst.get().setName((_String(<char *>in_0)))
+    def getDefaults(self):
+        cdef _Param * _r = new _Param(self.inst.get().getDefaults())
+        cdef Param py_result = Param.__new__(Param)
+        py_result.inst = shared_ptr[_Param](_r)
+        return py_result
+    def getName(self):
+        cdef _String _r = self.inst.get().getName()
+        py_result = _cast_const_away(<char*>_r.c_str())
+        return py_result
+    def __init__(self):
+        self.inst = shared_ptr[_PeakPickerHiRes](new _PeakPickerHiRes())
+    def setLogType(self, int in_0 ):
+        assert in_0 in [0, 1, 2], 'arg in_0 invalid'
+    
+        self.inst.get().setLogType((<_LogType>in_0))
+    def pick(self, MSSpectrum input , MSSpectrum output ):
+        assert isinstance(input, MSSpectrum), 'arg input invalid'
+        assert isinstance(output, MSSpectrum), 'arg output invalid'
+    
+    
+        self.inst.get().pick(<_MSSpectrum[_Peak1D] &>deref(input.inst.get()), <_MSSpectrum[_Peak1D] &>deref(output.inst.get()))
+    def setProgress(self, int value ):
+        assert isinstance(value, int), 'arg value invalid'
+    
+        self.inst.get().setProgress((<ptrdiff_t>value))
+    def pickExperiment(self, MSExperiment input , MSExperiment output ):
+        assert isinstance(input, MSExperiment), 'arg input invalid'
+        assert isinstance(output, MSExperiment), 'arg output invalid'
+    
+    
+        self.inst.get().pickExperiment(<_MSExperiment[_Peak1D,_ChromatogramPeak] &>deref(input.inst.get()), <_MSExperiment[_Peak1D,_ChromatogramPeak] &>deref(output.inst.get()))
+    def getParameters(self):
+        cdef _Param * _r = new _Param(self.inst.get().getParameters())
+        cdef Param py_result = Param.__new__(Param)
+        py_result.inst = shared_ptr[_Param](_r)
+        return py_result
+    def startProgress(self, int begin , int end , bytes label ):
+        assert isinstance(begin, int), 'arg begin invalid'
+        assert isinstance(end, int), 'arg end invalid'
+        assert isinstance(label, bytes), 'arg label invalid'
+    
+    
+    
+        self.inst.get().startProgress((<ptrdiff_t>begin), (<ptrdiff_t>end), (_String(<char *>label))) 
+cdef class FeatureFinder:
+    cdef shared_ptr[_FeatureFinder] inst
     def __dealloc__(self):
          self.inst.reset()
     def getLogType(self):
@@ -2446,16 +4580,51 @@ cdef class ProgressLogger:
     
     
         self.inst.get().startProgress((<ptrdiff_t>begin), (<ptrdiff_t>end), (_String(<char *>label)))
+    def run(self, bytes algorithm_name , MSExperiment input_map , FeatureMap feats , Param param , FeatureMap seeds ):
+        assert isinstance(algorithm_name, bytes), 'arg algorithm_name invalid'
+        assert isinstance(input_map, MSExperiment), 'arg input_map invalid'
+        assert isinstance(feats, FeatureMap), 'arg feats invalid'
+        assert isinstance(param, Param), 'arg param invalid'
+        assert isinstance(seeds, FeatureMap), 'arg seeds invalid'
+    
+    
+    
+    
+    
+        self.inst.get().run((_String(<char *>algorithm_name)), <_MSExperiment[_Peak1D,_ChromatogramPeak] &>deref(input_map.inst.get()), <_FeatureMap[_Feature] &>deref(feats.inst.get()), <_Param &>deref(param.inst.get()), <_FeatureMap[_Feature] &>deref(seeds.inst.get()))
     def endProgress(self):
         self.inst.get().endProgress()
-    def __init__(self):
-        self.inst = shared_ptr[_ProgressLogger](new _ProgressLogger())
     def setProgress(self, int value ):
         assert isinstance(value, int), 'arg value invalid'
     
         self.inst.get().setProgress((<ptrdiff_t>value))
+    def __init__(self):
+        self.inst = shared_ptr[_FeatureFinder](new _FeatureFinder())
     def setLogType(self, int in_0 ):
         assert in_0 in [0, 1, 2], 'arg in_0 invalid'
     
-        self.inst.get().setLogType((<_LogType>in_0)) 
+        self.inst.get().setLogType((<_LogType>in_0))
+    def getParameters(self, bytes algorithm_name ):
+        assert isinstance(algorithm_name, bytes), 'arg algorithm_name invalid'
+    
+        cdef _Param * _r = new _Param(self.inst.get().getParameters((_String(<char *>algorithm_name))))
+        cdef Param py_result = Param.__new__(Param)
+        py_result.inst = shared_ptr[_Param](_r)
+        return py_result 
+cdef class TransformationModelBSpline:
+    cdef shared_ptr[_TransformationModelBSpline] inst
+    def __dealloc__(self):
+         self.inst.reset()
+    def getParameters(self, Param in_0 ):
+        assert isinstance(in_0, Param), 'arg in_0 invalid'
+    
+        self.inst.get().getParameters(<_Param &>deref(in_0.inst.get()))
+    getDefaultParameters = __static_TransformationModelBSpline_getDefaultParameters 
+cdef class VersionInfo:
+    cdef shared_ptr[_VersionInfo] inst
+    def __dealloc__(self):
+         self.inst.reset()
+    getRevision = __static_VersionInfo_getRevision
+    getTime = __static_VersionInfo_getTime
+    getVersion = __static_VersionInfo_getVersion 
 

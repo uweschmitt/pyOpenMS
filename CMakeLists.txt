@@ -12,40 +12,25 @@ mark_as_advanced( CYTHON_EXECUTABLE )
 
 # copy files
 
-FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
-FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/cython_code)
-FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/cython_code/pxd)
+FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyopenms)
+FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pxds)
+FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/addons)
+FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/converters)
 
-FILE(GLOB _python_files "pyOpenMS/*.py")
-FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
+FILE(GLOB _python_files "pyopenms/*.py")
+FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyopenms)
 
-FILE(GLOB _python_files "pyOpenMS/cython_code/*.py")
-FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/cython_code)
+FILE(GLOB _python_files "pxds/*.pxd")
+FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pxds)
 
-FILE(GLOB _python_files "pyOpenMS/cython_code/*.pyx")
-FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/cython_code)
+FILE(GLOB _python_files "addons/*.pyx")
+FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/addons)
 
-FILE(GLOB _python_files "pyOpenMS/cython_code/pxd/*.p*")
-FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/cython_code/pxd)
-
-FILE(GLOB _python_files "pyOpenMS/*.dll")
-FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
+FILE(GLOB _python_files "converters/*.py")
+FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/converters)
 
 FILE(COPY setup.py DESTINATION ${CMAKE_BINARY_DIR})
 
-# generate cython wrapper
-
-EXECUTE_PROCESS(COMMAND ${PYTHON_EXECUTABLE} build_cython_file.py 
-  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/cython_code
-  ERROR_VARIABLE PYOK)
-
 MESSAGE("PYOK " ${PYOK})
 
-# run cython to generate c++ file
- 
-EXECUTE_PROCESS(COMMAND ${CYTHON_EXECUTABLE} -X boundscheck=False -X wraparound=False --cplus -o ../pyOpenMS.cpp pyOpenMS.pyx
-WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/cython_code
-ERROR_VARIABLE CYOK)
-MESSAGE("CYOK " ${CYOK})
-
-add_custom_target(pyopenms COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace)
+add_custom_target(pyopenms COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg)
