@@ -2,7 +2,32 @@ import argparse
 import pyopenms as pms
 import pprint
 import logging
+import os.path
+import sys
 
+def addDataProcessing(what, params):
+    result = pms.MSExperiment()
+    for spec in what:
+        spec = _addDataProcessing(spec, params)
+        result.push_back(spec)
+    return result
+
+def _addDataProcessing(item, params):
+    dp = item.getDataProcessing()
+    p = pms.DataProcessing()
+    p.setProcessingActions(set([pms.ProcessingAction.PEAK_PICKING]))
+    sw = p.getSoftware()
+    sw.setName(os.path.basename(sys.argv[0]))
+    sw.setVersion(pms.VersionInfo.getVersion())
+    p.setSoftware(sw)
+    p.setCompletionTime(pms.DateTime.now())
+
+    for k, v in params.asDict().items():
+        p.setMetaValue("parameter: "+k, pms.DataValue(v))
+
+    dp.append(p)
+    item.setDataProcessing(dp)
+    return item
 
 def run_peak_picker(input_map, params, out_path):
 
@@ -15,6 +40,8 @@ def run_peak_picker(input_map, params, out_path):
     pp.setParameters(params)
     out_map = pms.MSExperiment()
     pp.pickExperiment(input_map, out_map)
+
+    out_map = addDataProcessing(out_map, params)
     fh = pms.FileHandler()
     fh.storeExperiment(out_path, out_map)
 

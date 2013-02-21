@@ -123,10 +123,9 @@ def main():
             fh = pms.FeatureXMLFile()
             fh.load(args.seeds, seeds)
 
-        fh = pms.MzXMLFile()
-        fh.setLogType(pms.LogType.CMD)
+        fh = pms.FileHandler()
         input_map = pms.MSExperiment()
-        fh.load(args.in_, input_map)
+        fh.loadExperiment(args.in_, input_map)
 
         run_featurefinder_centroided(input_map, defaults, seeds, args.out)
 
