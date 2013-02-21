@@ -1,14 +1,16 @@
 from libcpp.vector cimport vector as libcpp_vector
 from libcpp.string cimport string as libcpp_string
 from SpectrumSettings cimport *
+from MetaInfoInterface cimport *
 from Peak1D cimport *
 from String cimport *
 
 cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
 
-    cdef cppclass MSSpectrum[PeakT](SpectrumSettings):
+    cdef cppclass MSSpectrum[PeakT](SpectrumSettings, MetaInfoInterface):
         # wrap-inherits:
         #  SpectrumSettings
+        #  MetaInfoInterface
 
         # wrap-instances:
         #   MSSpectrum := MSSpectrum[Peak1D]
@@ -41,8 +43,6 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
 
         bool operator==(MSSpectrum[PeakT]) nogil except +
         bool operator!=(MSSpectrum[PeakT]) nogil except +
-        bool isMetaEmpty() nogil except +
-        void clearMetaInfo() nogil except +
 
         void getKeys(libcpp_vector[String] & keys)
         void getKeys(libcpp_vector[unsigned int] & keys)

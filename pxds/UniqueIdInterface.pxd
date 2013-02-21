@@ -14,8 +14,7 @@ cdef extern from "<OpenMS/CONCEPT/UniqueIdInterface.h>" namespace "OpenMS":
         void swap(UniqueIdInterface) nogil except +  # wrap-ignore
         Size hasValidUniqueId() nogil except +
         Size hasInvalidUniqueId() nogil except +
-        #Size setUniqueId(UInt64 rhs) nogil except +
-        #Size setUniqueId(String rhs) nogil except +
+        void setUniqueId(UInt64 rhs) nogil except +
         Size ensureUniqueId() nogil except +
 
 cdef extern from "<OpenMS/CONCEPT/UniqueIdInterface.h>" namespace "OpenMS::UniqueIdInterface":

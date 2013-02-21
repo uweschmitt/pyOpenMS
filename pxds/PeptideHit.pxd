@@ -2,7 +2,6 @@ from libcpp cimport bool
 from Types cimport *
 from DataValue cimport *
 from Feature cimport *
-from UniqueIdInterface cimport *
 from ProteinIdentification cimport *
 from AASequence cimport *
 

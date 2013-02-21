@@ -7,10 +7,11 @@ from UniqueIdInterface cimport *
 
 cdef extern from "<OpenMS/KERNEL/Peak2D.h>" namespace "OpenMS":
 
-    cdef cppclass RichPeak2D(Peak2D, UniqueIdInterface):
+    cdef cppclass RichPeak2D(Peak2D, UniqueIdInterface, MetaInfoInterface):
         # wrap-inherits:
         #    Peak2D
         #    UniqueIdInterface
+        #    MetaInfoInterface
 
         RichPeak2D() nogil except +
 

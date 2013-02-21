@@ -39,11 +39,12 @@ cdef extern from "<OpenMS/METADATA/ProteinHit.h>" namespace "OpenMS":
         void getKeys(libcpp_vector[unsigned int] & keys)
         DataValue getMetaValue(unsigned int) nogil except +
         DataValue getMetaValue(String) nogil except +
+        void setMetaValue(unsigned int, DataValue) nogil except +
+        void setMetaValue(String, DataValue) nogil except +
         bool metaValueExists(String) nogil except +
         bool metaValueExists(unsigned int) nogil except +
         void removeMetaValue(String) nogil except +
         void removeMetaValue(unsigned int) nogil except +
-
 
 
 

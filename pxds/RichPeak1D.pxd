@@ -5,11 +5,14 @@ from MetaInfoInterface cimport *
 
 cdef extern from "<OpenMS/KERNEL/Peak1D.h>" namespace "OpenMS":
 
-    cdef cppclass RichPeak1D(Peak1D):
+    cdef cppclass RichPeak1D(Peak1D, MetaInfoInterface):
         # wrap-inherits:
         #    Peak1D
+        #    MetaInfoInterface
 
         RichPeak1D() nogil except +
+        bool operator==(RichPeak1D) nogil except +
+        bool operator!=(RichPeak1D) nogil except +
 
         # declare again: cython complains for overloaded methods in base
         # classes

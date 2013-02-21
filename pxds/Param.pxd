@@ -12,6 +12,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS":
     cdef cppclass Param:
          Param() nogil except +
          Param(Param) nogil except +
+         bool operator==(Param) nogil except +
          void setValue(String key, DataValue val, String desc, StringList tags) nogil except +
          void setValue(String key, DataValue val, String desc) nogil except +
          DataValue getValue(String key) nogil except +

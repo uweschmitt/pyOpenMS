@@ -20,7 +20,7 @@
             elif dt == DataType.INT_VALUE:
                 value = value.toInt()
             elif dt == DataType.DOUBLE_VALUE:
-                value = value.toFloat()
+                value = value.toDouble()
             elif dt == DataType.DOUBLE_LIST:
                 value = value.toDoubleList()
             elif dt == DataType.STRING_LIST:

@@ -16,10 +16,14 @@ for clz_name, clz in pyopenms.__dict__.items():
     if not hasattr(clz, "__dict__"):
         continue
     for method_name, method in clz.__dict__.items():
-       
-        if method_name.startswith("__") and method_name != "__init__":
+
+        if method_name.startswith("_") and not method_name.startswith("__"):
             continue
-        
+
+        if method_name in [ "__doc__", "__new__", "__file__", "__name__",
+                "__package__", "__builtins__", "__copy__"]:
+            continue
+
         toTest.add("%s.%s" % (clz_name, method_name))
 
 def parse_doc(item, collection):
@@ -30,7 +34,7 @@ def parse_doc(item, collection):
                 continue
             for line in it:
                 line = line.strip()
-                if "@end" in line: 
+                if "@end" in line:
                     break
                 if not line:
                     continue
@@ -43,21 +47,22 @@ def parse_doc(item, collection):
                     fullname = fullname[:-2]
                 collection.add(fullname)
                 oldclzz = clz
-                  
+
 
 def collectRecursed(obj, collection):
     if hasattr(obj, "__dict__"):
         for name, item in obj.__dict__.items():
-                if name.upper().startswith("TEST"):
+                if name.upper().startswith("TEST") or\
+                    name.upper().startswith("_TEST"):
                     parse_doc(item, collection)
                     collectRecursed(item, collection)
 
 declaredAsTested = set()
 
-for p in glob.glob("unittests/test*.py"):
+for p in glob.glob("tests/unittests/test*.py"):
     module_name= p[:-3].replace("/",".").replace(os.sep, ".")
 
-    module = __import__(module_name)
+    module = __import__(module_name).unittests
     collectRecursed(module, declaredAsTested)
 
 missing = toTest-declaredAsTested
